@@ -2,56 +2,105 @@ import React from 'react';
 import { ConnectionPanel } from './ConnectionPanel';
 import { DataCard } from './DataCard';
 import { DataChart } from './DataChart';
-import { Activity, Thermometer, Droplets, Heart } from 'lucide-react';
+import { AnalysisPanel } from './AnalysisPanel';
+import { AlertBanner } from './AlertBanner';
+import { VitalsReference } from './VitalsReference';
+import { Heart, Droplets, Radio, Waves, Syringe, TestTube } from 'lucide-react';
 import { useFirebaseData } from '../hooks/useFirebaseData';
+import { useAnalysisData } from '../hooks/useAnalysisData';
+import { getVitalStatus, getActiveAlerts } from '../constants/vitalRanges';
 
 export function DashboardLayout() {
   const { data, history, isConnected, error } = useFirebaseData();
+  const { analysis, hasAnalysis, analysisError } = useAnalysisData('device01');
+
+  // Helper: format values or show '—' when null
+  const fmt = (val, decimals = 0) =>
+    val != null ? Number(val).toFixed(decimals) : '—';
+
+  // Get live clinical status for HR and SpO2
+  const hrStatus  = getVitalStatus('heart_rate', data.heart_rate);
+  const spo2Status = getVitalStatus('spo2', data.spo2);
+
+  // Get all active alerts
+  const alerts = getActiveAlerts(data);
 
   return (
     <div className="container">
       <header className="header">
         <div>
-          <h1>AyurAI Data Stimulation</h1>
-          <p style={{ color: '#94a3b8', marginTop: '0.5rem' }}>Real-time telemetry from Firebase</p>
+          <h1>AyurAI Dashboard</h1>
+          <p className="header-subtitle">
+            MAX30102 · ESP32-S3 · Firebase · Gemini
+          </p>
         </div>
+        <ConnectionPanel isConnected={isConnected} error={error} />
       </header>
 
-      <ConnectionPanel
-        isConnected={isConnected}
-        error={error}
-      />
+      {/* ── Live Alerts ── */}
+      <AlertBanner alerts={alerts} />
 
-      {/* Main Data Grid */}
+      {/* ── Sensor Cards ── */}
       <div className="dashboard-grid">
         <DataCard
-          title="Body Temperature"
-          value={data.temperature.toFixed(1)}
-          unit="°C"
-          icon={Thermometer}
-        />
-        <DataCard
-          title="SpO2"
-          value={data.spo2.toFixed(0)}
-          unit="%"
-          icon={Droplets}
-        />
-        <DataCard
           title="Heart Rate"
-          value={data.heart_rate.toFixed(0)}
+          value={fmt(data.heart_rate)}
           unit="bpm"
           icon={Heart}
+          accentColor="rose"
+          vitalStatus={hrStatus}
         />
         <DataCard
-          title="Activity (X-axis)"
-          value={data.activity_x.toFixed(2)}
-          unit="g"
-          icon={Activity}
+          title="SpO₂"
+          value={fmt(data.spo2)}
+          unit="%"
+          icon={Droplets}
+          accentColor="cyan"
+          vitalStatus={spo2Status}
+        />
+        <DataCard
+          title="Raw IR"
+          value={data.raw_ir != null ? (data.raw_ir / 1000).toFixed(1) + 'k' : '—'}
+          unit="ADC"
+          icon={Waves}
+          accentColor="amber"
+        />
+        <DataCard
+          title="Raw RED"
+          value={data.raw_red != null ? (data.raw_red / 1000).toFixed(1) + 'k' : '—'}
+          unit="ADC"
+          icon={Radio}
+          accentColor="emerald"
+        />
+        <DataCard
+          title="Hemoglobin (Est)"
+          value={fmt(data.hb_estimate, 1)}
+          unit="g/dL"
+          icon={Syringe}
+          accentColor="rose"
+        />
+        <DataCard
+          title="Glucose (Est)"
+          value={fmt(data.glucose_estimate)}
+          unit="mg/dL"
+          icon={TestTube}
+          accentColor="cyan"
         />
       </div>
 
-      {/* Historical Data Chart */}
+      {/* ── Clinical Reference Ranges ── */}
+      <VitalsReference heartRate={data.heart_rate} spo2={data.spo2} />
+
+      {/* ── Historical Chart ── */}
       {history.length > 0 && <DataChart data={history} />}
+
+      {/* ── Gemini AI Interpretation ── */}
+      <AnalysisPanel
+        analysis={analysis}
+        hasAnalysis={hasAnalysis}
+        analysisError={analysisError}
+      />
     </div>
   );
 }
+

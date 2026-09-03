@@ -1,0 +1,7 @@
+# AyurAI Backend
+node_modules/
+
+# NEVER commit these to git
+.env
+firebase-service-account.json
+*.json.bak
