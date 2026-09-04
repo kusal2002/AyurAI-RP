@@ -6,7 +6,7 @@
  *                           ↓
  *                    PPG Feature Extraction
  *                           ↓
- *                       Gemini API
+ *                        Groq API
  *                           ↓
  *               Firebase /ayurai/analysis/device01
  *                           ↓
@@ -22,7 +22,7 @@ require("dotenv").config();
 
 const express      = require("express");
 const admin        = require("firebase-admin");
-const { analyzeAyurAI }     = require("./services/gemini");
+const { analyzeAyurAI }     = require("./services/groq");
 const { extractPPGFeatures } = require("./services/ppgFeatures");
 
 // =====================================================
@@ -90,7 +90,7 @@ app.get("/health", (req, res) => {
 // POST /api/analyze/:deviceId
 //
 // Reads the latest sensor record from Firebase,
-// extracts PPG features, calls Gemini, saves analysis.
+// extracts PPG features, calls Groq, saves analysis.
 //
 // Can also accept sensor data directly in the request body
 // (useful for testing without a physical device).
@@ -161,29 +161,31 @@ app.post("/api/analyze/:deviceId", async (req, res) => {
       empiricalGlucose = Math.round(calcGlucose);
     }
 
-    // --- Call Gemini ---
-    console.log("[AyurAI] Sending to Gemini...");
+    // --- Call Groq ---
+    console.log("[AyurAI] Sending to Groq...");
 
-    const geminiResult = await analyzeAyurAI({
+    const groqResult = await analyzeAyurAI({
       heart_rate:   sensorData.heart_rate ?? null,
       spo2:         sensorData.spo2 ?? null,
+      body_temperature: sensorData.body_temperature ?? null,
       ppg_features,
       hb_estimate:  empiricalHb,
       glucose_estimate: empiricalGlucose
     });
 
-    console.log("[AyurAI] Gemini result:", geminiResult);
+    console.log("[AyurAI] Groq result:", groqResult);
 
     // --- Save analysis to Firebase ---
     const analysisRef  = db.ref(`ayurai/analysis/${deviceId}`);
     const newAnalysisEntry = analysisRef.push();
 
     await newAnalysisEntry.set({
-      ...geminiResult,
+      ...groqResult,
       ppg_features,
       device_id:  deviceId,
       heart_rate: sensorData.heart_rate ?? null,
       spo2:       sensorData.spo2 ?? null,
+      body_temperature: sensorData.body_temperature ?? null,
       raw_ir:     sensorData.raw_ir ?? null,
       raw_red:    sensorData.raw_red ?? null,
       hb_estimate: empiricalHb,
@@ -197,7 +199,7 @@ app.post("/api/analyze/:deviceId", async (req, res) => {
     res.json({
       success:   true,
       device_id: deviceId,
-      analysis:  geminiResult,
+      analysis:  groqResult,
       ppg_features
     });
 
@@ -215,7 +217,7 @@ app.post("/api/analyze/:deviceId", async (req, res) => {
 // GET /api/latest/:deviceId
 //
 // Returns the most recent analysis result from Firebase.
-// The dashboard can poll this to display Gemini output.
+// The dashboard can poll this to display Groq output.
 // =====================================================
 
 app.get("/api/latest/:deviceId", async (req, res) => {

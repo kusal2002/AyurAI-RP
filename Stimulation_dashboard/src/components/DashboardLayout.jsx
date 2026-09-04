@@ -5,7 +5,7 @@ import { DataChart } from './DataChart';
 import { AnalysisPanel } from './AnalysisPanel';
 import { AlertBanner } from './AlertBanner';
 import { VitalsReference } from './VitalsReference';
-import { Heart, Droplets, Radio, Waves, Syringe, TestTube } from 'lucide-react';
+import { Heart, Droplets, Radio, Waves, Syringe, TestTube, Thermometer } from 'lucide-react';
 import { useFirebaseData } from '../hooks/useFirebaseData';
 import { useAnalysisData } from '../hooks/useAnalysisData';
 import { getVitalStatus, getActiveAlerts } from '../constants/vitalRanges';
@@ -18,9 +18,10 @@ export function DashboardLayout() {
   const fmt = (val, decimals = 0) =>
     val != null ? Number(val).toFixed(decimals) : '—';
 
-  // Get live clinical status for HR and SpO2
+  // Get live clinical status for HR, SpO2, and Temp
   const hrStatus  = getVitalStatus('heart_rate', data.heart_rate);
   const spo2Status = getVitalStatus('spo2', data.spo2);
+  const tempStatus = getVitalStatus('body_temperature', data.body_temperature);
 
   // Get all active alerts
   const alerts = getActiveAlerts(data);
@@ -31,7 +32,7 @@ export function DashboardLayout() {
         <div>
           <h1>AyurAI Dashboard</h1>
           <p className="header-subtitle">
-            MAX30102 · ESP32-S3 · Firebase · Gemini
+            MAX30102 · ESP32-S3 · Firebase · Groq
           </p>
         </div>
         <ConnectionPanel isConnected={isConnected} error={error} />
@@ -57,6 +58,14 @@ export function DashboardLayout() {
           icon={Droplets}
           accentColor="cyan"
           vitalStatus={spo2Status}
+        />
+        <DataCard
+          title="Body Temp"
+          value={fmt(data.body_temperature, 1)}
+          unit="°C"
+          icon={Thermometer}
+          accentColor="amber"
+          vitalStatus={tempStatus}
         />
         <DataCard
           title="Raw IR"
@@ -94,7 +103,7 @@ export function DashboardLayout() {
       {/* ── Historical Chart ── */}
       {history.length > 0 && <DataChart data={history} />}
 
-      {/* ── Gemini AI Interpretation ── */}
+      {/* ── Groq AI Interpretation ── */}
       <AnalysisPanel
         analysis={analysis}
         hasAnalysis={hasAnalysis}

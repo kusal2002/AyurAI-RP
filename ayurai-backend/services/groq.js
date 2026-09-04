@@ -1,15 +1,15 @@
 /**
- * AyurAI — Gemini AI Interpretation Service
+ * AyurAI — Groq AI Interpretation Service
  *
  * Sends physiological sensor data + extracted PPG features to
- * the Gemini API and returns a structured JSON interpretation.
+ * the Groq API and returns a structured JSON interpretation.
  *
  * IMPORTANT:
- *   • Gemini is the INTERPRETATION layer, not the measurement layer.
+ *   • Groq (LLaMA 3) is the INTERPRETATION layer, not the measurement layer.
  *   • It receives real HR, SpO2, and computed PPG features.
  *   • It does NOT claim to measure hemoglobin or glucose directly.
  *   • Hb/anemia estimates come from a separate trained ML model;
- *     Gemini explains that model's output in human-readable form.
+ *     Groq explains that model's output in human-readable form.
  */
 
 const Groq = require("groq-sdk");
@@ -21,25 +21,30 @@ const groq = new Groq({
 });
 
 /**
- * Analyze sensor data + PPG features using Gemini.
+ * Analyze sensor data + PPG features using Groq.
  *
  * @param {object} data — Combined sensor + feature data
  * @param {number|null} data.heart_rate
  * @param {number|null} data.spo2
+ * @param {number|null} data.body_temperature
  * @param {object}      data.ppg_features — Output of extractPPGFeatures()
  * @param {number|null} [data.hb_estimate] — Optional: output from ML model
- * @returns {Promise<object>} Structured Gemini interpretation
+ * @returns {Promise<object>} Structured Groq interpretation
  */
 async function analyzeAyurAI(data) {
-  const { heart_rate, spo2, ppg_features, hb_estimate, glucose_estimate } = data;
+  if (!process.env.API_KEY) {
+    throw new Error("GROQ API KEY is missing in .env file");
+  }
+
+  const { heart_rate, spo2, body_temperature, ppg_features, hb_estimate, glucose_estimate } = data;
 
   const hbSection = hb_estimate != null
-    ? `Hemoglobin estimate (from research ML model, NOT from Gemini): ${hb_estimate} g/dL`
-    : `Hemoglobin estimate: Not yet available (ML model not yet integrated).`;
+    ? `Hemoglobin estimate (from research ML model, NOT from Groq): ${hb_estimate} g/dL`
+    : `Hemoglobin estimate: Not available.`;
 
   const glucoseSection = glucose_estimate != null
-    ? `Blood Glucose estimate (from research ML model, NOT from Gemini): ${glucose_estimate} mg/dL`
-    : `Blood Glucose estimate: Not yet available.`;
+    ? `Blood Glucose estimate (from research ML model, NOT from Groq): ${glucose_estimate} mg/dL`
+    : `Blood Glucose estimate: Not available.`;
 
   const prompt = `
 You are the AI interpretation layer of the AyurAI research prototype — a non-invasive anemia screening system using the MAX30102 optical sensor on an ESP32-S3.
@@ -52,11 +57,9 @@ You are the AI interpretation layer of the AyurAI research prototype — a non-i
 5. Your role: interpret the physiological context, assess anemia risk indicators, and generate a human-readable explanation.
 
 ## SENSOR DATA
-- Heart Rate: ${heart_rate != null ? heart_rate + ' BPM' : 'Not available (invalid reading)'}
-- SpO2: ${spo2 != null ? spo2 + '%' : 'Not available (invalid reading)'}
-
 - Heart Rate: ${heart_rate ?? "N/A"} bpm
 - SpO2: ${spo2 ?? "N/A"} %
+- Body Temperature: ${body_temperature ?? "N/A"} °C
 - Hemoglobin (Hb) Estimate: ${hb_estimate ?? "N/A"} g/dL
 - Blood Glucose Estimate: ${glucose_estimate ?? "N/A"} mg/dL
 - Perfusion Index (PI): ${ppg_features.perfusion_index} %
@@ -69,7 +72,7 @@ Based only on the above, provide:
 1. A detailed physiological summary.
 2. An anemia screening assessment.
 3. A diabetes & blood sugar screening assessment (HEAVILY FOCUS ON THIS, analyzing the glucose estimate in detail).
-4. A detailed breakdown of EVERY available parameter. You MUST include: Heart Rate, SpO2, Hemoglobin, Blood Glucose, Perfusion Index (PI), and Pulse Amplitude. State the value, clinical status (e.g., Normal, High, Critical, Low), and a detailed explanation of what that level means for the patient's cardiovascular and metabolic health.
+4. A detailed breakdown of EVERY available parameter. You MUST include: Heart Rate, SpO2, Body Temperature, Hemoglobin, Blood Glucose, Perfusion Index (PI), and Pulse Amplitude. State the value, clinical status (e.g., Normal, High, Critical, Low), and a detailed explanation of what that level means for the patient's cardiovascular and metabolic health.
 5. An overall risk level (low, moderate, high).
 6. Your confidence score (0.0 to 1.0) considering the signal validity.
 7. A list of actionable recommendations.

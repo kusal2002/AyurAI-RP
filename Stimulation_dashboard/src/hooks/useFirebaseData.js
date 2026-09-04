@@ -6,6 +6,7 @@ export function useFirebaseData() {
   const [data, setData] = useState({
     heart_rate: null,
     spo2:       null,
+    body_temperature: null,
     raw_ir:     null,
     raw_red:    null,
     hb_estimate: null,
@@ -96,6 +97,7 @@ export function useFirebaseData() {
         setData({
           heart_rate: latest.heart_rate ?? null,
           spo2:       latest.spo2       ?? null,
+          body_temperature: latest.body_temperature ?? null,
           raw_ir:     latest.raw_ir     ?? null,
           raw_red:    latest.raw_red    ?? null,
           hb_estimate: liveHb,

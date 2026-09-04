@@ -15,6 +15,8 @@
 #include <WiFiClientSecure.h>
 #include <HTTPClient.h>
 #include <Wire.h>
+#include <OneWire.h>
+#include <DallasTemperature.h>
 
 #include "MAX30105.h"
 #include "spo2_algorithm.h"   // Maxim algorithm — real SpO2
@@ -34,10 +36,15 @@
 #define SCL_PIN 9
 
 // =====================================================
-// MAX30102 SETUP
+// MAX30102 & DS18B20 SETUP
 // =====================================================
 
 MAX30105 particleSensor;
+
+// DS18B20 on GPIO 7
+#define ONE_WIRE_BUS 7
+OneWire oneWire(ONE_WIRE_BUS);
+DallasTemperature sensors(&oneWire);
 
 // 100-sample buffers required by the Maxim spo2_algorithm
 #define BUFFER_SIZE 100
@@ -53,6 +60,9 @@ int8_t   validSpO2;
 
 // Smoothed HR for display (Maxim algorithm is very noisy on 1-second windows)
 int32_t  smoothedHeartRate = 0;
+
+// DS18B20 latest reading
+float    tempC = -127.0;
 
 // =====================================================
 // STATE
@@ -89,6 +99,10 @@ void setup() {
   }
 
   Serial.println("[OK] MAX30102 detected");
+
+  // --- DS18B20 ---
+  sensors.begin();
+  Serial.println("[OK] DS18B20 initialized on GPIO 7");
 
   // Configuration for Maxim spo2_algorithm
   //   ledBrightness 60   = ~0.4mA
@@ -162,6 +176,10 @@ void loop() {
 
   bufferFilled = true;
 
+  // --- Read Temperature ---
+  sensors.requestTemperatures();
+  tempC = sensors.getTempCByIndex(0);
+
   // --- Run Maxim algorithm on the 100-sample window ---
   maxim_heart_rate_and_oxygen_saturation(
     irBuffer,
@@ -212,6 +230,14 @@ void loop() {
   Serial.print("Raw RED    : ");
   Serial.println(redBuffer[BUFFER_SIZE - 1]);
 
+  Serial.print("Body Temp  : ");
+  if (tempC > -100) {
+    Serial.print(tempC);
+    Serial.println(" C");
+  } else {
+    Serial.println("-- C (Sensor error)");
+  }
+
   Serial.println("-------------------------------------");
 
   // --- Send to Firebase every SEND_INTERVAL_MS ---
@@ -259,6 +285,13 @@ void sendToFirebase() {
   String payload = "{";
 
   payload += "\"device_id\":\"" + String(DEVICE_ID) + "\",";
+
+  // Temperature
+  if (tempC > -100) {
+    payload += "\"body_temperature\":" + String(tempC, 2) + ",";
+  } else {
+    payload += "\"body_temperature\":null,";
+  }
 
   // Heart Rate
   if (validHeartRate && smoothedHeartRate > 0) {

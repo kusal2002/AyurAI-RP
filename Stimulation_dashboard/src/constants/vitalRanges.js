@@ -45,6 +45,25 @@ export const VITAL_RANGES = {
       { label: 'Mild Hypoxia',   range: '90 – 94%', desc: 'Below normal — monitor closely' },
       { label: 'Normal',         range: '95 – 100%', desc: 'Healthy oxygen saturation' },
     ]
+  },
+  body_temperature: {
+    label: 'Body Temp',
+    unit: '°C',
+    description: 'Core body temperature',
+    ranges: [
+      { label: 'Hypothermia',   min: 0,    max: 34.9, status: 'critical', color: 'var(--accent-cyan)'    },
+      { label: 'Low',           min: 35.0, max: 36.0, status: 'warning',  color: 'var(--accent-amber)'   },
+      { label: 'Normal',        min: 36.1, max: 37.2, status: 'normal',   color: 'var(--accent-emerald)' },
+      { label: 'Fever',         min: 37.3, max: 38.9, status: 'warning',  color: 'var(--accent-amber)'   },
+      { label: 'High Fever',    min: 39.0, max: 50.0, status: 'critical', color: 'var(--accent-rose)'    },
+    ],
+    scaleMin: 34,
+    scaleMax: 42,
+    reference: [
+      { label: 'Hypothermia', range: '< 35.0 °C',   desc: 'Critical — seek immediate care' },
+      { label: 'Normal',      range: '36.1 – 37.2 °C', desc: 'Healthy core temperature' },
+      { label: 'Fever',       range: '> 37.3 °C',   desc: 'Elevated temperature' },
+    ]
   }
 };
 
@@ -93,6 +112,18 @@ export function getActiveAlerts(data) {
       messages: {
         critical: (v) => `SpO₂ critically low at ${v}%. Severe hypoxia — seek immediate care.`,
         warning:  (v) => `SpO₂ below normal at ${v}%. Mild hypoxia — monitor closely.`
+      }
+    },
+    {
+      key: 'body_temperature',
+      value: data.body_temperature,
+      messages: {
+        critical: (v) => v < 35 
+          ? `Temperature critically low at ${v}°C (Hypothermia). Seek immediate care.`
+          : `Temperature critically high at ${v}°C (High Fever). Seek immediate care.`,
+        warning: (v) => v < 36.1
+          ? `Temperature low at ${v}°C. Monitor closely.`
+          : `Temperature elevated at ${v}°C (Fever). Monitor closely.`
       }
     }
   ];

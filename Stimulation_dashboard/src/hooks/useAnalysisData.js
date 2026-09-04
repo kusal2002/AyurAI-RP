@@ -3,7 +3,7 @@ import { ref, onValue, query, limitToLast } from 'firebase/database';
 import { db } from '../firebase';
 
 /**
- * Subscribes to the latest Gemini AI analysis result from Firebase.
+ * Subscribes to the latest Groq AI analysis result from Firebase.
  * The backend writes to /ayurai/analysis/device01 after each analysis.
  */
 export function useAnalysisData(deviceId = 'device01') {

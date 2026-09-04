@@ -93,7 +93,7 @@ export function DataChart({ data }) {
             <Area 
               yAxisId="right" 
               type="monotone" 
-              dataKey="temperature" 
+              dataKey="body_temperature" 
               name="Temp (°C)" 
               stroke="var(--accent-amber)" 
               strokeWidth={3}

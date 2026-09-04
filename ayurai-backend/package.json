@@ -1,7 +1,7 @@
 {
   "name": "ayurai-backend",
   "version": "1.0.0",
-  "description": "AyurAI Node.js backend — Firebase + Gemini API",
+  "description": "AyurAI Node.js backend — Firebase + Groq API",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
