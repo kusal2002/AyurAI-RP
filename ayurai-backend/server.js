@@ -87,128 +87,302 @@ app.get("/health", (req, res) => {
 });
 
 // =====================================================
+// Decode millisecond UTC timestamp from Firebase push key
+function decodePushId(id) {
+  if (!id || typeof id !== 'string' || id.length < 8) return null;
+  const chars = '-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz';
+  let time = 0;
+  for (let i = 0; i < 8; i++) {
+    const c = id.charAt(i);
+    const index = chars.indexOf(c);
+    if (index === -1) return null;
+    time = time * 64 + index;
+  }
+  return time;
+}
+
+// Statistical calculation helpers
+function calcMean(arr) {
+  if (!arr || arr.length === 0) return 0;
+  return parseFloat((arr.reduce((s, v) => s + v, 0) / arr.length).toFixed(1));
+}
+
+function calcStdDev(arr) {
+  if (!arr || arr.length < 2) return 0;
+  const m = calcMean(arr);
+  const variance = arr.reduce((s, v) => s + Math.pow(v - m, 2), 0) / arr.length;
+  return parseFloat(Math.sqrt(variance).toFixed(1));
+}
+
+// =====================================================
 // POST /api/analyze/:deviceId
 //
-// Reads the latest sensor record from Firebase,
-// extracts PPG features, calls Groq, saves analysis.
-//
-// Can also accept sensor data directly in the request body
-// (useful for testing without a physical device).
+// Accepts or queries all recorded data from the last 2 minutes,
+// computes temporal aggregations (HR, SpO2, Temp, Hb, Glucose, PI),
+// extracts multi-window PPG features, calls Groq AI for an
+// advanced diagnostic interpretation, and stores the result.
 // =====================================================
 
 app.post("/api/analyze/:deviceId", async (req, res) => {
   const { deviceId } = req.params;
 
   try {
-    console.log(`\n[AyurAI] Analyzing device: ${deviceId}`);
+    console.log(`\n[AyurAI] Analyzing 2-minute recorded session for device: ${deviceId}`);
 
-    // --- Get sensor data ---
-    // Use request body if provided; otherwise fetch latest from Firebase
-    let sensorData = req.body;
+    let sensorRecords = [];
 
-    if (!sensorData || !sensorData.heart_rate) {
-      console.log("[AyurAI] No body provided — fetching latest from Firebase...");
+    // Check if client supplied 2-minute records array
+    if (req.body && Array.isArray(req.body.records) && req.body.records.length > 0) {
+      sensorRecords = req.body.records;
+      console.log(`[AyurAI] Received ${sensorRecords.length} records in request body.`);
+    } else if (req.body && req.body.heart_rate) {
+      // Single record provided in body (testing or fallback)
+      sensorRecords = [req.body];
+      console.log("[AyurAI] Received single record in request body.");
+    } else {
+      // Query Firebase for the last 120 records (up to 2 minutes)
+      console.log("[AyurAI] Fetching up to 2 minutes of records from Firebase...");
 
       const snapshot = await db
         .ref(`ayurai/sensor_data/${deviceId}`)
         .orderByKey()
-        .limitToLast(1)
+        .limitToLast(120)
         .once("value");
 
       if (!snapshot.exists()) {
         return res.status(404).json({
           success: false,
-          error:   `No sensor data found for device: ${deviceId}`
+          error: `No sensor data found for device: ${deviceId}`
         });
       }
 
-      // Firebase returns an object keyed by push ID — grab the value
-      const records = snapshot.val();
-      sensorData = Object.values(records)[0];
+      const recordsObj = snapshot.val();
+      const keys = Object.keys(recordsObj);
 
-      console.log("[AyurAI] Latest sensor record:", sensorData);
+      const allRecords = keys.map((key) => {
+        const item = recordsObj[key];
+        const pushTime = decodePushId(key);
+        const effectiveTime = (item.timestamp && item.timestamp > 1000000000000)
+          ? item.timestamp
+          : (pushTime || Date.now());
+
+        return {
+          ...item,
+          _key: key,
+          effectiveTime
+        };
+      });
+
+      // Filter last 2 minutes (120,000 ms)
+      if (allRecords.length > 0) {
+        const latest = allRecords[allRecords.length - 1];
+        if (latest.effectiveTime > 1000000000000) {
+          sensorRecords = allRecords.filter(r => (latest.effectiveTime - r.effectiveTime) <= 120000);
+        } else if (latest.timestamp != null) {
+          sensorRecords = allRecords.filter(r => (latest.timestamp - r.timestamp) <= 120000);
+        }
+      }
+
+      if (!sensorRecords || sensorRecords.length === 0) {
+        sensorRecords = allRecords.slice(-20);
+      }
+
+      console.log(`[AyurAI] Fetched ${sensorRecords.length} records within 2-minute window from Firebase.`);
     }
 
-    // --- Extract PPG features ---
-    const ppg_features = extractPPGFeatures(
-      sensorData.ppg_ir_window  || [],
-      sensorData.ppg_red_window || []
-    );
-
-    console.log("[AyurAI] PPG features:", ppg_features);
-
-    // --- Empirical Research Formulas (No ML) ---
-    // Without a trained ML model on clinical data, the most accurate way 
-    // to estimate these values using only RED/IR is via known empirical correlations.
-    
-    // Hemoglobin (Hb) is inversely correlated with the Ratio of Ratios (R).
-    // Empirical approximation formula: Hb (g/dL) ≈ 17.5 - (3.5 * ratio_r)
-    // We clamp the result to biologically plausible bounds (8.0 - 18.0)
-    let empiricalHb = null;
-    if (ppg_features.valid && ppg_features.ratio_r > 0) {
-      let calcHb = 17.5 - (3.5 * ppg_features.ratio_r);
-      calcHb = Math.max(8.0, Math.min(18.0, calcHb)); // Clamp to realistic range
-      empiricalHb = parseFloat(calcHb.toFixed(1));
+    if (sensorRecords.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: `No valid sensor records available in the last 2 minutes for ${deviceId}`
+      });
     }
 
-    // Blood Glucose (BG) subtly affects blood viscosity, which inversely affects 
-    // the Perfusion Index (PI) and slightly elevates Heart Rate.
-    // Empirical approximation: BG (mg/dL) ≈ 115 - (10 * PI) + (0.4 * HR)
-    let empiricalGlucose = null;
-    if (ppg_features.valid && ppg_features.perfusion_index > 0 && sensorData.heart_rate) {
-      let calcGlucose = 115 - (10 * ppg_features.perfusion_index) + (0.4 * sensorData.heart_rate);
-      calcGlucose = Math.max(60, Math.min(250, calcGlucose)); // Clamp to realistic range
-      empiricalGlucose = Math.round(calcGlucose);
-    }
+    // --- Process Each Record & Extract Features ---
+    const hrValues = [];
+    const spo2Values = [];
+    const tempValues = [];
+    const hbValues = [];
+    const glucoseValues = [];
+    const piValues = [];
+    const ratioRValues = [];
+    const pulseAmpValues = [];
+    let validContactCount = 0;
 
-    // --- Call Groq ---
-    console.log("[AyurAI] Sending to Groq...");
+    sensorRecords.forEach((record) => {
+      // HR
+      if (record.heart_rate != null && record.heart_rate >= 40 && record.heart_rate <= 220) {
+        hrValues.push(record.heart_rate);
+      }
+      // SpO2
+      if (record.spo2 != null && record.spo2 >= 70 && record.spo2 <= 100) {
+        spo2Values.push(record.spo2);
+      }
+      // Temp
+      if (record.body_temperature != null && record.body_temperature >= 25 && record.body_temperature <= 45) {
+        tempValues.push(record.body_temperature);
+      }
 
-    const groqResult = await analyzeAyurAI({
-      heart_rate:   sensorData.heart_rate ?? null,
-      spo2:         sensorData.spo2 ?? null,
-      body_temperature: sensorData.body_temperature ?? null,
-      ppg_features,
-      hb_estimate:  empiricalHb,
-      glucose_estimate: empiricalGlucose
+      // PPG feature extraction
+      const feat = extractPPGFeatures(
+        record.ppg_ir_window || [],
+        record.ppg_red_window || []
+      );
+
+      if (feat.valid) {
+        validContactCount++;
+
+        if (feat.perfusion_index > 0) {
+          piValues.push(feat.perfusion_index);
+        }
+        if (feat.ratio_r > 0) {
+          ratioRValues.push(feat.ratio_r);
+
+          // Empirical Hemoglobin: Hb ≈ 17.5 - (3.5 * ratio_r)
+          let calcHb = 17.5 - (3.5 * feat.ratio_r);
+          calcHb = Math.max(8.0, Math.min(18.0, calcHb));
+          hbValues.push(parseFloat(calcHb.toFixed(1)));
+        }
+        if (feat.pulse_amp > 0) {
+          pulseAmpValues.push(feat.pulse_amp);
+        }
+
+        // Empirical Glucose: BG ≈ 115 - (10 * PI) + (0.4 * HR)
+        if (feat.perfusion_index > 0 && record.heart_rate) {
+          let calcGlucose = 115 - (10 * feat.perfusion_index) + (0.4 * record.heart_rate);
+          calcGlucose = Math.max(60, Math.min(250, calcGlucose));
+          glucoseValues.push(Math.round(calcGlucose));
+        }
+      }
     });
 
-    console.log("[AyurAI] Groq result:", groqResult);
+    // --- Determine Heart Rate Trend ---
+    let hrTrend = "stable";
+    if (hrValues.length >= 4) {
+      const firstHalf = hrValues.slice(0, Math.floor(hrValues.length / 2));
+      const secondHalf = hrValues.slice(Math.floor(hrValues.length / 2));
+      const diff = calcMean(secondHalf) - calcMean(firstHalf);
+      if (diff > 4) hrTrend = "rising";
+      else if (diff < -4) hrTrend = "falling";
+      else if (calcStdDev(hrValues) > 6) hrTrend = "fluctuating";
+    }
 
-    // --- Save analysis to Firebase ---
-    const analysisRef  = db.ref(`ayurai/analysis/${deviceId}`);
+    // --- Build 2-Minute Session Summary ---
+    const vitals_summary_2min = {
+      heart_rate: hrValues.length ? {
+        mean: calcMean(hrValues),
+        min: Math.min(...hrValues),
+        max: Math.max(...hrValues),
+        stdDev: calcStdDev(hrValues),
+        trend: hrTrend
+      } : null,
+      spo2: spo2Values.length ? {
+        mean: calcMean(spo2Values),
+        min: Math.min(...spo2Values),
+        max: Math.max(...spo2Values),
+        desaturation_events: spo2Values.filter(v => v < 95).length
+      } : null,
+      body_temperature: tempValues.length ? {
+        mean: calcMean(tempValues),
+        min: Math.min(...tempValues),
+        max: Math.max(...tempValues)
+      } : null,
+      hb_estimate: hbValues.length ? {
+        mean: calcMean(hbValues),
+        min: Math.min(...hbValues),
+        max: Math.max(...hbValues)
+      } : null,
+      glucose_estimate: glucoseValues.length ? {
+        mean: Math.round(calcMean(glucoseValues)),
+        min: Math.min(...glucoseValues),
+        max: Math.max(...glucoseValues)
+      } : null,
+      perfusion_index: piValues.length ? {
+        mean: calcMean(piValues),
+        min: parseFloat(Math.min(...piValues).toFixed(2)),
+        max: parseFloat(Math.max(...piValues).toFixed(2))
+      } : null,
+      ratio_r: ratioRValues.length ? {
+        mean: parseFloat(calcMean(ratioRValues).toFixed(4)),
+        min: parseFloat(Math.min(...ratioRValues).toFixed(4)),
+        max: parseFloat(Math.max(...ratioRValues).toFixed(4))
+      } : null,
+      pulse_amplitude: pulseAmpValues.length ? {
+        mean: Math.round(calcMean(pulseAmpValues)),
+        min: Math.min(...pulseAmpValues),
+        max: Math.max(...pulseAmpValues)
+      } : null
+    };
+
+    const session = {
+      duration_seconds: 120,
+      sample_count: sensorRecords.length,
+      valid_sample_count: validContactCount,
+      signal_quality_percent: sensorRecords.length > 0
+        ? Math.round((validContactCount / sensorRecords.length) * 100)
+        : 100
+    };
+
+    const latestRecord = sensorRecords[sensorRecords.length - 1];
+
+    console.log("[AyurAI] 2-Minute Session Summary:", JSON.stringify({ session, vitals_summary_2min }, null, 2));
+
+    // --- Call Groq AI ---
+    console.log("[AyurAI] Calling Groq with 2-minute session data...");
+
+    const groqResult = await analyzeAyurAI({
+      session,
+      vitals_summary_2min,
+      latest: latestRecord,
+      // Backward compatibility fields
+      heart_rate: vitals_summary_2min.heart_rate?.mean ?? latestRecord.heart_rate,
+      spo2: vitals_summary_2min.spo2?.mean ?? latestRecord.spo2,
+      body_temperature: vitals_summary_2min.body_temperature?.mean ?? latestRecord.body_temperature,
+      hb_estimate: vitals_summary_2min.hb_estimate?.mean,
+      glucose_estimate: vitals_summary_2min.glucose_estimate?.mean,
+      ppg_features: {
+        perfusion_index: vitals_summary_2min.perfusion_index?.mean ?? 0,
+        ratio_r: vitals_summary_2min.ratio_r?.mean ?? 0,
+        pulse_amp: vitals_summary_2min.pulse_amplitude?.mean ?? 0,
+        valid: validContactCount > 0
+      }
+    });
+
+    console.log("[AyurAI] Groq AI Diagnostic Result received.");
+
+    // --- Save Analysis to Firebase ---
+    const analysisRef = db.ref(`ayurai/analysis/${deviceId}`);
     const newAnalysisEntry = analysisRef.push();
 
     await newAnalysisEntry.set({
       ...groqResult,
-      ppg_features,
-      device_id:  deviceId,
-      heart_rate: sensorData.heart_rate ?? null,
-      spo2:       sensorData.spo2 ?? null,
-      body_temperature: sensorData.body_temperature ?? null,
-      raw_ir:     sensorData.raw_ir ?? null,
-      raw_red:    sensorData.raw_red ?? null,
-      hb_estimate: empiricalHb,
-      glucose_estimate: empiricalGlucose,
-      timestamp:  Date.now()
+      session,
+      vitals_summary_2min,
+      device_id: deviceId,
+      heart_rate: vitals_summary_2min.heart_rate?.mean ?? latestRecord.heart_rate ?? null,
+      spo2: vitals_summary_2min.spo2?.mean ?? latestRecord.spo2 ?? null,
+      body_temperature: vitals_summary_2min.body_temperature?.mean ?? latestRecord.body_temperature ?? null,
+      hb_estimate: vitals_summary_2min.hb_estimate?.mean ?? null,
+      glucose_estimate: vitals_summary_2min.glucose_estimate?.mean ?? null,
+      timestamp: Date.now()
     });
 
-    console.log(`[AyurAI] Analysis saved to Firebase: ayurai/analysis/${deviceId}/${newAnalysisEntry.key}`);
+    console.log(`[AyurAI] Saved analysis to Firebase: ayurai/analysis/${deviceId}/${newAnalysisEntry.key}`);
 
     // --- Respond ---
     res.json({
-      success:   true,
+      success: true,
       device_id: deviceId,
-      analysis:  groqResult,
-      ppg_features
+      analysis: groqResult,
+      session,
+      vitals_summary_2min
     });
 
   } catch (error) {
-    console.error("[AyurAI] Error:", error.message);
+    console.error("[AyurAI] Error in 2-minute analysis:", error.message);
     res.status(500).json({
       success: false,
-      error:   "AI analysis failed",
-      detail:  error.message
+      error: "AI analysis failed",
+      detail: error.message
     });
   }
 });

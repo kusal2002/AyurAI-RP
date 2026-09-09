@@ -11,7 +11,7 @@ import { useAnalysisData } from '../hooks/useAnalysisData';
 import { getVitalStatus, getActiveAlerts } from '../constants/vitalRanges';
 
 export function DashboardLayout() {
-  const { data, history, isConnected, error } = useFirebaseData();
+  const { data, history, last2MinRecords, isConnected, error } = useFirebaseData();
   const { analysis, hasAnalysis, analysisError } = useAnalysisData('device01');
 
   // Helper: format values or show '—' when null
@@ -108,6 +108,7 @@ export function DashboardLayout() {
         analysis={analysis}
         hasAnalysis={hasAnalysis}
         analysisError={analysisError}
+        last2MinRecords={last2MinRecords}
       />
     </div>
   );

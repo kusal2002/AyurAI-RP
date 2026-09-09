@@ -2,6 +2,20 @@ import { useState, useEffect } from 'react';
 import { ref, onValue, query, limitToLast } from 'firebase/database';
 import { db } from '../firebase';
 
+// Decode millisecond UTC timestamp from Firebase push key
+function decodePushId(id) {
+  if (!id || typeof id !== 'string' || id.length < 8) return null;
+  const chars = '-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz';
+  let time = 0;
+  for (let i = 0; i < 8; i++) {
+    const c = id.charAt(i);
+    const index = chars.indexOf(c);
+    if (index === -1) return null;
+    time = time * 64 + index;
+  }
+  return time;
+}
+
 export function useFirebaseData() {
   const [data, setData] = useState({
     heart_rate: null,
@@ -14,15 +28,16 @@ export function useFirebaseData() {
     timestamp:  null
   });
   const [history, setHistory] = useState([]);
+  const [last2MinRecords, setLast2MinRecords] = useState([]);
   const [isConnected, setIsConnected] = useState(false);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    // Updated path: /ayurai/sensor_data/device01 (matches new firmware + Firebase structure)
+    // Path: /ayurai/sensor_data/device01
     const sensorRef = ref(db, 'ayurai/sensor_data/device01');
 
-    // Query the last 20 records for the chart
-    const latestQuery = query(sensorRef, limitToLast(20));
+    // Query the last 120 records so we have at least 2 full minutes of data
+    const latestQuery = query(sensorRef, limitToLast(120));
 
     const unsubscribe = onValue(latestQuery, (snapshot) => {
       if (snapshot.exists()) {
@@ -32,21 +47,55 @@ export function useFirebaseData() {
 
         snapshot.forEach((childSnapshot) => {
           const val = childSnapshot.val();
+          const key = childSnapshot.key;
+          const pushTime = decodePushId(key);
 
-          // Format timestamp for chart axis
-          const date = val.timestamp
-            ? new Date(val.timestamp)
-            : new Date();
+          // If timestamp in record is full epoch (e.g. > 1e12), use it.
+          // Otherwise, prefer push key creation time, or fallback to current time.
+          const effectiveTime = (val.timestamp && val.timestamp > 1000000000000)
+            ? val.timestamp
+            : (pushTime || Date.now());
 
+          const date = new Date(effectiveTime);
           const timeString = `${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}:${date.getSeconds().toString().padStart(2, '0')}`;
 
           newHistory.push({
             ...val,
+            _key: key,
+            effectiveTime,
             formattedTime: timeString
           });
         });
 
         setHistory(newHistory);
+
+        // --- Extract Last 2 Minutes of Recorded Data ---
+        // 2 minutes = 120,000 milliseconds
+        if (newHistory.length > 0) {
+          const latestItem = newHistory[newHistory.length - 1];
+
+          // Check if timestamps are Arduino millis() or epoch
+          const hasEpoch = latestItem.effectiveTime && latestItem.effectiveTime > 1000000000000;
+          let filtered = [];
+
+          if (hasEpoch) {
+            const maxEpoch = latestItem.effectiveTime;
+            filtered = newHistory.filter(r => r.effectiveTime && (maxEpoch - r.effectiveTime <= 120000));
+          } else if (latestItem.timestamp != null) {
+            // Relative millis() from Arduino
+            const maxMillis = latestItem.timestamp;
+            filtered = newHistory.filter(r => r.timestamp != null && (maxMillis - r.timestamp <= 120000));
+          }
+
+          // If filtering yielded nothing or very few due to timestamp anomalies, fall back to last 20
+          if (filtered.length === 0) {
+            filtered = newHistory.slice(-20);
+          }
+
+          setLast2MinRecords(filtered);
+        } else {
+          setLast2MinRecords([]);
+        }
 
         // Latest data is the last item
         const latest = newHistory[newHistory.length - 1];
@@ -119,5 +168,6 @@ export function useFirebaseData() {
     return () => unsubscribe();
   }, []);
 
-  return { data, history, isConnected, error };
+  return { data, history, last2MinRecords, isConnected, error };
 }
+
