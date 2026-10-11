@@ -17,6 +17,7 @@ def main():
     claim_id = "TEST-REPO-CLAIM"
     evidence_id = "TEST-REPO-EVIDENCE"
     second_concept_id = "TEST-REPO-CONCEPT-2"
+    contradicting_evidence_id = "TEST-REPO-EVIDENCE-2"
 
     try:
         # Create a temporary synthetic concept for this test.
@@ -49,6 +50,25 @@ def main():
         assert get_evidence(evidence_id, driver) is not None
         print("Evidence save and retrieval: PASS")
 
+        contradicting_evidence = EvidenceRecord(
+            evidence_id=contradicting_evidence_id,
+            title="Synthetic contradictory evidence",
+            source_name="Automated test fixture",
+            evidence_type=EvidenceType.MODERN_RESEARCH,
+            text="Synthetic contradictory content used only for testing.",
+            concepts=[concept_id],
+        )
+
+        saved_contradicting_evidence = save_evidence(
+            contradicting_evidence, driver
+        )
+
+        assert (
+            saved_contradicting_evidence["evidence_id"]
+            == contradicting_evidence_id
+        )
+        print("Contradictory evidence creation: PASS")
+
         claim = Claim(
             claim_id=claim_id,
             subject_id=concept_id,
@@ -69,6 +89,31 @@ def main():
             "SUPPORTS",
             driver,
         )
+
+        # Repeating the same link must not create a duplicate.
+        link_evidence_to_claim(
+            evidence_id,
+            claim_id,
+            "SUPPORTS",
+            driver,
+        )
+
+        link_evidence_to_claim(
+            contradicting_evidence_id,
+            claim_id,
+            "CONTRADICTS",
+            driver,
+        )
+
+        # Repeating the same link must not create a duplicate.
+        link_evidence_to_claim(
+            contradicting_evidence_id,
+            claim_id,
+            "CONTRADICTS",
+            driver,
+        )
+
+        print("Contradictory evidence link: PASS")
 
         updated_claim = claim.model_copy(
     update={
@@ -138,6 +183,35 @@ def main():
         assert result["total"] == 1
         print("Evidence-to-claim relationship: PASS")
 
+        with driver.session() as session:
+            contradictory_result = session.run(
+                """
+                MATCH (e:Evidence {evidence_id: $evidence_id})
+                      -[r:CONTRADICTS]->(c:Claim {claim_id: $claim_id})
+                RETURN count(r) AS total
+                """,
+                evidence_id=contradicting_evidence_id,
+                claim_id=claim_id,
+            ).single()
+
+        assert contradictory_result["total"] == 1
+        print("Contradictory evidence verification: PASS")
+
+        try:
+            link_evidence_to_claim(
+                evidence_id,
+                claim_id,
+                "INVALID_RELATION",
+                driver,
+            )
+        except ValueError:
+            print("Reject invalid evidence relationship: PASS")
+        else:
+            raise AssertionError(
+                "Invalid relationship type was accepted."
+            )
+
+
     finally:
         # Remove only records with this test's dedicated identifiers.
         with driver.session() as session:
@@ -148,12 +222,14 @@ def main():
                     OR n.symptom_id = $second_concept_id
                     OR n.claim_id = $claim_id
                     OR n.evidence_id = $evidence_id
+                    OR n.evidence_id = $contradicting_evidence_id
                 DETACH DELETE n
                 """,
                 concept_id=concept_id,
                 second_concept_id=second_concept_id,
                 claim_id=claim_id,
                 evidence_id=evidence_id,
+                contradicting_evidence_id=contradicting_evidence_id,
             ).consume()
 
         print("Synthetic test cleanup: PASS")
