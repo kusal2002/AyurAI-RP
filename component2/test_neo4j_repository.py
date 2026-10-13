@@ -1,7 +1,9 @@
 from app.db.neo4j import get_neo4j_driver
 from app.db.repository import (
     get_claim,
+    get_claims_for_concept,
     get_evidence,
+    get_evidence_for_claim,
     link_evidence_to_claim,
     save_claim,
     save_evidence,
@@ -136,9 +138,6 @@ def main():
                 claim_id=claim_id,
             ).single(strict=True)
 
-        print("DEBUG subjects:", records["subjects"])
-        print("DEBUG objects:", records["objects"])
-
         assert records["subjects"] == [second_concept_id], (
             f"Expected only {second_concept_id}, got {records['subjects']}"
         )
@@ -147,6 +146,46 @@ def main():
         )
 
         print("Claim relationship verification: PASS")
+
+        # Query claims where the concept is the subject.
+        subject_claims = get_claims_for_concept(
+            second_concept_id,
+            driver,
+        )
+
+        assert any(
+            item["claim"]["claim_id"] == claim_id
+            and item["role"] == "subject"
+            for item in subject_claims
+        ), "The query did not find the claim's subject."
+
+        print("Query claims by subject: PASS")
+
+        # Query claims where the concept is the object.
+        object_claims = get_claims_for_concept(
+            concept_id,
+            driver,
+        )
+
+        assert any(
+            item["claim"]["claim_id"] == claim_id
+            and item["role"] == "object"
+            for item in object_claims
+        ), "The query did not find the claim's object."
+
+        print("Query claims by object: PASS")
+
+        # A concept without connected claims should return an empty list.
+        unconnected_claims = get_claims_for_concept(
+            "TEST-UNCONNECTED-CONCEPT",
+            driver,
+        )
+
+        assert unconnected_claims == [], (
+            f"Expected no claims, got {unconnected_claims}"
+        )
+
+        print("Query unconnected concept: PASS")
 
 
         invalid_claim = Claim(
@@ -197,6 +236,59 @@ def main():
         assert contradictory_result["total"] == 1
         print("Contradictory evidence verification: PASS")
 
+        # Retrieve a claim with both supporting and contradicting evidence.
+        claim_evidence = get_evidence_for_claim(claim_id, driver)
+
+        assert claim_evidence is not None
+        assert claim_evidence["claim"]["claim_id"] == claim_id
+
+        evidence_by_id = {
+            item["evidence"]["evidence_id"]: item["relationship"]
+            for item in claim_evidence["evidence"]
+        }
+
+        assert evidence_by_id[evidence_id] == "SUPPORTS"
+        assert (
+            evidence_by_id[contradicting_evidence_id]
+            == "CONTRADICTS"
+        )
+
+        print("Retrieve supporting and contradicting evidence: PASS")
+
+        # A nonexistent claim should return None.
+        missing_claim_evidence = get_evidence_for_claim(
+            "TEST-MISSING-CLAIM",
+            driver,
+        )
+
+        # A claim with no linked evidence should return an empty list.
+        claim_without_evidence = Claim(
+            claim_id="TEST-CLAIM-WITHOUT-EVIDENCE",
+            subject_id=concept_id,
+            predicate="TEST_RELATION",
+            object_id=second_concept_id,
+            statement="Synthetic claim without evidence.",
+            verification_status=VerificationStatus.UNVERIFIED,
+        )
+
+        save_claim(claim_without_evidence, driver)
+
+        result_without_evidence = get_evidence_for_claim(
+            "TEST-CLAIM-WITHOUT-EVIDENCE",
+            driver,
+        )
+
+        assert result_without_evidence is not None
+        assert result_without_evidence["evidence"] == [], (
+            f"Expected an empty evidence list, "
+            f"got {result_without_evidence['evidence']}"
+        )
+
+        print("Handle claim without evidence: PASS")
+
+        assert missing_claim_evidence is None
+        print("Handle missing claim evidence: PASS")
+
         try:
             link_evidence_to_claim(
                 evidence_id,
@@ -223,6 +315,7 @@ def main():
                     OR n.claim_id = $claim_id
                     OR n.evidence_id = $evidence_id
                     OR n.evidence_id = $contradicting_evidence_id
+                    OR n.claim_id = $claim_without_evidence_id
                 DETACH DELETE n
                 """,
                 concept_id=concept_id,
@@ -230,6 +323,7 @@ def main():
                 claim_id=claim_id,
                 evidence_id=evidence_id,
                 contradicting_evidence_id=contradicting_evidence_id,
+                claim_without_evidence_id="TEST-CLAIM-WITHOUT-EVIDENCE",
             ).consume()
 
         print("Synthetic test cleanup: PASS")

@@ -214,3 +214,97 @@ def link_evidence_to_claim(
         raise ValueError(
             "Evidence or claim does not exist. Save both first."
         )
+
+def get_claims_for_concept(
+    concept_id: str,
+    driver: Driver | None = None,
+) -> list[dict[str, Any]]:
+    """Retrieve claims connected to a concept as subject or object."""
+    if not concept_id or not concept_id.strip():
+        raise ValueError("concept_id must not be empty.")
+
+    db = _get_driver(driver)
+
+    query = f"""
+    MATCH (concept)
+    WHERE {
+        " OR ".join(
+            f"concept:{label} AND concept.{identifier} = $concept_id"
+            for label, identifier in CONCEPT_IDENTIFIERS.items()
+        )
+    }
+
+    MATCH (concept)-[:SUBJECT_OF]->(c:Claim)
+    RETURN properties(c) AS claim, 'subject' AS role
+
+    UNION
+
+    MATCH (concept)
+    WHERE {
+        " OR ".join(
+            f"concept:{label} AND concept.{identifier} = $concept_id"
+            for label, identifier in CONCEPT_IDENTIFIERS.items()
+        )
+    }
+
+    MATCH (c:Claim)-[:OBJECT_OF]->(concept)
+    RETURN properties(c) AS claim, 'object' AS role
+    ORDER BY role
+    """
+
+    with db.session() as session:
+        records = session.run(
+            query,
+            concept_id=concept_id,
+        )
+        return [
+            {
+                "claim": record["claim"],
+                "role": record["role"],
+            }
+            for record in records
+        ]
+
+def get_evidence_for_claim(
+    claim_id: str,
+    driver: Driver | None = None,
+) -> dict[str, Any] | None:
+    """Retrieve a claim and its supporting or contradicting evidence."""
+    if not claim_id or not claim_id.strip():
+        raise ValueError("claim_id must not be empty.")
+
+    db = _get_driver(driver)
+
+    query = """
+    MATCH (c:Claim {claim_id: $claim_id})
+    OPTIONAL MATCH (e:Evidence)-[r:SUPPORTS|CONTRADICTS]->(c)
+    WITH c, [
+        item IN collect(
+            CASE
+                WHEN e IS NULL THEN null
+                ELSE {
+                    evidence: properties(e),
+                    relationship: type(r)
+                }
+            END
+        )
+        WHERE item IS NOT NULL
+    ] AS evidence_records
+    RETURN
+        properties(c) AS claim,
+        evidence_records
+    """
+
+    with db.session() as session:
+        record = session.run(
+            query,
+            claim_id=claim_id,
+        ).single()
+
+    if record is None:
+        return None
+
+    return {
+        "claim": record["claim"],
+        "evidence": record["evidence_records"],
+    }
