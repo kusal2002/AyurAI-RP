@@ -1,0 +1,92 @@
+[
+  {
+    "id": "DRUG-001",
+    "generic_name": "Metformin",
+    "brand_names": ["Glucophage", "Diabex"],
+    "drug_class": "Biguanide Antidiabetic",
+    "metabolizing_enzymes": ["OCT1", "OCT2"],
+    "target_receptors": ["AMPK"],
+    "narrow_therapeutic_index": false
+  },
+  {
+    "id": "DRUG-002",
+    "generic_name": "Omeprazole",
+    "brand_names": ["Losec", "Omez"],
+    "drug_class": "Proton Pump Inhibitor (PPI)",
+    "metabolizing_enzymes": ["CYP2C19", "CYP3A4"],
+    "target_receptors": ["H+/K+ ATPase"],
+    "narrow_therapeutic_index": false
+  },
+  {
+    "id": "DRUG-003",
+    "generic_name": "Atorvastatin",
+    "brand_names": ["Lipitor", "Atorva"],
+    "drug_class": "HMG-CoA Reductase Inhibitor",
+    "metabolizing_enzymes": ["CYP3A4"],
+    "target_receptors": ["HMG-CoA Reductase"],
+    "narrow_therapeutic_index": false
+  },
+  {
+    "id": "DRUG-004",
+    "generic_name": "Losartan",
+    "brand_names": ["Cozaar", "Losacar"],
+    "drug_class": "Angiotensin II Receptor Blocker (ARB)",
+    "metabolizing_enzymes": ["CYP2C9", "CYP3A4"],
+    "target_receptors": ["AT1 Receptor"],
+    "narrow_therapeutic_index": false
+  },
+  {
+    "id": "DRUG-005",
+    "generic_name": "Amlodipine",
+    "brand_names": ["Norvasc", "Amlip"],
+    "drug_class": "Calcium Channel Blocker (CCB)",
+    "metabolizing_enzymes": ["CYP3A4"],
+    "target_receptors": ["L-type Calcium Channels"],
+    "narrow_therapeutic_index": false
+  },
+  {
+    "id": "DRUG-006",
+    "generic_name": "Ferrous Sulfate",
+    "brand_names": ["Fefol", "Ferro-Gradumet"],
+    "drug_class": "Iron Supplement",
+    "metabolizing_enzymes": [],
+    "target_receptors": ["DMT1"],
+    "narrow_therapeutic_index": false
+  },
+  {
+    "id": "DRUG-007",
+    "generic_name": "Levothyroxine",
+    "brand_names": ["Eltroxin", "Synthroid"],
+    "drug_class": "Thyroid Hormone",
+    "metabolizing_enzymes": ["Deiodinase", "CYP3A4"],
+    "target_receptors": ["Thyroid Receptors"],
+    "narrow_therapeutic_index": true
+  },
+  {
+    "id": "DRUG-008",
+    "generic_name": "Clonazepam",
+    "brand_names": ["Klonopin", "Rivotril"],
+    "drug_class": "Benzodiazepine Anticonvulsant / Anxiolytic",
+    "metabolizing_enzymes": ["CYP3A4"],
+    "target_receptors": ["GABA-A Receptor"],
+    "narrow_therapeutic_index": false
+  },
+  {
+    "id": "DRUG-009",
+    "generic_name": "Warfarin",
+    "brand_names": ["Coumadin", "Marevan"],
+    "drug_class": "Vitamin K Antagonist Anticoagulant",
+    "metabolizing_enzymes": ["CYP2C9", "CYP1A2", "CYP3A4"],
+    "target_receptors": ["VKORC1"],
+    "narrow_therapeutic_index": true
+  },
+  {
+    "id": "DRUG-010",
+    "generic_name": "Aspirin",
+    "brand_names": ["Disprin", "Cardiprin"],
+    "drug_class": "Antiplatelet / NSAID",
+    "metabolizing_enzymes": ["Esterases", "CYP2C9"],
+    "target_receptors": ["COX-1", "COX-2"],
+    "narrow_therapeutic_index": false
+  }
+]
