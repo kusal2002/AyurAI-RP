@@ -11,6 +11,7 @@ from app.db.repository import (
 )
 from app.models.claim import Claim, VerificationStatus
 from app.models.evidence import EvidenceRecord, EvidenceType
+from app.reasoning.evaluator import evaluate_claim
 
 
 def main():
@@ -331,6 +332,33 @@ def main():
         )
 
         print("Retrieve supporting and contradicting evidence: PASS")
+
+        # Evaluate the claim using the real Neo4j repository.
+        evaluation = evaluate_claim(claim_id, driver)
+
+        assert evaluation is not None
+        assert evaluation["claim"]["claim_id"] == claim_id
+        assert evaluation["verification_status"] == "unverified"
+
+        assert len(evaluation["supporting_evidence"]) == 1
+        assert len(evaluation["contradicting_evidence"]) == 1
+
+        assert (
+            evaluation["supporting_evidence"][0]["evidence_id"]
+            == evidence_id
+        )
+        assert (
+            evaluation["contradicting_evidence"][0]["evidence_id"]
+            == contradicting_evidence_id
+        )
+
+        assert evaluation["evidence_summary"] == {
+            "supporting_count": 1,
+            "contradicting_count": 1,
+        }
+        assert evaluation["medical_conclusion"] is None
+
+        print("Real Neo4j claim evaluation: PASS")
 
         # A nonexistent claim should return None.
         missing_claim_evidence = get_evidence_for_claim(
