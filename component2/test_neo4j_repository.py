@@ -2,6 +2,7 @@ from app.db.neo4j import get_neo4j_driver
 from app.db.repository import (
     get_claim,
     get_claims_for_concept,
+    get_connected_knowledge,
     get_evidence,
     get_evidence_for_claim,
     link_evidence_to_claim,
@@ -235,6 +236,82 @@ def main():
 
         assert contradictory_result["total"] == 1
         print("Contradictory evidence verification: PASS")
+
+        # Retrieve connected knowledge for the claim's subject.
+        connected_knowledge = get_connected_knowledge(
+            second_concept_id,
+            driver,
+        )
+
+        matching_results = [
+            item
+            for item in connected_knowledge
+            if item["claim"] is not None
+            and item["claim"]["claim_id"] == claim_id
+        ]
+
+        assert matching_results, (
+            "Traversal did not find the connected claim."
+        )
+
+        result = matching_results[0]
+
+        assert result["starting_concept"]["symptom_id"] == (
+            second_concept_id
+        )
+        assert result["related_concept"]["symptom_id"] == concept_id
+
+        assert any(
+            item["evidence_id"] == evidence_id
+            for item in result["supporting_evidence"]
+        ), "Traversal did not find supporting evidence."
+
+        assert any(
+            item["evidence_id"] == contradicting_evidence_id
+            for item in result["contradicting_evidence"]
+        ), "Traversal did not find contradicting evidence."
+
+        print("Connected knowledge traversal: PASS")
+
+        # Traversal must also work when the starting concept is the object.
+        object_side_knowledge = get_connected_knowledge(
+            concept_id,
+            driver,
+        )
+
+        object_side_results = [
+            item
+            for item in object_side_knowledge
+            if item["claim"] is not None
+            and item["claim"]["claim_id"] == claim_id
+        ]
+
+        assert object_side_results, (
+            "Traversal did not find the claim from its object concept."
+        )
+
+        object_side_result = object_side_results[0]
+
+        assert object_side_result["related_concept"]["symptom_id"] == (
+            second_concept_id
+        ), "Traversal did not return the claim's subject concept."
+
+        print("Object-side knowledge traversal: PASS")
+
+        # An unconnected concept should return no claim results.
+        unconnected_knowledge = get_connected_knowledge(
+            "TEST-UNCONNECTED-CONCEPT",
+            driver,
+        )
+
+        assert all(
+            item["claim"] is None
+            for item in unconnected_knowledge
+        ), (
+            "Expected no connected claims for the unconnected concept."
+        )
+
+        print("Traversal for unconnected concept: PASS")
 
         # Retrieve a claim with both supporting and contradicting evidence.
         claim_evidence = get_evidence_for_claim(claim_id, driver)

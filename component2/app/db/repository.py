@@ -308,3 +308,77 @@ def get_evidence_for_claim(
         "claim": record["claim"],
         "evidence": record["evidence_records"],
     }
+
+def get_connected_knowledge(
+    concept_id: str,
+    driver: Driver | None = None,
+) -> list[dict[str, Any]]:
+    """Retrieve connected claims, concepts, and evidence."""
+    if not concept_id or not concept_id.strip():
+        raise ValueError("concept_id must not be empty.")
+
+    db = _get_driver(driver)
+
+    concept_conditions = " OR ".join(
+        f"(concept:{label} AND concept.{identifier} = $concept_id)"
+        for label, identifier in CONCEPT_IDENTIFIERS.items()
+    )
+
+    query = f"""
+    MATCH (concept)
+    WHERE {concept_conditions}
+
+    OPTIONAL MATCH (concept)-[:SUBJECT_OF]->(subject_claim:Claim)
+    OPTIONAL MATCH (object_claim:Claim)-[:OBJECT_OF]->(concept)
+
+    WITH concept,
+         collect(DISTINCT subject_claim) +
+         collect(DISTINCT object_claim) AS all_claims
+
+    UNWIND CASE
+        WHEN size(all_claims) = 0 THEN [null]
+        ELSE all_claims
+    END AS claim
+
+    OPTIONAL MATCH (subject)-[:SUBJECT_OF]->(claim)
+    OPTIONAL MATCH (claim)-[:OBJECT_OF]->(object)
+
+    WITH concept, claim,
+         collect(DISTINCT subject) AS subjects,
+         collect(DISTINCT object) AS objects
+
+    OPTIONAL MATCH (supporting:Evidence)-[:SUPPORTS]->(claim)
+    WITH concept, claim, subjects, objects,
+         collect(DISTINCT properties(supporting)) AS supporting_evidence
+
+    OPTIONAL MATCH (contradicting:Evidence)-[:CONTRADICTS]->(claim)
+    WITH concept, claim, subjects, objects, supporting_evidence,
+         collect(DISTINCT properties(contradicting)) AS contradicting_evidence
+
+    RETURN
+        properties(concept) AS starting_concept,
+        properties(claim) AS claim,
+        CASE
+            WHEN claim IS NULL THEN null
+            WHEN concept IN subjects THEN
+                head([n IN objects WHERE n <> concept | properties(n)])
+            ELSE
+                head([n IN subjects WHERE n <> concept | properties(n)])
+        END AS related_concept,
+        [e IN supporting_evidence WHERE e IS NOT NULL] AS supporting_evidence,
+        [e IN contradicting_evidence WHERE e IS NOT NULL] AS contradicting_evidence
+    """
+
+    with db.session() as session:
+        records = session.run(query, concept_id=concept_id)
+
+        return [
+            {
+                "starting_concept": record["starting_concept"],
+                "claim": record["claim"],
+                "related_concept": record["related_concept"],
+                "supporting_evidence": record["supporting_evidence"],
+                "contradicting_evidence": record["contradicting_evidence"],
+            }
+            for record in records
+        ]
