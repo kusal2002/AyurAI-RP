@@ -15,6 +15,7 @@ from app.models.claim import Claim, VerificationStatus
 from app.models.evidence import EvidenceRecord, EvidenceType
 from app.models.symptom import SymptomConcept
 from app.reasoning.evaluator import evaluate_claim
+from app.ontology.claim_service import save_claim_with_evidence
 
 def main():
     driver = get_neo4j_driver()
@@ -25,6 +26,8 @@ def main():
     evidence_id = "TEST-REPO-EVIDENCE"
     second_concept_id = "TEST-REPO-CONCEPT-2"
     contradicting_evidence_id = "TEST-REPO-EVIDENCE-2"
+    roga_id = "TEST-REPO-ROGA"
+    linked_claim_id = "TEST-REPO-LINKED-CLAIM"
 
     try:
         # Create a temporary synthetic concept for this test.
@@ -94,6 +97,50 @@ def main():
             == contradicting_evidence_id
         )
         print("Contradictory evidence creation: PASS")
+
+        # Test evidence-linked Symptom -> Roga claim.
+        with driver.session() as session:
+            session.run(
+                """
+                MERGE (:Roga {roga_id: $roga_id})
+                """,
+                roga_id=roga_id,
+            ).consume()
+
+        linked_claim = Claim(
+            claim_id=linked_claim_id,
+            subject_id=symptom_id,
+            predicate="INDICATES",
+            object_id=roga_id,
+            statement="Synthetic symptom-to-Roga claim for integration testing.",
+            verification_status=VerificationStatus.UNVERIFIED,
+        )
+
+        linked_claim_result = save_claim_with_evidence(
+            linked_claim,
+            [
+                (evidence_id, "SUPPORTS"),
+                (contradicting_evidence_id, "CONTRADICTS"),
+            ],
+            driver,
+        )
+
+        assert linked_claim_result["claim"]["claim_id"] == linked_claim_id
+        assert (
+            linked_claim_result["claim"]["verification_status"]
+            == VerificationStatus.UNVERIFIED.value
+        )
+
+        linked_evaluation = evaluate_claim(linked_claim_id, driver)
+        assert linked_evaluation is not None
+        assert linked_evaluation["verification_status"] == "unverified"
+        assert linked_evaluation["evidence_summary"] == {
+            "supporting_count": 1,
+            "contradicting_count": 1,
+        }
+        assert linked_evaluation["medical_conclusion"] is None
+
+        print("Evidence-linked symptom-to-Roga claim: PASS")
 
         claim = Claim(
             claim_id=claim_id,
@@ -471,6 +518,8 @@ def main():
                 WHERE n.symptom_id = $concept_id
                     OR n.symptom_id = $second_concept_id
                     OR n.symptom_id = $symptom_id
+                    OR n.roga_id = $roga_id
+                    OR n.claim_id = $linked_claim_id
                     OR n.claim_id = $claim_id
                     OR n.evidence_id = $evidence_id
                     OR n.evidence_id = $contradicting_evidence_id
@@ -480,6 +529,8 @@ def main():
                 concept_id=concept_id,
                 second_concept_id=second_concept_id,
                 symptom_id=symptom_id,
+                roga_id=roga_id,
+                linked_claim_id=linked_claim_id,
                 claim_id=claim_id,
                 evidence_id=evidence_id,
                 contradicting_evidence_id=contradicting_evidence_id,

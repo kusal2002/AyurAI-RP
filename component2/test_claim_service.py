@@ -3,7 +3,10 @@ from unittest.mock import Mock, patch
 import pytest
 
 from app.models.claim import Claim
-from app.ontology.claim_service import save_ontology_claim
+from app.ontology.claim_service import (
+    save_claim_with_evidence,
+    save_ontology_claim,
+)
 
 
 def make_claim(
@@ -65,3 +68,79 @@ def test_save_error_is_propagated(
         save_ontology_claim(claim)
 
     validate_mock.assert_called_once_with(claim, None)
+
+@patch("app.ontology.claim_service.link_evidence_to_claim")
+@patch("app.ontology.claim_service.save_ontology_claim")
+def test_save_claim_with_supporting_and_contradicting_evidence(
+    save_mock,
+    link_mock,
+):
+    claim = make_claim()
+    claim_data = claim.model_dump(mode="json")
+    save_mock.return_value = claim_data
+    driver = Mock()
+
+    result = save_claim_with_evidence(
+        claim,
+        [
+            ("EVIDENCE-001", "SUPPORTS"),
+            ("EVIDENCE-002", "CONTRADICTS"),
+        ],
+        driver,
+    )
+
+    save_mock.assert_called_once_with(claim, driver)
+    assert link_mock.call_count == 2
+    link_mock.assert_any_call(
+        "EVIDENCE-001", claim.claim_id, "SUPPORTS", driver
+    )
+    link_mock.assert_any_call(
+        "EVIDENCE-002", claim.claim_id, "CONTRADICTS", driver
+    )
+    assert result["claim"] == claim_data
+    assert result["evidence_links"] == [
+        {"evidence_id": "EVIDENCE-001", "relationship": "SUPPORTS"},
+        {"evidence_id": "EVIDENCE-002", "relationship": "CONTRADICTS"},
+    ]
+    assert result["claim"]["verification_status"] == "unverified"
+
+
+@pytest.mark.parametrize(
+    "evidence_links",
+    [
+        [("", "SUPPORTS")],
+        [("EVIDENCE-001", "UNKNOWN")],
+    ],
+)
+def test_save_claim_with_evidence_rejects_invalid_links_before_saving(
+    evidence_links,
+):
+    claim = make_claim()
+
+    with patch(
+        "app.ontology.claim_service.save_ontology_claim"
+    ) as save_mock:
+        with pytest.raises(ValueError):
+            save_claim_with_evidence(claim, evidence_links)
+
+    save_mock.assert_not_called()
+
+
+@patch("app.ontology.claim_service.link_evidence_to_claim")
+@patch("app.ontology.claim_service.save_ontology_claim")
+def test_save_claim_with_evidence_propagates_link_failure(
+    save_mock,
+    link_mock,
+):
+    claim = make_claim()
+    save_mock.return_value = claim.model_dump(mode="json")
+    link_mock.side_effect = ValueError("Evidence or claim does not exist")
+
+    with pytest.raises(ValueError, match="Evidence or claim does not exist"):
+        save_claim_with_evidence(
+            claim,
+            [("MISSING-EVIDENCE", "SUPPORTS")],
+        )
+
+    save_mock.assert_called_once()
+    link_mock.assert_called_once()
