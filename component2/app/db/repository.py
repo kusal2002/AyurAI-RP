@@ -7,6 +7,8 @@ from app.db.neo4j import get_neo4j_driver
 from app.models.claim import Claim
 from app.models.evidence import EvidenceRecord
 from app.ontology.relationships import validate_relationship
+from app.ontology.evidence_validation import validate_evidence_provenance
+
 
 
 # Only these ontology labels and identifier properties are accepted.
@@ -123,6 +125,8 @@ def save_evidence(
     driver: Driver | None = None,
 ) -> dict[str, Any]:
     """Create or update an evidence record by identifier."""
+    validate_evidence_provenance(evidence)
+
     db = _get_driver(driver)
     properties = evidence.model_dump(mode="json")
 

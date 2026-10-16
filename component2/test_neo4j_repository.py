@@ -394,6 +394,37 @@ def main():
         assert missing_claim_evidence is None
         print("Handle missing claim evidence: PASS")
 
+
+        # Reject evidence links when the evidence record is missing.
+        try:
+            link_evidence_to_claim(
+                "TEST-MISSING-EVIDENCE",
+                claim_id,
+                "SUPPORTS",
+                driver,
+            )
+        except ValueError:
+            print("Reject link to missing evidence: PASS")
+        else:
+            raise AssertionError(
+                "A link to missing evidence was accepted."
+            )
+
+        # Reject evidence links when the claim is missing.
+        try:
+            link_evidence_to_claim(
+                evidence_id,
+                "TEST-MISSING-CLAIM",
+                "SUPPORTS",
+                driver,
+            )
+        except ValueError:
+            print("Reject link to missing claim: PASS")
+        else:
+            raise AssertionError(
+                "A link to a missing claim was accepted."
+            )
+
         try:
             link_evidence_to_claim(
                 evidence_id,
