@@ -15,7 +15,9 @@ from app.models.claim import Claim, VerificationStatus
 from app.models.evidence import EvidenceRecord, EvidenceType
 from app.models.symptom import SymptomConcept
 from app.reasoning.evaluator import evaluate_claim
+from app.reasoning.symptom_reasoner import reason_about_symptoms
 from app.ontology.claim_service import save_claim_with_evidence
+
 
 def main():
     driver = get_neo4j_driver()
@@ -141,6 +143,43 @@ def main():
         assert linked_evaluation["medical_conclusion"] is None
 
         print("Evidence-linked symptom-to-Roga claim: PASS")
+
+        # Test the end-to-end symptom reasoning flow.
+        symptom_reasoning = reason_about_symptoms(
+            [symptom_id],
+            driver,
+        )
+
+        assert symptom_reasoning["summary"] == {
+            "requested_symptom_count": 1,
+            "unique_symptom_count": 1,
+            "found_symptom_count": 1,
+            "indicates_claim_count": 1,
+        }
+
+        symptom_result = symptom_reasoning["results"][0]
+
+        assert symptom_result["found"] is True
+        assert symptom_result["symptom"]["symptom_id"] == symptom_id
+        assert len(symptom_result["indicates_claims"]) == 1
+
+        reasoning_claim = symptom_result["indicates_claims"][0]
+
+        assert reasoning_claim["claim_id"] == linked_claim_id
+        assert reasoning_claim["roga_id"] == roga_id
+        assert reasoning_claim["verification_status"] == "unverified"
+
+        evaluation = reasoning_claim["evaluation"]
+
+        assert evaluation is not None
+        assert evaluation["evidence_summary"] == {
+            "supporting_count": 1,
+            "contradicting_count": 1,
+        }
+        assert evaluation["medical_conclusion"] is None
+        assert symptom_reasoning["medical_conclusion"] is None
+
+        print("End-to-end symptom reasoning flow: PASS")
 
         claim = Claim(
             claim_id=claim_id,
