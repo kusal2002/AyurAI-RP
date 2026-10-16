@@ -8,6 +8,7 @@ from app.models.claim import Claim
 from app.models.evidence import EvidenceRecord
 from app.ontology.relationships import validate_relationship
 from app.ontology.evidence_validation import validate_evidence_provenance
+from app.models.symptom import SymptomConcept
 
 
 
@@ -464,3 +465,53 @@ def get_connected_knowledge(
             }
             for record in records
         ]
+
+def save_symptom(
+    symptom: SymptomConcept,
+    driver: Driver | None = None,
+) -> dict[str, Any]:
+    """Create or update a symptom concept by its stable identifier."""
+    db = _get_driver(driver)
+    properties = symptom.model_dump()
+
+    query = """
+    MERGE (s:Symptom {symptom_id: $symptom_id})
+    SET s += $properties
+    RETURN properties(s) AS symptom
+    """
+
+    with db.session() as session:
+        record = session.run(
+            query,
+            symptom_id=symptom.symptom_id,
+            properties=properties,
+        ).single()
+
+    if record is None:
+        raise RuntimeError("Symptom could not be saved.")
+
+    return record["symptom"]
+
+
+def get_symptom(
+    symptom_id: str,
+    driver: Driver | None = None,
+) -> dict[str, Any] | None:
+    """Retrieve a symptom concept by its identifier."""
+    if not symptom_id or not symptom_id.strip():
+        raise ValueError("symptom_id must not be empty.")
+
+    db = _get_driver(driver)
+
+    query = """
+    MATCH (s:Symptom {symptom_id: $symptom_id})
+    RETURN properties(s) AS symptom
+    """
+
+    with db.session() as session:
+        record = session.run(
+            query,
+            symptom_id=symptom_id,
+        ).single()
+
+    return record["symptom"] if record else None

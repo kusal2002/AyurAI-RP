@@ -5,19 +5,22 @@ from app.db.repository import (
     get_connected_knowledge,
     get_evidence,
     get_evidence_for_claim,
+    get_symptom,
     link_evidence_to_claim,
     save_claim,
     save_evidence,
+    save_symptom,
 )
 from app.models.claim import Claim, VerificationStatus
 from app.models.evidence import EvidenceRecord, EvidenceType
+from app.models.symptom import SymptomConcept
 from app.reasoning.evaluator import evaluate_claim
-
 
 def main():
     driver = get_neo4j_driver()
 
     concept_id = "TEST-REPO-CONCEPT"
+    symptom_id = "TEST-REPO-SYMPTOM"
     claim_id = "TEST-REPO-CLAIM"
     evidence_id = "TEST-REPO-EVIDENCE"
     second_concept_id = "TEST-REPO-CONCEPT-2"
@@ -39,6 +42,25 @@ def main():
                 """,
                 concept_id=second_concept_id,
             ).consume()
+
+                # Test symptom save and retrieval using synthetic data.
+        symptom = SymptomConcept(
+            symptom_id=symptom_id,
+            name="Synthetic symptom for repository testing",
+            aliases=["Synthetic test alias"],
+            description="Temporary integration-test data only.",
+        )
+
+        saved_symptom = save_symptom(symptom, driver)
+        assert saved_symptom["symptom_id"] == symptom_id
+        assert saved_symptom["name"] == symptom.name
+
+        retrieved_symptom = get_symptom(symptom_id, driver)
+        assert retrieved_symptom is not None
+        assert retrieved_symptom["name"] == symptom.name
+        assert retrieved_symptom["aliases"] == symptom.aliases
+
+        print("Symptom save and retrieval: PASS")
 
         evidence = EvidenceRecord(
             evidence_id=evidence_id,
@@ -448,6 +470,7 @@ def main():
                 MATCH (n)
                 WHERE n.symptom_id = $concept_id
                     OR n.symptom_id = $second_concept_id
+                    OR n.symptom_id = $symptom_id
                     OR n.claim_id = $claim_id
                     OR n.evidence_id = $evidence_id
                     OR n.evidence_id = $contradicting_evidence_id
@@ -456,6 +479,7 @@ def main():
                 """,
                 concept_id=concept_id,
                 second_concept_id=second_concept_id,
+                symptom_id=symptom_id,
                 claim_id=claim_id,
                 evidence_id=evidence_id,
                 contradicting_evidence_id=contradicting_evidence_id,
