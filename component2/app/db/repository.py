@@ -6,6 +6,7 @@ from neo4j import Driver
 from app.db.neo4j import get_neo4j_driver
 from app.models.claim import Claim
 from app.models.evidence import EvidenceRecord
+from app.ontology.relationships import validate_relationship
 
 
 # Only these ontology labels and identifier properties are accepted.
@@ -34,6 +35,83 @@ coalesce(
     node.lifestyle_id
 )
 """
+
+def get_concept_type(
+    concept_id: str,
+    driver: Driver | None = None,
+) -> str | None:
+    """Return the unique ontology label for a concept ID.
+
+    Returns None when no matching concept exists.
+    Raises ValueError when the identifier matches multiple nodes.
+    """
+    if not concept_id or not concept_id.strip():
+        raise ValueError("concept_id must not be empty.")
+
+    db = _get_driver(driver)
+
+    label_conditions = " OR ".join(
+        f"(node:{label} AND node.{identifier} = $concept_id)"
+        for label, identifier in CONCEPT_IDENTIFIERS.items()
+    )
+
+    query = f"""
+    MATCH (node)
+    WHERE {label_conditions}
+    RETURN collect(DISTINCT labels(node)) AS node_labels
+    """
+
+    with db.session() as session:
+        record = session.run(
+            query,
+            concept_id=concept_id,
+        ).single()
+
+    if record is None:
+        return None
+
+    matching_labels = [
+        label
+        for labels in record["node_labels"]
+        for label in labels
+        if label in CONCEPT_IDENTIFIERS
+    ]
+
+    unique_labels = set(matching_labels)
+
+    if len(unique_labels) > 1:
+        raise ValueError(
+            f"Concept ID {concept_id!r} matches multiple "
+            f"ontology types: {sorted(unique_labels)}"
+        )
+
+    return next(iter(unique_labels), None)
+
+
+def validate_ontology_claim(
+    claim: Claim,
+    driver: Driver | None = None,
+) -> None:
+    """Validate a claim against the actual Neo4j concept types."""
+    subject_type = get_concept_type(claim.subject_id, driver)
+    object_type = get_concept_type(claim.object_id, driver)
+
+    if subject_type is None:
+        raise ValueError(
+            f"Unknown ontology subject: {claim.subject_id!r}"
+        )
+
+    if object_type is None:
+        raise ValueError(
+            f"Unknown ontology object: {claim.object_id!r}"
+        )
+
+    validate_relationship(
+        predicate=claim.predicate,
+        subject_type=subject_type,
+        object_type=object_type,
+    )
+
 
 
 def _get_driver(driver: Driver | None = None) -> Driver:
