@@ -150,3 +150,38 @@ def test_reject_unsupported_evidence_relationship():
             match="Unsupported evidence relationship",
         ):
             evaluate_claim("TEST-CLAIM")
+
+
+def test_evaluate_claim_warns_when_evidence_conflicts():
+    repository_result = {
+        "claim": CLAIM,
+        "evidence": [
+            {
+                "evidence": SUPPORTING_EVIDENCE,
+                "relationship": "SUPPORTS",
+            },
+            {
+                "evidence": CONTRADICTING_EVIDENCE,
+                "relationship": "CONTRADICTS",
+            },
+        ],
+    }
+
+    with patch(
+        "app.reasoning.evaluator.get_evidence_for_claim",
+        return_value=repository_result,
+    ):
+        result = evaluate_claim("TEST-CLAIM")
+
+    assert result is not None
+    assert result["verification_status"] == "unverified"
+    assert result["stored_confidence"] == 0.7
+    assert result["evidence_summary"] == {
+        "supporting_count": 1,
+        "contradicting_count": 1,
+    }
+    assert any(
+        "Conflicting evidence is present" in note
+        for note in result["reasoning_notes"]
+    )
+    assert result["medical_conclusion"] is None

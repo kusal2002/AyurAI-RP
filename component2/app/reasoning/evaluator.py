@@ -78,6 +78,12 @@ def evaluate_claim(
             "No contradicting evidence is linked to this claim."
         )
 
+    if supporting_evidence and contradicting_evidence:
+        reasoning_notes.append(
+            "Conflicting evidence is present. The claim requires "
+            "further review; do not resolve the conflict automatically."
+        )
+
     if verification_status == "disputed":
         reasoning_notes.append(
             "The claim is marked as disputed and requires careful review."
