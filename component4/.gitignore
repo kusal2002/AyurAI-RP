@@ -1,0 +1,18 @@
+# Python virtual environment
+venv/
+
+# Python bytecode
+__pycache__/
+*.pyc
+
+# Secrets / environment variables
+.env
+
+# Raw datasets (may contain patient data — never commit)
+data/raw/
+
+# Editor / IDE settings
+.idea/
+.vscode/
+
+# NOTE: results/*.csv is intentionally NOT ignored — experiment results are committed.
