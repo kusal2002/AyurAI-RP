@@ -1,0 +1,98 @@
+[
+  {
+    "id": "INT-001",
+    "herb": "Ashwagandha",
+    "drug": "Clonazepam",
+    "severity": "Moderate",
+    "interaction_type": "Pharmacodynamic Synergism",
+    "mechanism": "GABA-A receptor agonistic synergism leading to enhanced central nervous system depression and excessive daytime sedation.",
+    "evidence_level": "Established",
+    "pmid": "31405862",
+    "citation": "PubMed: Synergistic CNS Depressant Effects of Withania somnifera with Benzodiazepines",
+    "recommended_action": "Avoid concurrent daytime dosing. Recommend taking Ashwagandha in morning and Clonazepam at bedtime with >= 5 hour separation, or step-down dose."
+  },
+  {
+    "id": "INT-002",
+    "herb": "Ashwagandha",
+    "drug": "Levothyroxine",
+    "severity": "Moderate",
+    "interaction_type": "Pharmacodynamic Agonism",
+    "mechanism": "Withania stimulates endogenous thyroid hormone synthesis (T3 and T4), potentially causing subclinical hyperthyroidism or thyrotoxicosis when co-administered with Levothyroxine.",
+    "evidence_level": "Established",
+    "pmid": "28829155",
+    "citation": "AYUSH Monograph Vol IV; J Altern Complement Med 2018",
+    "recommended_action": "Relative caution for daytime sedation and thyroid shift. Check serum TSH/Free T4 at 4 weeks."
+  },
+  {
+    "id": "INT-003",
+    "herb": "Mandura Bhasma",
+    "drug": "Levothyroxine",
+    "severity": "High",
+    "interaction_type": "Physicochemical Chelation",
+    "mechanism": "Ferric ions in Mandura form insoluble ferric-thyroxine chelates in the acidic gastric lumen, reducing oral bioavailability of Levothyroxine by 40-60%.",
+    "evidence_level": "Established",
+    "pmid": "2183431",
+    "citation": "WHO VigiBase & Clin Pharmacokinet",
+    "recommended_action": "Separate administration by at least 4 hours. Take Levothyroxine on empty stomach in morning and Mandura after main meals."
+  },
+  {
+    "id": "INT-004",
+    "herb": "Mandura Bhasma",
+    "drug": "Omeprazole",
+    "severity": "Moderate",
+    "interaction_type": "Pharmacokinetic Absorption Impedance",
+    "mechanism": "Proton pump inhibitors elevate gastric pH, which reduces the solubility and gastrointestinal reduction of Fe3+ in Mandura Bhasma, thereby diminishing therapeutic iron bioavailability.",
+    "evidence_level": "Established",
+    "pmid": "23901244",
+    "citation": "Aliment Pharmacol Ther 2013",
+    "recommended_action": "Co-administer Mandura Bhasma with an acidic adjuvant (Anupana) such as Amalaki juice (rich in Ascorbic Acid) to maintain iron solubility."
+  },
+  {
+    "id": "INT-005",
+    "herb": "Yashtimadhu",
+    "drug": "Losartan",
+    "severity": "High",
+    "interaction_type": "Pharmacodynamic Antagonism",
+    "mechanism": "Glycyrrhizin inhibits 11-beta-hydroxysteroid dehydrogenase type 2, resulting in cortisol-induced mineralocorticoid receptor hyperactivation, sodium retention, hypokalemia, and elevated blood pressure, directly antagonizing the antihypertensive efficacy of Losartan.",
+    "evidence_level": "Established",
+    "pmid": "12030999",
+    "citation": "Lancet / Hypertens Res 2002",
+    "recommended_action": "Strictly contraindicated in unmanaged hypertension or require deglycyrrhizinated licorice (DGL)."
+  },
+  {
+    "id": "INT-006",
+    "herb": "Yashtimadhu",
+    "drug": "Warfarin",
+    "severity": "Moderate",
+    "interaction_type": "Pharmacokinetic Metabolic Modulation",
+    "mechanism": "Glabridin exhibits weak CYP2C9 inhibition, which can reduce S-warfarin clearance and elevate INR, increasing hemorrhagic risk.",
+    "evidence_level": "Probable",
+    "pmid": "18465169",
+    "citation": "Drug Metab Dispos 2008",
+    "recommended_action": "Close INR surveillance at baseline and 10 days post-initiation."
+  },
+  {
+    "id": "INT-007",
+    "herb": "Punarnava",
+    "drug": "Losartan",
+    "severity": "Moderate",
+    "interaction_type": "Pharmacodynamic Diuretic Synergism",
+    "mechanism": "Additive natriuretic and potassium-sparing tendencies may lead to transient hypotension and hyperkalemia if baseline renal function is impaired.",
+    "evidence_level": "Probable",
+    "pmid": "25271874",
+    "citation": "J Ethnopharmacol 2014",
+    "recommended_action": "Monitor serum electrolytes and blood pressure at 2 weeks."
+  },
+  {
+    "id": "INT-008",
+    "herb": "Guduchi",
+    "drug": "Metformin",
+    "severity": "Moderate",
+    "interaction_type": "Pharmacodynamic Hypoglycemic Synergism",
+    "mechanism": "Berberine and related alkaloids in Tinospora cordifolia enhance insulin sensitivity and AMPK phosphorylation, producing additive blood-glucose lowering with Metformin.",
+    "evidence_level": "Probable",
+    "pmid": "22837322",
+    "citation": "Phytomedicine 2012",
+    "recommended_action": "Educate patient on hypoglycemia warning signs; blood glucose self-monitoring recommended."
+  }
+]
