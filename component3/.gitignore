@@ -28,3 +28,6 @@ htmlcov/
 # OS files
 .DS_Store
 Thumbs.db
+
+# Project Docs / Local Plans
+IMPLEMENTATION_PLAN.md
