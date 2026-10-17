@@ -1,0 +1,30 @@
+[
+  {
+    "enzyme": "CYP3A4",
+    "description": "Major drug-metabolizing cytochrome P450 enzyme responsible for >50% of marketed pharmaceuticals",
+    "substrates": ["Atorvastatin", "Amlodipine", "Clonazepam", "Levothyroxine"],
+    "inhibitors": ["Glabridin (mild)", "Curcumin"],
+    "inducers": ["St John's Wort", "Withaferin A (weak/modulatory)"]
+  },
+  {
+    "enzyme": "CYP2C9",
+    "description": "Key enzyme for narrow-therapeutic-index drugs including S-warfarin and Losartan oxidation",
+    "substrates": ["Warfarin", "Losartan", "Aspirin"],
+    "inhibitors": ["Withaferin A (in-silico binding affinity -9.4 kcal/mol)", "Glabridin"],
+    "inducers": ["Rifampin"]
+  },
+  {
+    "enzyme": "CYP2C19",
+    "description": "Proton pump inhibitors and anticonvulsants",
+    "substrates": ["Omeprazole", "Diazepam"],
+    "inhibitors": ["Tinosporaside (weak)"],
+    "inducers": ["Carbamazepine"]
+  },
+  {
+    "enzyme": "P-glycoprotein",
+    "description": "Efflux transporter modulating intestinal absorption and tissue distribution",
+    "substrates": ["Digoxin", "Atorvastatin"],
+    "inhibitors": ["Piperine (Black pepper / Trikatu)", "Curcumin"],
+    "inducers": []
+  }
+]
