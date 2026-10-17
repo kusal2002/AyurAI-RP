@@ -16,6 +16,7 @@ from app.models.evidence import EvidenceRecord, EvidenceType
 from app.models.symptom import SymptomConcept
 from app.reasoning.evaluator import evaluate_claim
 from app.reasoning.symptom_reasoner import reason_about_symptoms
+from app.reasoning.knowledge_chain import trace_knowledge_chains
 from app.ontology.claim_service import save_claim_with_evidence
 
 
@@ -30,6 +31,8 @@ def main():
     contradicting_evidence_id = "TEST-REPO-EVIDENCE-2"
     roga_id = "TEST-REPO-ROGA"
     linked_claim_id = "TEST-REPO-LINKED-CLAIM"
+    dosha_id = "TEST-REPO-DOSHA"
+    dosha_claim_id = "TEST-REPO-ROGA-DOSHA-CLAIM"
 
     try:
         # Create a temporary synthetic concept for this test.
@@ -180,6 +183,73 @@ def main():
         assert symptom_reasoning["medical_conclusion"] is None
 
         print("End-to-end symptom reasoning flow: PASS")
+
+        # Create a synthetic Dosha concept for knowledge-chain testing.
+        with driver.session() as session:
+            session.run(
+                """
+                MERGE (:Dosha {dosha_id: $dosha_id})
+                """,
+                dosha_id=dosha_id,
+            ).consume()
+
+        # Create an evidence-linked Roga -> Dosha claim.
+        roga_dosha_claim = Claim(
+            claim_id=dosha_claim_id,
+            subject_id=roga_id,
+            predicate="ASSOCIATED_WITH_DOSHA",
+            object_id=dosha_id,
+            statement="Synthetic Roga-to-Dosha claim for integration testing.",
+            verification_status=VerificationStatus.UNVERIFIED,
+        )
+
+        roga_dosha_result = save_claim_with_evidence(
+            roga_dosha_claim,
+            [(evidence_id, "SUPPORTS")],
+            driver,
+        )
+
+        assert (
+            roga_dosha_result["claim"]["claim_id"] == dosha_claim_id
+        )
+        assert (
+            roga_dosha_result["claim"]["verification_status"]
+            == VerificationStatus.UNVERIFIED.value
+        )
+
+        print("Evidence-linked Roga-to-Dosha claim: PASS")
+
+        # Test full Symptom -> Roga -> Dosha knowledge-chain traversal.
+        chain_result = trace_knowledge_chains(
+            symptom_id,
+            driver,
+        )
+
+        assert chain_result["start_concept_id"] == symptom_id
+        assert chain_result["summary"]["chain_count"] == 1
+        assert chain_result["summary"]["unique_claim_count"] == 2
+        assert chain_result["summary"]["unverified_claim_count"] == 2
+        assert chain_result["summary"]["disputed_claim_count"] == 0
+        assert chain_result["summary"]["chains_with_conflicting_evidence"] == 1
+        assert chain_result["truncated"] is False
+        assert chain_result["medical_conclusion"] is None
+
+        traced_chain = chain_result["chains"][0]
+
+        assert traced_chain["concept_ids"] == [
+            symptom_id,
+            roga_id,
+            dosha_id,
+        ]
+        assert [
+            claim["claim_id"] for claim in traced_chain["claims"]
+        ] == [
+            linked_claim_id,
+            dosha_claim_id,
+        ]
+        assert traced_chain["termination_reason"] == "no_outgoing_claims"
+
+        print("End-to-end Symptom-to-Roga-to-Dosha chain: PASS")
 
         claim = Claim(
             claim_id=claim_id,
@@ -558,7 +628,9 @@ def main():
                     OR n.symptom_id = $second_concept_id
                     OR n.symptom_id = $symptom_id
                     OR n.roga_id = $roga_id
+                    OR n.dosha_id = $dosha_id
                     OR n.claim_id = $linked_claim_id
+                    OR n.claim_id = $dosha_claim_id
                     OR n.claim_id = $claim_id
                     OR n.evidence_id = $evidence_id
                     OR n.evidence_id = $contradicting_evidence_id
@@ -569,6 +641,8 @@ def main():
                 second_concept_id=second_concept_id,
                 symptom_id=symptom_id,
                 roga_id=roga_id,
+                dosha_id=dosha_id,
+                dosha_claim_id=dosha_claim_id,
                 linked_claim_id=linked_claim_id,
                 claim_id=claim_id,
                 evidence_id=evidence_id,
