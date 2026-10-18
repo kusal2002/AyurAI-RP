@@ -1,0 +1,3043 @@
+{
+  "bank_id": "ayurai_clinical_question_bank",
+  "version": "1.0.0-prototype",
+  "language": "en",
+  "approval_status": "DRAFT — clinical supervisor + institutional/ERC review pending",
+  "clinical_population": "Adults, pregnancy, children; child minimum age and research eligibility NOT approved",
+  "usage": "Assisted intake and prototype demonstration, not diagnosis or autonomous triage",
+  "answer_policy": "Never guess, invent, infer from images, or default unanswered clinical questions to No.",
+  "privacy": "Coded patient/session IDs; collect minimum necessary data; real collection requires approved consent and technical safeguards.",
+  "branch_conditions": "Conditions evaluate patient profile and previously entered answers. Unanswered trigger = no inferred condition.",
+  "questions": [
+    {
+      "id": "REG01",
+      "section": "registration",
+      "prompt": "Study-specific coded patient reference (do not enter a name).",
+      "type": "text",
+      "required_when_shown": true,
+      "source_group": "prototype_clinical_intake"
+    },
+    {
+      "id": "REG02",
+      "section": "registration",
+      "prompt": "Age in completed months (for children) or derived from age in years.",
+      "type": "integer",
+      "required_when_shown": true,
+      "source_group": "prototype_clinical_intake",
+      "note": "Use age in months to support age-appropriate branching; no child minimum age has been approved."
+    },
+    {
+      "id": "REG03",
+      "section": "registration",
+      "prompt": "Preferred language for the interview.",
+      "type": "choice",
+      "required_when_shown": true,
+      "options": [
+        "English",
+        "Sinhala",
+        "Tamil",
+        "Other",
+        "not_sure"
+      ],
+      "source_group": "prototype_clinical_intake"
+    },
+    {
+      "id": "REG04",
+      "section": "registration",
+      "prompt": "Who is answering today?",
+      "type": "choice",
+      "required_when_shown": true,
+      "options": [
+        "patient",
+        "parent_or_guardian",
+        "clinical_assistant_with_patient",
+        "other"
+      ],
+      "source_group": "prototype_clinical_intake"
+    },
+    {
+      "id": "REG05",
+      "section": "registration",
+      "prompt": "Has the procedure been explained, and has the patient/authorized representative agreed to this prototype interaction?",
+      "type": "choice",
+      "required_when_shown": true,
+      "options": [
+        "yes",
+        "no",
+        "not_sure"
+      ],
+      "source_group": "prototype_clinical_intake"
+    },
+    {
+      "id": "REG06",
+      "section": "registration",
+      "prompt": "Is separate permission given to record PPG on the finger sensor?",
+      "type": "choice",
+      "required_when_shown": true,
+      "options": [
+        "yes",
+        "no",
+        "not_sure"
+      ],
+      "source_group": "prototype_clinical_intake"
+    },
+    {
+      "id": "REG07",
+      "section": "registration",
+      "prompt": "Is separate permission given to capture conjunctiva/nail/tongue photographs?",
+      "type": "choice",
+      "required_when_shown": true,
+      "options": [
+        "yes",
+        "no",
+        "not_sure"
+      ],
+      "source_group": "prototype_clinical_intake"
+    },
+    {
+      "id": "REG08",
+      "section": "registration",
+      "prompt": "What brings the patient for screening today?",
+      "type": "text",
+      "required_when_shown": false,
+      "source_group": "prototype_clinical_intake"
+    },
+    {
+      "id": "SAF01",
+      "section": "immediate_safety",
+      "prompt": "Is the patient experiencing chest pain or pressure right now?",
+      "type": "choice",
+      "required_when_shown": true,
+      "options": [
+        "yes",
+        "no",
+        "not_sure",
+        "prefer_not_to_answer"
+      ],
+      "source_group": "prototype_clinical_intake",
+      "note": "A yes response flags immediate clinician assessment; never rely on the AI result."
+    },
+    {
+      "id": "SAF02",
+      "section": "immediate_safety",
+      "prompt": "Is the patient severely short of breath at rest?",
+      "type": "choice",
+      "required_when_shown": true,
+      "options": [
+        "yes",
+        "no",
+        "not_sure",
+        "prefer_not_to_answer"
+      ],
+      "source_group": "prototype_clinical_intake",
+      "note": "A yes response flags immediate clinician assessment; never rely on the AI result."
+    },
+    {
+      "id": "SAF03",
+      "section": "immediate_safety",
+      "prompt": "Has the patient just fainted, or are they suddenly confused or severely weak?",
+      "type": "choice",
+      "required_when_shown": true,
+      "options": [
+        "yes",
+        "no",
+        "not_sure",
+        "prefer_not_to_answer"
+      ],
+      "source_group": "prototype_clinical_intake",
+      "note": "A yes response flags immediate clinician assessment; never rely on the AI result."
+    },
+    {
+      "id": "SAF04",
+      "section": "immediate_safety",
+      "prompt": "Is there heavy active bleeding, vomiting blood, or black tar-like stool?",
+      "type": "choice",
+      "required_when_shown": true,
+      "options": [
+        "yes",
+        "no",
+        "not_sure",
+        "prefer_not_to_answer"
+      ],
+      "source_group": "prototype_clinical_intake",
+      "note": "A yes response flags immediate clinician assessment; never rely on the AI result."
+    },
+    {
+      "id": "C01",
+      "section": "core_screening",
+      "prompt": "Unusual tiredness, weakness or reduced play/activity?",
+      "type": "choice",
+      "required_when_shown": true,
+      "options": [
+        "yes",
+        "no",
+        "not_sure",
+        "prefer_not_to_answer"
+      ],
+      "source_group": "prototype_clinical_intake"
+    },
+    {
+      "id": "C02",
+      "section": "core_screening",
+      "prompt": "Breathlessness during ordinary activity?",
+      "type": "choice",
+      "required_when_shown": true,
+      "options": [
+        "yes",
+        "no",
+        "not_sure",
+        "prefer_not_to_answer"
+      ],
+      "source_group": "prototype_clinical_intake"
+    },
+    {
+      "id": "C03",
+      "section": "core_screening",
+      "prompt": "Dizziness, light-headedness or faintness?",
+      "type": "choice",
+      "required_when_shown": true,
+      "options": [
+        "yes",
+        "no",
+        "not_sure",
+        "prefer_not_to_answer"
+      ],
+      "source_group": "prototype_clinical_intake"
+    },
+    {
+      "id": "C04",
+      "section": "core_screening",
+      "prompt": "Fast or irregular heartbeat?",
+      "type": "choice",
+      "required_when_shown": true,
+      "options": [
+        "yes",
+        "no",
+        "not_sure",
+        "prefer_not_to_answer"
+      ],
+      "source_group": "prototype_clinical_intake"
+    },
+    {
+      "id": "C05",
+      "section": "core_screening",
+      "prompt": "Frequent headaches?",
+      "type": "choice",
+      "required_when_shown": true,
+      "options": [
+        "yes",
+        "no",
+        "not_sure",
+        "prefer_not_to_answer"
+      ],
+      "source_group": "prototype_clinical_intake"
+    },
+    {
+      "id": "C06",
+      "section": "core_screening",
+      "prompt": "Noticeable pallor of inner eyelids, skin or nails?",
+      "type": "choice",
+      "required_when_shown": true,
+      "options": [
+        "yes",
+        "no",
+        "not_sure",
+        "prefer_not_to_answer"
+      ],
+      "source_group": "prototype_clinical_intake"
+    },
+    {
+      "id": "C07",
+      "section": "core_screening",
+      "prompt": "Frequent cold hands or feet?",
+      "type": "choice",
+      "required_when_shown": true,
+      "options": [
+        "yes",
+        "no",
+        "not_sure",
+        "prefer_not_to_answer"
+      ],
+      "source_group": "prototype_clinical_intake"
+    },
+    {
+      "id": "C08",
+      "section": "core_screening",
+      "prompt": "Previously informed of anaemia or low haemoglobin?",
+      "type": "choice",
+      "required_when_shown": true,
+      "options": [
+        "yes",
+        "no",
+        "not_sure",
+        "prefer_not_to_answer"
+      ],
+      "source_group": "prototype_clinical_intake"
+    },
+    {
+      "id": "C09",
+      "section": "core_screening",
+      "prompt": "Previous laboratory haemoglobin or complete blood count result available?",
+      "type": "choice",
+      "required_when_shown": true,
+      "options": [
+        "yes",
+        "no",
+        "not_sure",
+        "prefer_not_to_answer"
+      ],
+      "source_group": "prototype_clinical_intake"
+    },
+    {
+      "id": "C10",
+      "section": "core_screening",
+      "prompt": "Recent or recurring blood loss or bleeding?",
+      "type": "choice",
+      "required_when_shown": true,
+      "options": [
+        "yes",
+        "no",
+        "not_sure",
+        "prefer_not_to_answer"
+      ],
+      "source_group": "prototype_clinical_intake"
+    },
+    {
+      "id": "C11",
+      "section": "core_screening",
+      "prompt": "Diagnosed chronic condition (including kidney, intestinal or blood disorders)?",
+      "type": "choice",
+      "required_when_shown": true,
+      "options": [
+        "yes",
+        "no",
+        "not_sure",
+        "prefer_not_to_answer"
+      ],
+      "source_group": "prototype_clinical_intake"
+    },
+    {
+      "id": "C12",
+      "section": "core_screening",
+      "prompt": "Significant recent infection or prolonged fever?",
+      "type": "choice",
+      "required_when_shown": true,
+      "options": [
+        "yes",
+        "no",
+        "not_sure",
+        "prefer_not_to_answer"
+      ],
+      "source_group": "prototype_clinical_intake"
+    },
+    {
+      "id": "C13",
+      "section": "core_screening",
+      "prompt": "Restricted diet or concerns about food intake?",
+      "type": "choice",
+      "required_when_shown": true,
+      "options": [
+        "yes",
+        "no",
+        "not_sure",
+        "prefer_not_to_answer"
+      ],
+      "source_group": "prototype_clinical_intake"
+    },
+    {
+      "id": "C14",
+      "section": "core_screening",
+      "prompt": "Recent change in appetite, weight or growth?",
+      "type": "choice",
+      "required_when_shown": true,
+      "options": [
+        "yes",
+        "no",
+        "not_sure",
+        "prefer_not_to_answer"
+      ],
+      "source_group": "prototype_clinical_intake"
+    },
+    {
+      "id": "C15",
+      "section": "core_screening",
+      "prompt": "Any prescription medicines, non-prescription medicines or supplements currently used?",
+      "type": "choice",
+      "required_when_shown": true,
+      "options": [
+        "yes",
+        "no",
+        "not_sure",
+        "prefer_not_to_answer"
+      ],
+      "source_group": "prototype_clinical_intake"
+    },
+    {
+      "id": "C16",
+      "section": "core_screening",
+      "prompt": "Any Ayurvedic, herbal or other traditional products currently used?",
+      "type": "choice",
+      "required_when_shown": true,
+      "options": [
+        "yes",
+        "no",
+        "not_sure",
+        "prefer_not_to_answer"
+      ],
+      "source_group": "prototype_clinical_intake"
+    },
+    {
+      "id": "C17",
+      "section": "core_screening",
+      "prompt": "Any known allergies or adverse reactions to medicines, herbs or foods?",
+      "type": "choice",
+      "required_when_shown": true,
+      "options": [
+        "yes",
+        "no",
+        "not_sure",
+        "prefer_not_to_answer"
+      ],
+      "source_group": "prototype_clinical_intake"
+    },
+    {
+      "id": "C18",
+      "section": "core_screening",
+      "prompt": "Family history of inherited blood disorders such as thalassaemia?",
+      "type": "choice",
+      "required_when_shown": true,
+      "options": [
+        "yes",
+        "no",
+        "not_sure",
+        "prefer_not_to_answer"
+      ],
+      "source_group": "prototype_clinical_intake"
+    },
+    {
+      "id": "C19",
+      "section": "core_screening",
+      "prompt": "Relevant sex-related clinical information for interpreting laboratory Hb where clinically appropriate.",
+      "type": "choice",
+      "required_when_shown": false,
+      "options": [
+        "recorded_by_clinician",
+        "not_recorded",
+        "not_applicable"
+      ],
+      "source_group": "prototype_clinical_intake",
+      "note": "Do not infer from camera image; optional sensitive clinical information."
+    },
+    {
+      "id": "C20",
+      "section": "core_screening",
+      "prompt": "Is menstrual history clinically relevant for this patient?",
+      "type": "choice",
+      "required_when_shown": false,
+      "options": [
+        "yes",
+        "no",
+        "not_sure",
+        "prefer_not_to_answer"
+      ],
+      "source_group": "prototype_clinical_intake"
+    },
+    {
+      "id": "SY01",
+      "section": "followup_symptoms",
+      "prompt": "When did the symptom(s) begin?",
+      "type": "text",
+      "required_when_shown": false,
+      "when": {
+        "any": [
+          {
+            "field": "answers.C01",
+            "op": "eq",
+            "value": "yes"
+          },
+          {
+            "field": "answers.C02",
+            "op": "eq",
+            "value": "yes"
+          },
+          {
+            "field": "answers.C03",
+            "op": "eq",
+            "value": "yes"
+          },
+          {
+            "field": "answers.C04",
+            "op": "eq",
+            "value": "yes"
+          },
+          {
+            "field": "answers.C05",
+            "op": "eq",
+            "value": "yes"
+          },
+          {
+            "field": "answers.C06",
+            "op": "eq",
+            "value": "yes"
+          },
+          {
+            "field": "answers.C07",
+            "op": "eq",
+            "value": "yes"
+          }
+        ]
+      },
+      "source_group": "prototype_clinical_intake"
+    },
+    {
+      "id": "SY02",
+      "section": "followup_symptoms",
+      "prompt": "Are they occasional, frequent or constant?",
+      "type": "choice",
+      "required_when_shown": false,
+      "options": [
+        "occasional",
+        "frequent",
+        "constant",
+        "not_sure"
+      ],
+      "when": {
+        "any": [
+          {
+            "field": "answers.C01",
+            "op": "eq",
+            "value": "yes"
+          },
+          {
+            "field": "answers.C02",
+            "op": "eq",
+            "value": "yes"
+          },
+          {
+            "field": "answers.C03",
+            "op": "eq",
+            "value": "yes"
+          },
+          {
+            "field": "answers.C04",
+            "op": "eq",
+            "value": "yes"
+          },
+          {
+            "field": "answers.C05",
+            "op": "eq",
+            "value": "yes"
+          },
+          {
+            "field": "answers.C06",
+            "op": "eq",
+            "value": "yes"
+          },
+          {
+            "field": "answers.C07",
+            "op": "eq",
+            "value": "yes"
+          }
+        ]
+      },
+      "source_group": "prototype_clinical_intake"
+    },
+    {
+      "id": "SY03",
+      "section": "followup_symptoms",
+      "prompt": "Are they becoming worse?",
+      "type": "choice",
+      "required_when_shown": false,
+      "options": [
+        "yes",
+        "no",
+        "not_sure",
+        "prefer_not_to_answer"
+      ],
+      "when": {
+        "any": [
+          {
+            "field": "answers.C01",
+            "op": "eq",
+            "value": "yes"
+          },
+          {
+            "field": "answers.C02",
+            "op": "eq",
+            "value": "yes"
+          },
+          {
+            "field": "answers.C03",
+            "op": "eq",
+            "value": "yes"
+          },
+          {
+            "field": "answers.C04",
+            "op": "eq",
+            "value": "yes"
+          },
+          {
+            "field": "answers.C05",
+            "op": "eq",
+            "value": "yes"
+          },
+          {
+            "field": "answers.C06",
+            "op": "eq",
+            "value": "yes"
+          },
+          {
+            "field": "answers.C07",
+            "op": "eq",
+            "value": "yes"
+          }
+        ]
+      },
+      "source_group": "prototype_clinical_intake"
+    },
+    {
+      "id": "SY04",
+      "section": "followup_symptoms",
+      "prompt": "How much do they affect usual activities?",
+      "type": "choice",
+      "required_when_shown": false,
+      "options": [
+        "not_at_all",
+        "a_little",
+        "moderately",
+        "severely",
+        "not_sure"
+      ],
+      "when": {
+        "any": [
+          {
+            "field": "answers.C01",
+            "op": "eq",
+            "value": "yes"
+          },
+          {
+            "field": "answers.C02",
+            "op": "eq",
+            "value": "yes"
+          },
+          {
+            "field": "answers.C03",
+            "op": "eq",
+            "value": "yes"
+          },
+          {
+            "field": "answers.C04",
+            "op": "eq",
+            "value": "yes"
+          },
+          {
+            "field": "answers.C05",
+            "op": "eq",
+            "value": "yes"
+          },
+          {
+            "field": "answers.C06",
+            "op": "eq",
+            "value": "yes"
+          },
+          {
+            "field": "answers.C07",
+            "op": "eq",
+            "value": "yes"
+          }
+        ]
+      },
+      "source_group": "prototype_clinical_intake"
+    },
+    {
+      "id": "SY05",
+      "section": "followup_symptoms",
+      "prompt": "Do symptoms happen at rest, after standing, or during physical activity?",
+      "type": "choice",
+      "required_when_shown": false,
+      "options": [
+        "at_rest",
+        "after_standing",
+        "with_activity",
+        "multiple",
+        "not_sure"
+      ],
+      "when": {
+        "any": [
+          {
+            "field": "answers.C01",
+            "op": "eq",
+            "value": "yes"
+          },
+          {
+            "field": "answers.C02",
+            "op": "eq",
+            "value": "yes"
+          },
+          {
+            "field": "answers.C03",
+            "op": "eq",
+            "value": "yes"
+          },
+          {
+            "field": "answers.C04",
+            "op": "eq",
+            "value": "yes"
+          },
+          {
+            "field": "answers.C05",
+            "op": "eq",
+            "value": "yes"
+          },
+          {
+            "field": "answers.C06",
+            "op": "eq",
+            "value": "yes"
+          },
+          {
+            "field": "answers.C07",
+            "op": "eq",
+            "value": "yes"
+          }
+        ]
+      },
+      "source_group": "prototype_clinical_intake"
+    },
+    {
+      "id": "SY06",
+      "section": "followup_symptoms",
+      "prompt": "Has a clinician already assessed these symptoms?",
+      "type": "choice",
+      "required_when_shown": false,
+      "options": [
+        "yes",
+        "no",
+        "not_sure",
+        "prefer_not_to_answer"
+      ],
+      "when": {
+        "any": [
+          {
+            "field": "answers.C01",
+            "op": "eq",
+            "value": "yes"
+          },
+          {
+            "field": "answers.C02",
+            "op": "eq",
+            "value": "yes"
+          },
+          {
+            "field": "answers.C03",
+            "op": "eq",
+            "value": "yes"
+          },
+          {
+            "field": "answers.C04",
+            "op": "eq",
+            "value": "yes"
+          },
+          {
+            "field": "answers.C05",
+            "op": "eq",
+            "value": "yes"
+          },
+          {
+            "field": "answers.C06",
+            "op": "eq",
+            "value": "yes"
+          },
+          {
+            "field": "answers.C07",
+            "op": "eq",
+            "value": "yes"
+          }
+        ]
+      },
+      "source_group": "prototype_clinical_intake"
+    },
+    {
+      "id": "BL01",
+      "section": "followup_bleeding",
+      "prompt": "Where has the blood loss or bleeding occurred?",
+      "type": "text",
+      "required_when_shown": false,
+      "when": {
+        "all": [
+          {
+            "field": "answers.C10",
+            "op": "eq",
+            "value": "yes"
+          }
+        ]
+      },
+      "source_group": "prototype_clinical_intake"
+    },
+    {
+      "id": "BL02",
+      "section": "followup_bleeding",
+      "prompt": "When did bleeding start, and is it still happening?",
+      "type": "text",
+      "required_when_shown": false,
+      "when": {
+        "all": [
+          {
+            "field": "answers.C10",
+            "op": "eq",
+            "value": "yes"
+          }
+        ]
+      },
+      "source_group": "prototype_clinical_intake"
+    },
+    {
+      "id": "BL03",
+      "section": "followup_bleeding",
+      "prompt": "Have you noticed blood in stool or urine?",
+      "type": "choice",
+      "required_when_shown": false,
+      "options": [
+        "yes",
+        "no",
+        "not_sure",
+        "prefer_not_to_answer"
+      ],
+      "when": {
+        "all": [
+          {
+            "field": "answers.C10",
+            "op": "eq",
+            "value": "yes"
+          }
+        ]
+      },
+      "source_group": "prototype_clinical_intake"
+    },
+    {
+      "id": "BL04",
+      "section": "followup_bleeding",
+      "prompt": "Have you discussed the bleeding with a clinician?",
+      "type": "choice",
+      "required_when_shown": false,
+      "options": [
+        "yes",
+        "no",
+        "not_sure",
+        "prefer_not_to_answer"
+      ],
+      "when": {
+        "all": [
+          {
+            "field": "answers.C10",
+            "op": "eq",
+            "value": "yes"
+          }
+        ]
+      },
+      "source_group": "prototype_clinical_intake"
+    },
+    {
+      "id": "MEN01",
+      "section": "menstrual_history",
+      "prompt": "Are menstrual periods unusually heavy or prolonged?",
+      "type": "choice",
+      "required_when_shown": false,
+      "options": [
+        "yes",
+        "no",
+        "not_sure",
+        "prefer_not_to_answer"
+      ],
+      "when": {
+        "all": [
+          {
+            "field": "answers.C20",
+            "op": "eq",
+            "value": "yes"
+          }
+        ]
+      },
+      "source_group": "prototype_clinical_intake",
+      "note": "Ask privately and respectfully; not determined solely from sex or age."
+    },
+    {
+      "id": "MEN02",
+      "section": "menstrual_history",
+      "prompt": "How many days does bleeding usually last?",
+      "type": "integer",
+      "required_when_shown": false,
+      "when": {
+        "all": [
+          {
+            "field": "answers.C20",
+            "op": "eq",
+            "value": "yes"
+          }
+        ]
+      },
+      "source_group": "prototype_clinical_intake",
+      "note": "Ask privately and respectfully; not determined solely from sex or age."
+    },
+    {
+      "id": "MEN03",
+      "section": "menstrual_history",
+      "prompt": "Does bleeding disrupt activities or require very frequent product changes?",
+      "type": "choice",
+      "required_when_shown": false,
+      "options": [
+        "yes",
+        "no",
+        "not_sure",
+        "prefer_not_to_answer"
+      ],
+      "when": {
+        "all": [
+          {
+            "field": "answers.C20",
+            "op": "eq",
+            "value": "yes"
+          }
+        ]
+      },
+      "source_group": "prototype_clinical_intake",
+      "note": "Ask privately and respectfully; not determined solely from sex or age."
+    },
+    {
+      "id": "MEN04",
+      "section": "menstrual_history",
+      "prompt": "Is there bleeding between periods?",
+      "type": "choice",
+      "required_when_shown": false,
+      "options": [
+        "yes",
+        "no",
+        "not_sure",
+        "prefer_not_to_answer"
+      ],
+      "when": {
+        "all": [
+          {
+            "field": "answers.C20",
+            "op": "eq",
+            "value": "yes"
+          }
+        ]
+      },
+      "source_group": "prototype_clinical_intake",
+      "note": "Ask privately and respectfully; not determined solely from sex or age."
+    },
+    {
+      "id": "LAB01",
+      "section": "followup_laboratory",
+      "prompt": "Date and value of last laboratory Hb (include units).",
+      "type": "text",
+      "required_when_shown": false,
+      "when": {
+        "any": [
+          {
+            "field": "answers.C08",
+            "op": "eq",
+            "value": "yes"
+          },
+          {
+            "field": "answers.C09",
+            "op": "eq",
+            "value": "yes"
+          }
+        ]
+      },
+      "source_group": "prototype_clinical_intake"
+    },
+    {
+      "id": "LAB02",
+      "section": "followup_laboratory",
+      "prompt": "Any CBC, ferritin, B12 or folate results available?",
+      "type": "choice",
+      "required_when_shown": false,
+      "options": [
+        "yes",
+        "no",
+        "not_sure",
+        "prefer_not_to_answer"
+      ],
+      "when": {
+        "any": [
+          {
+            "field": "answers.C08",
+            "op": "eq",
+            "value": "yes"
+          },
+          {
+            "field": "answers.C09",
+            "op": "eq",
+            "value": "yes"
+          }
+        ]
+      },
+      "source_group": "prototype_clinical_intake"
+    },
+    {
+      "id": "LAB03",
+      "section": "followup_laboratory",
+      "prompt": "Has a clinician recommended iron or other treatment?",
+      "type": "choice",
+      "required_when_shown": false,
+      "options": [
+        "yes",
+        "no",
+        "not_sure",
+        "prefer_not_to_answer"
+      ],
+      "when": {
+        "any": [
+          {
+            "field": "answers.C08",
+            "op": "eq",
+            "value": "yes"
+          },
+          {
+            "field": "answers.C09",
+            "op": "eq",
+            "value": "yes"
+          }
+        ]
+      },
+      "source_group": "prototype_clinical_intake"
+    },
+    {
+      "id": "LAB04",
+      "section": "followup_laboratory",
+      "prompt": "Previous transfusion or hospital treatment for anaemia?",
+      "type": "choice",
+      "required_when_shown": false,
+      "options": [
+        "yes",
+        "no",
+        "not_sure",
+        "prefer_not_to_answer"
+      ],
+      "when": {
+        "any": [
+          {
+            "field": "answers.C08",
+            "op": "eq",
+            "value": "yes"
+          },
+          {
+            "field": "answers.C09",
+            "op": "eq",
+            "value": "yes"
+          }
+        ]
+      },
+      "source_group": "prototype_clinical_intake"
+    },
+    {
+      "id": "HX01",
+      "section": "followup_history",
+      "prompt": "Which conditions were diagnosed and when?",
+      "type": "text",
+      "required_when_shown": false,
+      "when": {
+        "any": [
+          {
+            "field": "answers.C11",
+            "op": "eq",
+            "value": "yes"
+          },
+          {
+            "field": "answers.C12",
+            "op": "eq",
+            "value": "yes"
+          },
+          {
+            "field": "answers.C13",
+            "op": "eq",
+            "value": "yes"
+          },
+          {
+            "field": "answers.C14",
+            "op": "eq",
+            "value": "yes"
+          },
+          {
+            "field": "answers.C18",
+            "op": "eq",
+            "value": "yes"
+          }
+        ]
+      },
+      "source_group": "prototype_clinical_intake"
+    },
+    {
+      "id": "HX02",
+      "section": "followup_history",
+      "prompt": "Any recent surgery, blood donation, infection or digestive symptoms?",
+      "type": "text",
+      "required_when_shown": false,
+      "when": {
+        "any": [
+          {
+            "field": "answers.C11",
+            "op": "eq",
+            "value": "yes"
+          },
+          {
+            "field": "answers.C12",
+            "op": "eq",
+            "value": "yes"
+          },
+          {
+            "field": "answers.C13",
+            "op": "eq",
+            "value": "yes"
+          },
+          {
+            "field": "answers.C14",
+            "op": "eq",
+            "value": "yes"
+          },
+          {
+            "field": "answers.C18",
+            "op": "eq",
+            "value": "yes"
+          }
+        ]
+      },
+      "source_group": "prototype_clinical_intake"
+    },
+    {
+      "id": "HX03",
+      "section": "followup_history",
+      "prompt": "Describe relevant dietary restrictions or appetite changes.",
+      "type": "text",
+      "required_when_shown": false,
+      "when": {
+        "any": [
+          {
+            "field": "answers.C11",
+            "op": "eq",
+            "value": "yes"
+          },
+          {
+            "field": "answers.C12",
+            "op": "eq",
+            "value": "yes"
+          },
+          {
+            "field": "answers.C13",
+            "op": "eq",
+            "value": "yes"
+          },
+          {
+            "field": "answers.C14",
+            "op": "eq",
+            "value": "yes"
+          },
+          {
+            "field": "answers.C18",
+            "op": "eq",
+            "value": "yes"
+          }
+        ]
+      },
+      "source_group": "prototype_clinical_intake"
+    },
+    {
+      "id": "MED01",
+      "section": "medication_reconciliation",
+      "prompt": "For each medicine/supplement: name, strength, dose, route, frequency, start/stop date, reason, last dose, source of information.",
+      "type": "repeatable_medication",
+      "required_when_shown": false,
+      "when": {
+        "all": [
+          {
+            "field": "answers.C15",
+            "op": "eq",
+            "value": "yes"
+          }
+        ]
+      },
+      "source_group": "prototype_clinical_intake"
+    },
+    {
+      "id": "MED02",
+      "section": "medication_reconciliation",
+      "prompt": "For each Ayurvedic/herbal product: name, known ingredients, form, amount, frequency, duration, and concurrent medicines.",
+      "type": "repeatable_medication",
+      "required_when_shown": false,
+      "when": {
+        "all": [
+          {
+            "field": "answers.C16",
+            "op": "eq",
+            "value": "yes"
+          }
+        ]
+      },
+      "source_group": "prototype_clinical_intake"
+    },
+    {
+      "id": "ALG01",
+      "section": "allergy_reconciliation",
+      "prompt": "For each allergy/adverse reaction: substance, reaction, severity, approximate date and verification status.",
+      "type": "repeatable_allergy",
+      "required_when_shown": false,
+      "when": {
+        "all": [
+          {
+            "field": "answers.C17",
+            "op": "eq",
+            "value": "yes"
+          }
+        ]
+      },
+      "source_group": "prototype_clinical_intake"
+    },
+    {
+      "id": "CH01",
+      "section": "child_history",
+      "prompt": "Name or coded relationship of parent/guardian to child (do not store identifying names in demo).",
+      "type": "text",
+      "required_when_shown": false,
+      "when": {
+        "all": [
+          {
+            "field": "profile.age_months",
+            "op": "lt",
+            "value": 216
+          }
+        ]
+      },
+      "source_group": "prototype_clinical_intake"
+    },
+    {
+      "id": "CH02",
+      "section": "child_history",
+      "prompt": "Has guardian permission been recorded?",
+      "type": "choice",
+      "required_when_shown": false,
+      "options": [
+        "yes",
+        "no",
+        "not_sure",
+        "prefer_not_to_answer"
+      ],
+      "when": {
+        "all": [
+          {
+            "field": "profile.age_months",
+            "op": "lt",
+            "value": 216
+          }
+        ]
+      },
+      "source_group": "prototype_clinical_intake"
+    },
+    {
+      "id": "CH03",
+      "section": "child_history",
+      "prompt": "Has age-appropriate assent been considered and documented where applicable?",
+      "type": "choice",
+      "required_when_shown": false,
+      "options": [
+        "yes",
+        "no",
+        "not_sure",
+        "prefer_not_to_answer"
+      ],
+      "when": {
+        "all": [
+          {
+            "field": "profile.age_months",
+            "op": "lt",
+            "value": 216
+          }
+        ]
+      },
+      "source_group": "prototype_clinical_intake"
+    },
+    {
+      "id": "CH04",
+      "section": "child_history",
+      "prompt": "Any concerns about growth, development or activity compared with usual?",
+      "type": "choice",
+      "required_when_shown": false,
+      "options": [
+        "yes",
+        "no",
+        "not_sure",
+        "prefer_not_to_answer"
+      ],
+      "when": {
+        "all": [
+          {
+            "field": "profile.age_months",
+            "op": "lt",
+            "value": 216
+          }
+        ]
+      },
+      "source_group": "prototype_clinical_intake"
+    },
+    {
+      "id": "CH05",
+      "section": "child_history",
+      "prompt": "Is there a history of prematurity or relevant neonatal illness?",
+      "type": "choice",
+      "required_when_shown": false,
+      "options": [
+        "yes",
+        "no",
+        "not_sure",
+        "prefer_not_to_answer"
+      ],
+      "when": {
+        "all": [
+          {
+            "field": "profile.age_months",
+            "op": "lt",
+            "value": 216
+          }
+        ]
+      },
+      "source_group": "prototype_clinical_intake"
+    },
+    {
+      "id": "CH06",
+      "section": "child_history",
+      "prompt": "Any feeding difficulties or restrictions?",
+      "type": "choice",
+      "required_when_shown": false,
+      "options": [
+        "yes",
+        "no",
+        "not_sure",
+        "prefer_not_to_answer"
+      ],
+      "when": {
+        "all": [
+          {
+            "field": "profile.age_months",
+            "op": "lt",
+            "value": 216
+          }
+        ]
+      },
+      "source_group": "prototype_clinical_intake"
+    },
+    {
+      "id": "CH07",
+      "section": "child_history",
+      "prompt": "Any clinician-diagnosed chronic disease or recurrent infection?",
+      "type": "choice",
+      "required_when_shown": false,
+      "options": [
+        "yes",
+        "no",
+        "not_sure",
+        "prefer_not_to_answer"
+      ],
+      "when": {
+        "all": [
+          {
+            "field": "profile.age_months",
+            "op": "lt",
+            "value": 216
+          }
+        ]
+      },
+      "source_group": "prototype_clinical_intake"
+    },
+    {
+      "id": "CH08",
+      "section": "child_history",
+      "prompt": "For infants/toddlers: current breastfeeding/formula and complementary feeding pattern.",
+      "type": "text",
+      "required_when_shown": false,
+      "when": {
+        "all": [
+          {
+            "field": "profile.age_months",
+            "op": "lt",
+            "value": 24
+          }
+        ]
+      },
+      "source_group": "prototype_clinical_intake"
+    },
+    {
+      "id": "CH09",
+      "section": "child_history",
+      "prompt": "For older children: school-age diet patterns and any limitations in age-appropriate activity.",
+      "type": "text",
+      "required_when_shown": false,
+      "when": {
+        "all": [
+          {
+            "field": "profile.age_months",
+            "op": "gte",
+            "value": 24
+          },
+          {
+            "field": "profile.age_months",
+            "op": "lt",
+            "value": 216
+          }
+        ]
+      },
+      "source_group": "prototype_clinical_intake"
+    },
+    {
+      "id": "PR01",
+      "section": "pregnancy_history",
+      "prompt": "Estimated gestational week / trimester, if known.",
+      "type": "text",
+      "required_when_shown": false,
+      "when": {
+        "all": [
+          {
+            "field": "profile.pregnancy_status",
+            "op": "eq",
+            "value": "pregnant"
+          }
+        ]
+      },
+      "source_group": "prototype_clinical_intake",
+      "note": "For pregnancy, any concerning bleeding must go to clinician assessment immediately."
+    },
+    {
+      "id": "PR02",
+      "section": "pregnancy_history",
+      "prompt": "Receiving antenatal care?",
+      "type": "choice",
+      "required_when_shown": false,
+      "options": [
+        "yes",
+        "no",
+        "not_sure",
+        "prefer_not_to_answer"
+      ],
+      "when": {
+        "all": [
+          {
+            "field": "profile.pregnancy_status",
+            "op": "eq",
+            "value": "pregnant"
+          }
+        ]
+      },
+      "source_group": "prototype_clinical_intake",
+      "note": "For pregnancy, any concerning bleeding must go to clinician assessment immediately."
+    },
+    {
+      "id": "PR03",
+      "section": "pregnancy_history",
+      "prompt": "Last clinician-measured Hb/CBC and test date, if available.",
+      "type": "text",
+      "required_when_shown": false,
+      "when": {
+        "all": [
+          {
+            "field": "profile.pregnancy_status",
+            "op": "eq",
+            "value": "pregnant"
+          }
+        ]
+      },
+      "source_group": "prototype_clinical_intake",
+      "note": "For pregnancy, any concerning bleeding must go to clinician assessment immediately."
+    },
+    {
+      "id": "PR04",
+      "section": "pregnancy_history",
+      "prompt": "Taking prescribed prenatal iron/folate or other supplements?",
+      "type": "choice",
+      "required_when_shown": false,
+      "options": [
+        "yes",
+        "no",
+        "not_sure",
+        "prefer_not_to_answer"
+      ],
+      "when": {
+        "all": [
+          {
+            "field": "profile.pregnancy_status",
+            "op": "eq",
+            "value": "pregnant"
+          }
+        ]
+      },
+      "source_group": "prototype_clinical_intake",
+      "note": "For pregnancy, any concerning bleeding must go to clinician assessment immediately."
+    },
+    {
+      "id": "PR05",
+      "section": "pregnancy_history",
+      "prompt": "Any clinician-identified pregnancy complications or previous pregnancy-associated anaemia?",
+      "type": "text",
+      "required_when_shown": false,
+      "when": {
+        "all": [
+          {
+            "field": "profile.pregnancy_status",
+            "op": "eq",
+            "value": "pregnant"
+          }
+        ]
+      },
+      "source_group": "prototype_clinical_intake",
+      "note": "For pregnancy, any concerning bleeding must go to clinician assessment immediately."
+    },
+    {
+      "id": "PR06",
+      "section": "pregnancy_history",
+      "prompt": "Any vaginal bleeding or other urgent symptoms?",
+      "type": "choice",
+      "required_when_shown": false,
+      "options": [
+        "yes",
+        "no",
+        "not_sure",
+        "prefer_not_to_answer"
+      ],
+      "when": {
+        "all": [
+          {
+            "field": "profile.pregnancy_status",
+            "op": "eq",
+            "value": "pregnant"
+          }
+        ]
+      },
+      "source_group": "prototype_clinical_intake",
+      "note": "For pregnancy, any concerning bleeding must go to clinician assessment immediately."
+    },
+    {
+      "id": "P01",
+      "section": "ppg_acquisition",
+      "prompt": "Which hand and finger will be used?",
+      "type": "text",
+      "required_when_shown": false,
+      "when": {
+        "all": [
+          {
+            "field": "profile.collect_ppg",
+            "op": "eq",
+            "value": true
+          },
+          {
+            "field": "answers.REG06",
+            "op": "eq",
+            "value": "yes"
+          }
+        ]
+      },
+      "source_group": "prototype_clinical_intake",
+      "note": "Stop/adjust acquisition if finger pain, injury or patient withdrawal."
+    },
+    {
+      "id": "P02",
+      "section": "ppg_acquisition",
+      "prompt": "Is the selected finger injured, swollen, infected or painful?",
+      "type": "choice",
+      "required_when_shown": false,
+      "options": [
+        "yes",
+        "no",
+        "not_sure",
+        "prefer_not_to_answer"
+      ],
+      "when": {
+        "all": [
+          {
+            "field": "profile.collect_ppg",
+            "op": "eq",
+            "value": true
+          },
+          {
+            "field": "answers.REG06",
+            "op": "eq",
+            "value": "yes"
+          }
+        ]
+      },
+      "source_group": "prototype_clinical_intake",
+      "note": "Stop/adjust acquisition if finger pain, injury or patient withdrawal."
+    },
+    {
+      "id": "P03",
+      "section": "ppg_acquisition",
+      "prompt": "Is nail polish, artificial nail, henna or another optical obstruction present?",
+      "type": "choice",
+      "required_when_shown": false,
+      "options": [
+        "yes",
+        "no",
+        "not_sure",
+        "prefer_not_to_answer"
+      ],
+      "when": {
+        "all": [
+          {
+            "field": "profile.collect_ppg",
+            "op": "eq",
+            "value": true
+          },
+          {
+            "field": "answers.REG06",
+            "op": "eq",
+            "value": "yes"
+          }
+        ]
+      },
+      "source_group": "prototype_clinical_intake",
+      "note": "Stop/adjust acquisition if finger pain, injury or patient withdrawal."
+    },
+    {
+      "id": "P04",
+      "section": "ppg_acquisition",
+      "prompt": "Does the finger feel unusually cold?",
+      "type": "choice",
+      "required_when_shown": false,
+      "options": [
+        "yes",
+        "no",
+        "not_sure",
+        "prefer_not_to_answer"
+      ],
+      "when": {
+        "all": [
+          {
+            "field": "profile.collect_ppg",
+            "op": "eq",
+            "value": true
+          },
+          {
+            "field": "answers.REG06",
+            "op": "eq",
+            "value": "yes"
+          }
+        ]
+      },
+      "source_group": "prototype_clinical_intake",
+      "note": "Stop/adjust acquisition if finger pain, injury or patient withdrawal."
+    },
+    {
+      "id": "P05",
+      "section": "ppg_acquisition",
+      "prompt": "Does gentle contact with the sensor hurt or cause discomfort?",
+      "type": "choice",
+      "required_when_shown": false,
+      "options": [
+        "yes",
+        "no",
+        "not_sure",
+        "prefer_not_to_answer"
+      ],
+      "when": {
+        "all": [
+          {
+            "field": "profile.collect_ppg",
+            "op": "eq",
+            "value": true
+          },
+          {
+            "field": "answers.REG06",
+            "op": "eq",
+            "value": "yes"
+          }
+        ]
+      },
+      "source_group": "prototype_clinical_intake",
+      "note": "Stop/adjust acquisition if finger pain, injury or patient withdrawal."
+    },
+    {
+      "id": "P06",
+      "section": "ppg_acquisition",
+      "prompt": "Is there numbness or tingling during the measurement?",
+      "type": "choice",
+      "required_when_shown": false,
+      "options": [
+        "yes",
+        "no",
+        "not_sure",
+        "prefer_not_to_answer"
+      ],
+      "when": {
+        "all": [
+          {
+            "field": "profile.collect_ppg",
+            "op": "eq",
+            "value": true
+          },
+          {
+            "field": "answers.REG06",
+            "op": "eq",
+            "value": "yes"
+          }
+        ]
+      },
+      "source_group": "prototype_clinical_intake",
+      "note": "Stop/adjust acquisition if finger pain, injury or patient withdrawal."
+    },
+    {
+      "id": "P07",
+      "section": "ppg_acquisition",
+      "prompt": "Can the patient comfortably keep the finger still briefly?",
+      "type": "choice",
+      "required_when_shown": false,
+      "options": [
+        "yes",
+        "no",
+        "not_sure",
+        "prefer_not_to_answer"
+      ],
+      "when": {
+        "all": [
+          {
+            "field": "profile.collect_ppg",
+            "op": "eq",
+            "value": true
+          },
+          {
+            "field": "answers.REG06",
+            "op": "eq",
+            "value": "yes"
+          }
+        ]
+      },
+      "source_group": "prototype_clinical_intake",
+      "note": "Stop/adjust acquisition if finger pain, injury or patient withdrawal."
+    },
+    {
+      "id": "IMG01",
+      "section": "webcam_acquisition",
+      "prompt": "Is there eye injury or discomfort making conjunctiva capture inappropriate?",
+      "type": "choice",
+      "required_when_shown": false,
+      "options": [
+        "yes",
+        "no",
+        "not_sure",
+        "prefer_not_to_answer"
+      ],
+      "when": {
+        "all": [
+          {
+            "field": "profile.collect_images",
+            "op": "eq",
+            "value": true
+          },
+          {
+            "field": "answers.REG07",
+            "op": "eq",
+            "value": "yes"
+          }
+        ]
+      },
+      "source_group": "prototype_clinical_intake"
+    },
+    {
+      "id": "IMG02",
+      "section": "webcam_acquisition",
+      "prompt": "Are nail injuries/cosmetics/obstructions present?",
+      "type": "choice",
+      "required_when_shown": false,
+      "options": [
+        "yes",
+        "no",
+        "not_sure",
+        "prefer_not_to_answer"
+      ],
+      "when": {
+        "all": [
+          {
+            "field": "profile.collect_images",
+            "op": "eq",
+            "value": true
+          },
+          {
+            "field": "answers.REG07",
+            "op": "eq",
+            "value": "yes"
+          }
+        ]
+      },
+      "source_group": "prototype_clinical_intake"
+    },
+    {
+      "id": "IMG03",
+      "section": "webcam_acquisition",
+      "prompt": "Does tongue exposure cause pain or discomfort?",
+      "type": "choice",
+      "required_when_shown": false,
+      "options": [
+        "yes",
+        "no",
+        "not_sure",
+        "prefer_not_to_answer"
+      ],
+      "when": {
+        "all": [
+          {
+            "field": "profile.collect_images",
+            "op": "eq",
+            "value": true
+          },
+          {
+            "field": "answers.REG07",
+            "op": "eq",
+            "value": "yes"
+          }
+        ]
+      },
+      "source_group": "prototype_clinical_intake"
+    },
+    {
+      "id": "IMG04",
+      "section": "webcam_acquisition",
+      "prompt": "Can the patient comfortably maintain the requested pose?",
+      "type": "choice",
+      "required_when_shown": false,
+      "options": [
+        "yes",
+        "no",
+        "not_sure",
+        "prefer_not_to_answer"
+      ],
+      "when": {
+        "all": [
+          {
+            "field": "profile.collect_images",
+            "op": "eq",
+            "value": true
+          },
+          {
+            "field": "answers.REG07",
+            "op": "eq",
+            "value": "yes"
+          }
+        ]
+      },
+      "source_group": "prototype_clinical_intake"
+    },
+    {
+      "id": "IMG05",
+      "section": "webcam_acquisition",
+      "prompt": "Would the patient like to skip or stop any camera capture?",
+      "type": "choice",
+      "required_when_shown": false,
+      "options": [
+        "yes",
+        "no",
+        "not_sure",
+        "prefer_not_to_answer"
+      ],
+      "when": {
+        "all": [
+          {
+            "field": "profile.collect_images",
+            "op": "eq",
+            "value": true
+          },
+          {
+            "field": "answers.REG07",
+            "op": "eq",
+            "value": "yes"
+          }
+        ]
+      },
+      "source_group": "prototype_clinical_intake"
+    },
+    {
+      "id": "N1",
+      "section": "ast_nadi",
+      "prompt": "Does your heart beat fast or irregularly even at rest?",
+      "type": "choice",
+      "required_when_shown": false,
+      "options": [
+        "yes",
+        "no",
+        "not_sure",
+        "prefer_not_to_answer"
+      ],
+      "when": {
+        "all": [
+          {
+            "field": "profile.include_asthavidha",
+            "op": "eq",
+            "value": true
+          }
+        ]
+      },
+      "source_group": "user_supplied_asthavidha_pdf",
+      "note": "Traditional exploratory record only; not a validated anaemia-risk variable."
+    },
+    {
+      "id": "N2",
+      "section": "ast_nadi",
+      "prompt": "Do you feel your pulse is weak or thin?",
+      "type": "choice",
+      "required_when_shown": false,
+      "options": [
+        "yes",
+        "no",
+        "not_sure",
+        "prefer_not_to_answer"
+      ],
+      "when": {
+        "all": [
+          {
+            "field": "profile.include_asthavidha",
+            "op": "eq",
+            "value": true
+          }
+        ]
+      },
+      "source_group": "user_supplied_asthavidha_pdf",
+      "note": "Traditional exploratory record only; not a validated anaemia-risk variable."
+    },
+    {
+      "id": "N3",
+      "section": "ast_nadi",
+      "prompt": "Is your pulse unsteady or does it jump around?",
+      "type": "choice",
+      "required_when_shown": false,
+      "options": [
+        "yes",
+        "no",
+        "not_sure",
+        "prefer_not_to_answer"
+      ],
+      "when": {
+        "all": [
+          {
+            "field": "profile.include_asthavidha",
+            "op": "eq",
+            "value": true
+          }
+        ]
+      },
+      "source_group": "user_supplied_asthavidha_pdf",
+      "note": "Traditional exploratory record only; not a validated anaemia-risk variable."
+    },
+    {
+      "id": "N4",
+      "section": "ast_nadi",
+      "prompt": "Do you feel fatigue in your pulse after walking a short distance?",
+      "type": "choice",
+      "required_when_shown": false,
+      "options": [
+        "yes",
+        "no",
+        "not_sure",
+        "prefer_not_to_answer"
+      ],
+      "when": {
+        "all": [
+          {
+            "field": "profile.include_asthavidha",
+            "op": "eq",
+            "value": true
+          }
+        ]
+      },
+      "source_group": "user_supplied_asthavidha_pdf",
+      "note": "Traditional exploratory record only; not a validated anaemia-risk variable."
+    },
+    {
+      "id": "J1",
+      "section": "ast_jihva",
+      "prompt": "Does your tongue look pale or white?",
+      "type": "choice",
+      "required_when_shown": false,
+      "options": [
+        "yes",
+        "no",
+        "not_sure",
+        "prefer_not_to_answer"
+      ],
+      "when": {
+        "all": [
+          {
+            "field": "profile.include_asthavidha",
+            "op": "eq",
+            "value": true
+          }
+        ]
+      },
+      "source_group": "user_supplied_asthavidha_pdf",
+      "note": "Traditional exploratory record only; not a validated anaemia-risk variable."
+    },
+    {
+      "id": "J2",
+      "section": "ast_jihva",
+      "prompt": "Do you have a thick coating on your tongue?",
+      "type": "choice",
+      "required_when_shown": false,
+      "options": [
+        "yes",
+        "no",
+        "not_sure",
+        "prefer_not_to_answer"
+      ],
+      "when": {
+        "all": [
+          {
+            "field": "profile.include_asthavidha",
+            "op": "eq",
+            "value": true
+          }
+        ]
+      },
+      "source_group": "user_supplied_asthavidha_pdf",
+      "note": "Traditional exploratory record only; not a validated anaemia-risk variable."
+    },
+    {
+      "id": "J3",
+      "section": "ast_jihva",
+      "prompt": "Is your tongue dry or rough?",
+      "type": "choice",
+      "required_when_shown": false,
+      "options": [
+        "yes",
+        "no",
+        "not_sure",
+        "prefer_not_to_answer"
+      ],
+      "when": {
+        "all": [
+          {
+            "field": "profile.include_asthavidha",
+            "op": "eq",
+            "value": true
+          }
+        ]
+      },
+      "source_group": "user_supplied_asthavidha_pdf",
+      "note": "Traditional exploratory record only; not a validated anaemia-risk variable."
+    },
+    {
+      "id": "J4",
+      "section": "ast_jihva",
+      "prompt": "Do you have cracks or fissures on your tongue?",
+      "type": "choice",
+      "required_when_shown": false,
+      "options": [
+        "yes",
+        "no",
+        "not_sure",
+        "prefer_not_to_answer"
+      ],
+      "when": {
+        "all": [
+          {
+            "field": "profile.include_asthavidha",
+            "op": "eq",
+            "value": true
+          }
+        ]
+      },
+      "source_group": "user_supplied_asthavidha_pdf",
+      "note": "Traditional exploratory record only; not a validated anaemia-risk variable."
+    },
+    {
+      "id": "J5",
+      "section": "ast_jihva",
+      "prompt": "Do you feel burning or pain on your tongue?",
+      "type": "choice",
+      "required_when_shown": false,
+      "options": [
+        "yes",
+        "no",
+        "not_sure",
+        "prefer_not_to_answer"
+      ],
+      "when": {
+        "all": [
+          {
+            "field": "profile.include_asthavidha",
+            "op": "eq",
+            "value": true
+          }
+        ]
+      },
+      "source_group": "user_supplied_asthavidha_pdf",
+      "note": "Traditional exploratory record only; not a validated anaemia-risk variable."
+    },
+    {
+      "id": "J6",
+      "section": "ast_jihva",
+      "prompt": "Has your taste changed recently?",
+      "type": "choice",
+      "required_when_shown": false,
+      "options": [
+        "yes",
+        "no",
+        "not_sure",
+        "prefer_not_to_answer"
+      ],
+      "when": {
+        "all": [
+          {
+            "field": "profile.include_asthavidha",
+            "op": "eq",
+            "value": true
+          }
+        ]
+      },
+      "source_group": "user_supplied_asthavidha_pdf",
+      "note": "Traditional exploratory record only; not a validated anaemia-risk variable."
+    },
+    {
+      "id": "D1",
+      "section": "ast_druk",
+      "prompt": "Do the inner corners of your eyes look pale or white?",
+      "type": "choice",
+      "required_when_shown": false,
+      "options": [
+        "yes",
+        "no",
+        "not_sure",
+        "prefer_not_to_answer"
+      ],
+      "when": {
+        "all": [
+          {
+            "field": "profile.include_asthavidha",
+            "op": "eq",
+            "value": true
+          }
+        ]
+      },
+      "source_group": "user_supplied_asthavidha_pdf",
+      "note": "Traditional exploratory record only; not a validated anaemia-risk variable."
+    },
+    {
+      "id": "D2",
+      "section": "ast_druk",
+      "prompt": "Do your eyes look dry or dusty?",
+      "type": "choice",
+      "required_when_shown": false,
+      "options": [
+        "yes",
+        "no",
+        "not_sure",
+        "prefer_not_to_answer"
+      ],
+      "when": {
+        "all": [
+          {
+            "field": "profile.include_asthavidha",
+            "op": "eq",
+            "value": true
+          }
+        ]
+      },
+      "source_group": "user_supplied_asthavidha_pdf",
+      "note": "Traditional exploratory record only; not a validated anaemia-risk variable."
+    },
+    {
+      "id": "D3",
+      "section": "ast_druk",
+      "prompt": "Do your eyes look bright and moist or dull?",
+      "type": "choice",
+      "required_when_shown": false,
+      "options": [
+        "yes",
+        "no",
+        "not_sure",
+        "prefer_not_to_answer"
+      ],
+      "when": {
+        "all": [
+          {
+            "field": "profile.include_asthavidha",
+            "op": "eq",
+            "value": true
+          }
+        ]
+      },
+      "source_group": "user_supplied_asthavidha_pdf",
+      "note": "Traditional exploratory record only; not a validated anaemia-risk variable."
+    },
+    {
+      "id": "D4",
+      "section": "ast_druk",
+      "prompt": "Do you feel flickering or black spots before your eyes?",
+      "type": "choice",
+      "required_when_shown": false,
+      "options": [
+        "yes",
+        "no",
+        "not_sure",
+        "prefer_not_to_answer"
+      ],
+      "when": {
+        "all": [
+          {
+            "field": "profile.include_asthavidha",
+            "op": "eq",
+            "value": true
+          }
+        ]
+      },
+      "source_group": "user_supplied_asthavidha_pdf",
+      "note": "Traditional exploratory record only; not a validated anaemia-risk variable."
+    },
+    {
+      "id": "D5",
+      "section": "ast_druk",
+      "prompt": "Are your eyes sensitive to light?",
+      "type": "choice",
+      "required_when_shown": false,
+      "options": [
+        "yes",
+        "no",
+        "not_sure",
+        "prefer_not_to_answer"
+      ],
+      "when": {
+        "all": [
+          {
+            "field": "profile.include_asthavidha",
+            "op": "eq",
+            "value": true
+          }
+        ]
+      },
+      "source_group": "user_supplied_asthavidha_pdf",
+      "note": "Traditional exploratory record only; not a validated anaemia-risk variable."
+    },
+    {
+      "id": "S1",
+      "section": "ast_sparsha",
+      "prompt": "Does your skin look unusually pale or white?",
+      "type": "choice",
+      "required_when_shown": false,
+      "options": [
+        "yes",
+        "no",
+        "not_sure",
+        "prefer_not_to_answer"
+      ],
+      "when": {
+        "all": [
+          {
+            "field": "profile.include_asthavidha",
+            "op": "eq",
+            "value": true
+          }
+        ]
+      },
+      "source_group": "user_supplied_asthavidha_pdf",
+      "note": "Traditional exploratory record only; not a validated anaemia-risk variable."
+    },
+    {
+      "id": "S2",
+      "section": "ast_sparsha",
+      "prompt": "Is your skin dry or rough?",
+      "type": "choice",
+      "required_when_shown": false,
+      "options": [
+        "yes",
+        "no",
+        "not_sure",
+        "prefer_not_to_answer"
+      ],
+      "when": {
+        "all": [
+          {
+            "field": "profile.include_asthavidha",
+            "op": "eq",
+            "value": true
+          }
+        ]
+      },
+      "source_group": "user_supplied_asthavidha_pdf",
+      "note": "Traditional exploratory record only; not a validated anaemia-risk variable."
+    },
+    {
+      "id": "S3",
+      "section": "ast_sparsha",
+      "prompt": "Are your hands and feet cold often?",
+      "type": "choice",
+      "required_when_shown": false,
+      "options": [
+        "yes",
+        "no",
+        "not_sure",
+        "prefer_not_to_answer"
+      ],
+      "when": {
+        "all": [
+          {
+            "field": "profile.include_asthavidha",
+            "op": "eq",
+            "value": true
+          }
+        ]
+      },
+      "source_group": "user_supplied_asthavidha_pdf",
+      "note": "Traditional exploratory record only; not a validated anaemia-risk variable."
+    },
+    {
+      "id": "S4",
+      "section": "ast_sparsha",
+      "prompt": "Do you feel excessive heat or burning on your skin?",
+      "type": "choice",
+      "required_when_shown": false,
+      "options": [
+        "yes",
+        "no",
+        "not_sure",
+        "prefer_not_to_answer"
+      ],
+      "when": {
+        "all": [
+          {
+            "field": "profile.include_asthavidha",
+            "op": "eq",
+            "value": true
+          }
+        ]
+      },
+      "source_group": "user_supplied_asthavidha_pdf",
+      "note": "Traditional exploratory record only; not a validated anaemia-risk variable."
+    },
+    {
+      "id": "S5",
+      "section": "ast_sparsha",
+      "prompt": "Does your skin bruise easily?",
+      "type": "choice",
+      "required_when_shown": false,
+      "options": [
+        "yes",
+        "no",
+        "not_sure",
+        "prefer_not_to_answer"
+      ],
+      "when": {
+        "all": [
+          {
+            "field": "profile.include_asthavidha",
+            "op": "eq",
+            "value": true
+          }
+        ]
+      },
+      "source_group": "user_supplied_asthavidha_pdf",
+      "note": "Traditional exploratory record only; not a validated anaemia-risk variable."
+    },
+    {
+      "id": "S6",
+      "section": "ast_sparsha",
+      "prompt": "Is your skin thin or wrinkled more than normal?",
+      "type": "choice",
+      "required_when_shown": false,
+      "options": [
+        "yes",
+        "no",
+        "not_sure",
+        "prefer_not_to_answer"
+      ],
+      "when": {
+        "all": [
+          {
+            "field": "profile.include_asthavidha",
+            "op": "eq",
+            "value": true
+          }
+        ]
+      },
+      "source_group": "user_supplied_asthavidha_pdf",
+      "note": "Traditional exploratory record only; not a validated anaemia-risk variable."
+    },
+    {
+      "id": "V1",
+      "section": "ast_shabdha",
+      "prompt": "Is your voice hoarse or weak?",
+      "type": "choice",
+      "required_when_shown": false,
+      "options": [
+        "yes",
+        "no",
+        "not_sure",
+        "prefer_not_to_answer"
+      ],
+      "when": {
+        "all": [
+          {
+            "field": "profile.include_asthavidha",
+            "op": "eq",
+            "value": true
+          }
+        ]
+      },
+      "source_group": "user_supplied_asthavidha_pdf",
+      "note": "Traditional exploratory record only; not a validated anaemia-risk variable."
+    },
+    {
+      "id": "V2",
+      "section": "ast_shabdha",
+      "prompt": "Do you stammer or have difficulty speaking clearly?",
+      "type": "choice",
+      "required_when_shown": false,
+      "options": [
+        "yes",
+        "no",
+        "not_sure",
+        "prefer_not_to_answer"
+      ],
+      "when": {
+        "all": [
+          {
+            "field": "profile.include_asthavidha",
+            "op": "eq",
+            "value": true
+          }
+        ]
+      },
+      "source_group": "user_supplied_asthavidha_pdf",
+      "note": "Traditional exploratory record only; not a validated anaemia-risk variable."
+    },
+    {
+      "id": "V3",
+      "section": "ast_shabdha",
+      "prompt": "Do you feel numbness or tingling in your throat?",
+      "type": "choice",
+      "required_when_shown": false,
+      "options": [
+        "yes",
+        "no",
+        "not_sure",
+        "prefer_not_to_answer"
+      ],
+      "when": {
+        "all": [
+          {
+            "field": "profile.include_asthavidha",
+            "op": "eq",
+            "value": true
+          }
+        ]
+      },
+      "source_group": "user_supplied_asthavidha_pdf",
+      "note": "Traditional exploratory record only; not a validated anaemia-risk variable."
+    },
+    {
+      "id": "V4",
+      "section": "ast_shabdha",
+      "prompt": "Do you snore or have breathing sounds while sleeping?",
+      "type": "choice",
+      "required_when_shown": false,
+      "options": [
+        "yes",
+        "no",
+        "not_sure",
+        "prefer_not_to_answer"
+      ],
+      "when": {
+        "all": [
+          {
+            "field": "profile.include_asthavidha",
+            "op": "eq",
+            "value": true
+          }
+        ]
+      },
+      "source_group": "user_supplied_asthavidha_pdf",
+      "note": "Traditional exploratory record only; not a validated anaemia-risk variable."
+    },
+    {
+      "id": "M1",
+      "section": "ast_mala",
+      "prompt": "Is your stool hard, dry, or difficult to pass?",
+      "type": "choice",
+      "required_when_shown": false,
+      "options": [
+        "yes",
+        "no",
+        "not_sure",
+        "prefer_not_to_answer"
+      ],
+      "when": {
+        "all": [
+          {
+            "field": "profile.include_asthavidha",
+            "op": "eq",
+            "value": true
+          }
+        ]
+      },
+      "source_group": "user_supplied_asthavidha_pdf",
+      "note": "Traditional exploratory record only; not a validated anaemia-risk variable."
+    },
+    {
+      "id": "M2",
+      "section": "ast_mala",
+      "prompt": "Is your stool black or tarry?",
+      "type": "choice",
+      "required_when_shown": false,
+      "options": [
+        "yes",
+        "no",
+        "not_sure",
+        "prefer_not_to_answer"
+      ],
+      "when": {
+        "all": [
+          {
+            "field": "profile.include_asthavidha",
+            "op": "eq",
+            "value": true
+          }
+        ]
+      },
+      "source_group": "user_supplied_asthavidha_pdf",
+      "note": "Traditional exploratory record only; not a validated anaemia-risk variable."
+    },
+    {
+      "id": "M3",
+      "section": "ast_mala",
+      "prompt": "Does your stool float or sink?",
+      "type": "choice",
+      "required_when_shown": false,
+      "options": [
+        "yes",
+        "no",
+        "not_sure",
+        "prefer_not_to_answer"
+      ],
+      "when": {
+        "all": [
+          {
+            "field": "profile.include_asthavidha",
+            "op": "eq",
+            "value": true
+          }
+        ]
+      },
+      "source_group": "user_supplied_asthavidha_pdf",
+      "note": "Traditional exploratory record only; not a validated anaemia-risk variable."
+    },
+    {
+      "id": "M4",
+      "section": "ast_mala",
+      "prompt": "Is there mucus or undigested food in your stool?",
+      "type": "choice",
+      "required_when_shown": false,
+      "options": [
+        "yes",
+        "no",
+        "not_sure",
+        "prefer_not_to_answer"
+      ],
+      "when": {
+        "all": [
+          {
+            "field": "profile.include_asthavidha",
+            "op": "eq",
+            "value": true
+          }
+        ]
+      },
+      "source_group": "user_supplied_asthavidha_pdf",
+      "note": "Traditional exploratory record only; not a validated anaemia-risk variable."
+    },
+    {
+      "id": "M5",
+      "section": "ast_mala",
+      "prompt": "How many times do you pass stool daily?",
+      "type": "integer",
+      "required_when_shown": false,
+      "when": {
+        "all": [
+          {
+            "field": "profile.include_asthavidha",
+            "op": "eq",
+            "value": true
+          }
+        ]
+      },
+      "source_group": "user_supplied_asthavidha_pdf",
+      "note": "Traditional exploratory record only; not a validated anaemia-risk variable."
+    },
+    {
+      "id": "U1",
+      "section": "ast_mutra",
+      "prompt": "Is your urine color dark yellow, brown, or foamy?",
+      "type": "choice",
+      "required_when_shown": false,
+      "options": [
+        "yes",
+        "no",
+        "not_sure",
+        "prefer_not_to_answer"
+      ],
+      "when": {
+        "all": [
+          {
+            "field": "profile.include_asthavidha",
+            "op": "eq",
+            "value": true
+          }
+        ]
+      },
+      "source_group": "user_supplied_asthavidha_pdf",
+      "note": "Traditional exploratory record only; not a validated anaemia-risk variable."
+    },
+    {
+      "id": "U2",
+      "section": "ast_mutra",
+      "prompt": "Do you feel burning during urination?",
+      "type": "choice",
+      "required_when_shown": false,
+      "options": [
+        "yes",
+        "no",
+        "not_sure",
+        "prefer_not_to_answer"
+      ],
+      "when": {
+        "all": [
+          {
+            "field": "profile.include_asthavidha",
+            "op": "eq",
+            "value": true
+          }
+        ]
+      },
+      "source_group": "user_supplied_asthavidha_pdf",
+      "note": "Traditional exploratory record only; not a validated anaemia-risk variable."
+    },
+    {
+      "id": "U3",
+      "section": "ast_mutra",
+      "prompt": "Is your urine output reduced?",
+      "type": "choice",
+      "required_when_shown": false,
+      "options": [
+        "yes",
+        "no",
+        "not_sure",
+        "prefer_not_to_answer"
+      ],
+      "when": {
+        "all": [
+          {
+            "field": "profile.include_asthavidha",
+            "op": "eq",
+            "value": true
+          }
+        ]
+      },
+      "source_group": "user_supplied_asthavidha_pdf",
+      "note": "Traditional exploratory record only; not a validated anaemia-risk variable."
+    },
+    {
+      "id": "U4",
+      "section": "ast_mutra",
+      "prompt": "Do you urinate more frequently at night?",
+      "type": "choice",
+      "required_when_shown": false,
+      "options": [
+        "yes",
+        "no",
+        "not_sure",
+        "prefer_not_to_answer"
+      ],
+      "when": {
+        "all": [
+          {
+            "field": "profile.include_asthavidha",
+            "op": "eq",
+            "value": true
+          }
+        ]
+      },
+      "source_group": "user_supplied_asthavidha_pdf",
+      "note": "Traditional exploratory record only; not a validated anaemia-risk variable."
+    },
+    {
+      "id": "A1",
+      "section": "ast_akruti",
+      "prompt": "Has your body weight decreased recently without trying?",
+      "type": "choice",
+      "required_when_shown": false,
+      "options": [
+        "yes",
+        "no",
+        "not_sure",
+        "prefer_not_to_answer"
+      ],
+      "when": {
+        "all": [
+          {
+            "field": "profile.include_asthavidha",
+            "op": "eq",
+            "value": true
+          }
+        ]
+      },
+      "source_group": "user_supplied_asthavidha_pdf",
+      "note": "Traditional exploratory record only; not a validated anaemia-risk variable."
+    },
+    {
+      "id": "A2",
+      "section": "ast_akruti",
+      "prompt": "Do you feel your body is thin or underweight?",
+      "type": "choice",
+      "required_when_shown": false,
+      "options": [
+        "yes",
+        "no",
+        "not_sure",
+        "prefer_not_to_answer"
+      ],
+      "when": {
+        "all": [
+          {
+            "field": "profile.include_asthavidha",
+            "op": "eq",
+            "value": true
+          }
+        ]
+      },
+      "source_group": "user_supplied_asthavidha_pdf",
+      "note": "Traditional exploratory record only; not a validated anaemia-risk variable."
+    },
+    {
+      "id": "A3",
+      "section": "ast_akruti",
+      "prompt": "Do you have muscle wasting or weakness in limbs?",
+      "type": "choice",
+      "required_when_shown": false,
+      "options": [
+        "yes",
+        "no",
+        "not_sure",
+        "prefer_not_to_answer"
+      ],
+      "when": {
+        "all": [
+          {
+            "field": "profile.include_asthavidha",
+            "op": "eq",
+            "value": true
+          }
+        ]
+      },
+      "source_group": "user_supplied_asthavidha_pdf",
+      "note": "Traditional exploratory record only; not a validated anaemia-risk variable."
+    },
+    {
+      "id": "A4",
+      "section": "ast_akruti",
+      "prompt": "Do you feel your body is heavy or lethargic?",
+      "type": "choice",
+      "required_when_shown": false,
+      "options": [
+        "yes",
+        "no",
+        "not_sure",
+        "prefer_not_to_answer"
+      ],
+      "when": {
+        "all": [
+          {
+            "field": "profile.include_asthavidha",
+            "op": "eq",
+            "value": true
+          }
+        ]
+      },
+      "source_group": "user_supplied_asthavidha_pdf",
+      "note": "Traditional exploratory record only; not a validated anaemia-risk variable."
+    },
+    {
+      "id": "A5",
+      "section": "ast_akruti",
+      "prompt": "Do you have any visible deformity or swelling?",
+      "type": "choice",
+      "required_when_shown": false,
+      "options": [
+        "yes",
+        "no",
+        "not_sure",
+        "prefer_not_to_answer"
+      ],
+      "when": {
+        "all": [
+          {
+            "field": "profile.include_asthavidha",
+            "op": "eq",
+            "value": true
+          }
+        ]
+      },
+      "source_group": "user_supplied_asthavidha_pdf",
+      "note": "Traditional exploratory record only; not a validated anaemia-risk variable."
+    },
+    {
+      "id": "A6",
+      "section": "ast_akruti",
+      "prompt": "Height (cm) and weight (kg).",
+      "type": "text",
+      "required_when_shown": false,
+      "when": {
+        "all": [
+          {
+            "field": "profile.include_asthavidha",
+            "op": "eq",
+            "value": true
+          }
+        ]
+      },
+      "source_group": "user_supplied_asthavidha_pdf",
+      "note": "Traditional exploratory record only; not a validated anaemia-risk variable."
+    },
+    {
+      "id": "DS1",
+      "section": "ast_dosha",
+      "prompt": "Do you feel excessive heat in your body?",
+      "type": "choice",
+      "required_when_shown": false,
+      "options": [
+        "yes",
+        "no",
+        "sometimes",
+        "not_sure",
+        "prefer_not_to_answer"
+      ],
+      "when": {
+        "all": [
+          {
+            "field": "profile.include_asthavidha",
+            "op": "eq",
+            "value": true
+          }
+        ]
+      },
+      "source_group": "user_supplied_asthavidha_pdf",
+      "note": "Traditional exploratory record only; not a validated anaemia-risk variable."
+    },
+    {
+      "id": "DS2",
+      "section": "ast_dosha",
+      "prompt": "Do you feel cold hands and feet often?",
+      "type": "choice",
+      "required_when_shown": false,
+      "options": [
+        "yes",
+        "no",
+        "sometimes",
+        "not_sure",
+        "prefer_not_to_answer"
+      ],
+      "when": {
+        "all": [
+          {
+            "field": "profile.include_asthavidha",
+            "op": "eq",
+            "value": true
+          }
+        ]
+      },
+      "source_group": "user_supplied_asthavidha_pdf",
+      "note": "Traditional exploratory record only; not a validated anaemia-risk variable."
+    },
+    {
+      "id": "DS3",
+      "section": "ast_dosha",
+      "prompt": "Do you have constipation or dry stools?",
+      "type": "choice",
+      "required_when_shown": false,
+      "options": [
+        "yes",
+        "no",
+        "sometimes",
+        "not_sure",
+        "prefer_not_to_answer"
+      ],
+      "when": {
+        "all": [
+          {
+            "field": "profile.include_asthavidha",
+            "op": "eq",
+            "value": true
+          }
+        ]
+      },
+      "source_group": "user_supplied_asthavidha_pdf",
+      "note": "Traditional exploratory record only; not a validated anaemia-risk variable."
+    },
+    {
+      "id": "DS4",
+      "section": "ast_dosha",
+      "prompt": "Do you feel restless or anxious?",
+      "type": "choice",
+      "required_when_shown": false,
+      "options": [
+        "yes",
+        "no",
+        "sometimes",
+        "not_sure",
+        "prefer_not_to_answer"
+      ],
+      "when": {
+        "all": [
+          {
+            "field": "profile.include_asthavidha",
+            "op": "eq",
+            "value": true
+          }
+        ]
+      },
+      "source_group": "user_supplied_asthavidha_pdf",
+      "note": "Traditional exploratory record only; not a validated anaemia-risk variable."
+    },
+    {
+      "id": "DS5",
+      "section": "ast_dosha",
+      "prompt": "Do you have a bitter or acidic taste in your mouth?",
+      "type": "choice",
+      "required_when_shown": false,
+      "options": [
+        "yes",
+        "no",
+        "sometimes",
+        "not_sure",
+        "prefer_not_to_answer"
+      ],
+      "when": {
+        "all": [
+          {
+            "field": "profile.include_asthavidha",
+            "op": "eq",
+            "value": true
+          }
+        ]
+      },
+      "source_group": "user_supplied_asthavidha_pdf",
+      "note": "Traditional exploratory record only; not a validated anaemia-risk variable."
+    },
+    {
+      "id": "DS6",
+      "section": "ast_dosha",
+      "prompt": "Do you feel heavy or sluggish in the morning?",
+      "type": "choice",
+      "required_when_shown": false,
+      "options": [
+        "yes",
+        "no",
+        "sometimes",
+        "not_sure",
+        "prefer_not_to_answer"
+      ],
+      "when": {
+        "all": [
+          {
+            "field": "profile.include_asthavidha",
+            "op": "eq",
+            "value": true
+          }
+        ]
+      },
+      "source_group": "user_supplied_asthavidha_pdf",
+      "note": "Traditional exploratory record only; not a validated anaemia-risk variable."
+    },
+    {
+      "id": "DS7",
+      "section": "ast_dosha",
+      "prompt": "Do you have a white coating on your tongue?",
+      "type": "choice",
+      "required_when_shown": false,
+      "options": [
+        "yes",
+        "no",
+        "sometimes",
+        "not_sure",
+        "prefer_not_to_answer"
+      ],
+      "when": {
+        "all": [
+          {
+            "field": "profile.include_asthavidha",
+            "op": "eq",
+            "value": true
+          }
+        ]
+      },
+      "source_group": "user_supplied_asthavidha_pdf",
+      "note": "Traditional exploratory record only; not a validated anaemia-risk variable."
+    },
+    {
+      "id": "DS8",
+      "section": "ast_dosha",
+      "prompt": "Do you feel burning sensation in your stomach?",
+      "type": "choice",
+      "required_when_shown": false,
+      "options": [
+        "yes",
+        "no",
+        "sometimes",
+        "not_sure",
+        "prefer_not_to_answer"
+      ],
+      "when": {
+        "all": [
+          {
+            "field": "profile.include_asthavidha",
+            "op": "eq",
+            "value": true
+          }
+        ]
+      },
+      "source_group": "user_supplied_asthavidha_pdf",
+      "note": "Traditional exploratory record only; not a validated anaemia-risk variable."
+    },
+    {
+      "id": "REV01",
+      "section": "clinical_review",
+      "prompt": "Clinical assistant reviewed all recorded responses?",
+      "type": "choice",
+      "required_when_shown": false,
+      "options": [
+        "yes",
+        "no",
+        "not_sure",
+        "prefer_not_to_answer"
+      ],
+      "when": {
+        "all": [
+          {
+            "field": "profile.include_review",
+            "op": "eq",
+            "value": true
+          }
+        ]
+      },
+      "source_group": "prototype_clinical_intake"
+    },
+    {
+      "id": "REV02",
+      "section": "clinical_review",
+      "prompt": "Were any skipped/refused measurements or clinician referrals recorded?",
+      "type": "text",
+      "required_when_shown": false,
+      "when": {
+        "all": [
+          {
+            "field": "profile.include_review",
+            "op": "eq",
+            "value": true
+          }
+        ]
+      },
+      "source_group": "prototype_clinical_intake"
+    }
+  ]
+}
