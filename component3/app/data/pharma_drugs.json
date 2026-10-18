@@ -448,5 +448,50 @@
     "metabolizing_enzymes": ["Renal excretion unchanged (>90%)"],
     "target_receptors": ["Bacterial Cell Wall Penicillin-Binding Proteins"],
     "narrow_therapeutic_index": false
+  },
+  {
+    "id": "DRUG-051",
+    "generic_name": "Propranolol",
+    "brand_names": ["Inderal", "Betacap"],
+    "drug_class": "Non-selective Beta Adrenergic Receptor Antagonist",
+    "metabolizing_enzymes": ["CYP2D6", "CYP1A2", "UGT1A9"],
+    "target_receptors": ["Beta-1 and Beta-2 Adrenergic Receptors"],
+    "narrow_therapeutic_index": false
+  },
+  {
+    "id": "DRUG-052",
+    "generic_name": "Penicillamine",
+    "brand_names": ["Cuprimine", "Depen"],
+    "drug_class": "Heavy Metal Chelating Agent",
+    "metabolizing_enzymes": ["Hepatic methylation", "Renal excretion"],
+    "target_receptors": ["Copper and Iron Ion Binding Chelator"],
+    "narrow_therapeutic_index": true
+  },
+  {
+    "id": "DRUG-053",
+    "generic_name": "Metronidazole",
+    "brand_names": ["Flagyl", "Metrogyl"],
+    "drug_class": "Nitroimidazole Antibacterial and Antiprotozoal",
+    "metabolizing_enzymes": ["CYP2A6", "Hepatic oxidation"],
+    "target_receptors": ["Bacterial and Protozoal DNA Strand Breakdown"],
+    "narrow_therapeutic_index": false
+  },
+  {
+    "id": "DRUG-054",
+    "generic_name": "Theophylline",
+    "brand_names": ["Theo-24", "Phyllocontin"],
+    "drug_class": "Methylxanthine Phosphodiesterase Inhibitor",
+    "metabolizing_enzymes": ["CYP1A2 (Major)", "CYP2E1", "CYP3A4"],
+    "target_receptors": ["Adenosine A1/A2 Receptors", "Non-selective PDE"],
+    "narrow_therapeutic_index": true
+  },
+  {
+    "id": "DRUG-055",
+    "generic_name": "Rifampin",
+    "brand_names": ["Rifadin", "Rimactane"],
+    "drug_class": "Rifamycin Antimycobacterial Antibiotic",
+    "metabolizing_enzymes": ["CYP3A4 Auto-induction", "Biliary excretion"],
+    "target_receptors": ["Bacterial DNA-dependent RNA Polymerase"],
+    "narrow_therapeutic_index": false
   }
 ]
