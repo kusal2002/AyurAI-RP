@@ -1,3 +1,6 @@
+# Install CPU-only PyTorch first to avoid the large CUDA build:
+#   pip install --index-url https://download.pytorch.org/whl/cpu torch==2.14.1
+# Then: pip install -r requirements.txt
 annotated-doc==0.0.5
 annotated-types==0.8.0
 anyio==4.15.1
@@ -5,14 +8,18 @@ click==8.5.0
 fastapi==0.141.1
 h11==0.16.0
 httptools==0.8.0
+httpx2==2.13.1
 idna==3.20
 neo4j==6.4.1
+numpy==2.5.4
 pydantic==2.13.5
 pydantic_core==2.46.5
 python-dotenv==1.2.3
 pytz==2026.5
 PyYAML==6.0.3
+sentence-transformers==6.1.0
 starlette==1.7.0
+transformers==5.20.1
 typing-inspection==0.4.4
 typing_extensions==4.16.0
 uvicorn==0.53.0
