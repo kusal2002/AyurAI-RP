@@ -1,6 +1,8 @@
-from fastapi import FastAPI
+﻿from fastapi import FastAPI
+
 from app.api.neo4j_health import router as neo4j_health_router
 from app.api.c1 import router as c1_router
+from app.api.c1_c2 import router as c1_c2_router
 from app.api.c2 import router as c2_router
 
 
@@ -12,8 +14,10 @@ app = FastAPI(
     ),
     version="0.1.0",
 )
+
 app.include_router(neo4j_health_router)
 app.include_router(c1_router)
+app.include_router(c1_c2_router)
 app.include_router(c2_router)
 
 
@@ -21,12 +25,12 @@ app.include_router(c2_router)
 def root():
     return {
         "component": "AyurAI Component 2",
-        "status": "running"
+        "status": "running",
     }
 
 
 @app.get("/health")
 def health_check():
     return {
-        "status": "healthy"
+        "status": "healthy",
     }
