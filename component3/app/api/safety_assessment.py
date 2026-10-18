@@ -41,3 +41,21 @@ def get_cyp_pathways():
     """Returns CYP450 enzyme substrate and inhibitor profiles."""
     with open(DATA_DIR / "cyp_enzymes.json", "r", encoding="utf-8") as f:
         return json.load(f)
+
+
+@router.get("/graph-stats")
+def get_graph_statistics():
+    """Returns node and relationship statistics from Neo4j (or local graph cache)."""
+    from app.core.graph_service import GraphService
+    service = GraphService()
+    return service.get_graph_stats()
+
+
+@router.get("/graph-path")
+def get_multi_hop_pathway(herb: str, drug: str):
+    """Discovers multi-hop biochemical interaction pathways between an Ayurvedic herb and a pharmaceutical drug.
+    Path: Herb -> Active Compound -> CYP Enzyme / Target <- Drug
+    """
+    from app.core.graph_service import GraphService
+    service = GraphService()
+    return service.find_multi_hop_path(herb, drug)
