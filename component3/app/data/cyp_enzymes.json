@@ -1,30 +1,72 @@
 [
   {
     "enzyme": "CYP3A4",
-    "description": "Major drug-metabolizing cytochrome P450 enzyme responsible for >50% of marketed pharmaceuticals",
-    "substrates": ["Atorvastatin", "Amlodipine", "Clonazepam", "Levothyroxine"],
-    "inhibitors": ["Glabridin (mild)", "Curcumin"],
-    "inducers": ["St John's Wort", "Withaferin A (weak/modulatory)"]
+    "description": "Major drug-metabolizing cytochrome P450 enzyme responsible for oxidation of >50% of marketed pharmaceuticals.",
+    "substrates": ["Atorvastatin", "Simvastatin", "Amlodipine", "Clonazepam", "Levothyroxine", "Domperidone", "Prednisolone"],
+    "inhibitors": ["Glabridin (Yashtimadhu)", "Curcumin", "Picroside II (Katuki)"],
+    "inducers": ["Carbamazepine", "Withaferin A (weak/modulatory)"]
   },
   {
     "enzyme": "CYP2C9",
-    "description": "Key enzyme for narrow-therapeutic-index drugs including S-warfarin and Losartan oxidation",
-    "substrates": ["Warfarin", "Losartan", "Aspirin"],
-    "inhibitors": ["Withaferin A (in-silico binding affinity -9.4 kcal/mol)", "Glabridin"],
-    "inducers": ["Rifampin"]
+    "description": "Key enzyme for narrow-therapeutic-index drugs including S-warfarin, NSAIDs, and Losartan bioactivation.",
+    "substrates": ["Warfarin", "Losartan", "Ibuprofen", "Diclofenac", "Glibenclamide", "Gliclazide", "Phenytoin"],
+    "inhibitors": ["Glabridin (Yashtimadhu)", "Withaferin A (Ashwagandha)", "Purpurin (Manjistha)"],
+    "inducers": ["Phenytoin", "Carbamazepine", "Rifampin"]
   },
   {
     "enzyme": "CYP2C19",
-    "description": "Proton pump inhibitors and anticonvulsants",
-    "substrates": ["Omeprazole", "Diazepam"],
-    "inhibitors": ["Tinosporaside (weak)"],
-    "inducers": ["Carbamazepine"]
+    "description": "Critical for metabolism of proton pump inhibitors, antiepileptics, and bioactivation of clopidogrel.",
+    "substrates": ["Omeprazole", "Pantoprazole", "Diazepam", "Clopidogrel", "Amitriptyline", "Phenytoin"],
+    "inhibitors": ["Tinosporaside (Guduchi)", "Chebulinic acid (Haritaki)"],
+    "inducers": ["Carbamazepine", "Rifampin"]
   },
   {
-    "enzyme": "P-glycoprotein",
-    "description": "Efflux transporter modulating intestinal absorption and tissue distribution",
-    "substrates": ["Digoxin", "Atorvastatin"],
-    "inhibitors": ["Piperine (Black pepper / Trikatu)", "Curcumin"],
+    "enzyme": "CYP2D6",
+    "description": "Responsible for metabolism of cardiovascular beta-blockers, antiarrhythmics, SSRIs, and tricyclic antidepressants.",
+    "substrates": ["Metoprolol", "Bisoprolol", "Tramadol", "Amitriptyline", "Sertraline", "Fluoxetine"],
+    "inhibitors": ["Berberine (Guduchi)", "Piperine (Pippali/Maricha)"],
+    "inducers": ["Dexamethasone"]
+  },
+  {
+    "enzyme": "CYP1A2",
+    "description": "Metabolizes methylxanthines, theophylline, and certain atypical antipsychotics; inhibited by fluoroquinolones.",
+    "substrates": ["Theophylline", "Caffeine", "Warfarin (R-isomer)", "Ranitidine"],
+    "inhibitors": ["Ciprofloxacin", "Ellagic acid (Amalaki)", "Curcumin"],
+    "inducers": ["Tobacco smoke", "Charbroiled foods", "Cruciferous vegetables"]
+  },
+  {
+    "enzyme": "CYP2B6",
+    "description": "Involved in the clearance of antineoplastics, bupropion, and certain antiretrovirals and psychotropics.",
+    "substrates": ["Sertraline", "Bupropion", "Methadone", "Ketamine"],
+    "inhibitors": ["Triterpenoids in Boswellia / Guggulu"],
+    "inducers": ["Phenobarbital", "Carbamazepine"]
+  },
+  {
+    "enzyme": "CYP2C8",
+    "description": "Metabolizes thiazolidinediones, paclitaxel, repaglinide, and certain statins.",
+    "substrates": ["Repaglinide", "Paclitaxel", "Sitagliptin", "Ibuprofen"],
+    "inhibitors": ["Gemfibrozil", "Quercetin (Amalaki/Triphala)"],
+    "inducers": ["Rifampin", "Carbamazepine"]
+  },
+  {
+    "enzyme": "CYP2E1",
+    "description": "Metabolizes small hydrophobic and halogenated compounds including paracetamol and ethanol.",
+    "substrates": ["Paracetamol", "Ethanol", "Chlorzoxazone"],
+    "inhibitors": ["Diallyl sulfide (Garlic/Lasan)", "Watercress"],
+    "inducers": ["Chronic ethanol ingestion", "Isoniazid", "Uncontrolled diabetes"]
+  },
+  {
+    "enzyme": "P-glycoprotein (ABCB1)",
+    "description": "ATP-dependent intestinal and blood-brain-barrier efflux transporter controlling drug bioavailability.",
+    "substrates": ["Digoxin", "Atorvastatin", "Amlodipine", "Colchicine", "Fexofenadine"],
+    "inhibitors": ["Piperine (Trikatu/Pippali/Maricha - potent)", "Curcumin", "Withaferin A"],
+    "inducers": ["Rifampin", "St John's Wort"]
+  },
+  {
+    "enzyme": "OAT1/OAT3 (SLC22A6/SLC22A8)",
+    "description": "Renal proximal tubule basolateral uptake transporters responsible for active tubular secretion of organic anions.",
+    "substrates": ["Furosemide", "Hydrochlorothiazide", "Methotrexate", "Enalaprilat", "Penicillins"],
+    "inhibitors": ["Punarnavine (competitive organic anion)", "Probenecid", "NSAIDs"],
     "inducers": []
   }
 ]

@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List, Optional, Tuple
 import uuid
 from datetime import datetime, timezone
 
