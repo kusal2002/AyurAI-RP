@@ -77,17 +77,27 @@ class RuleEngine:
         med_names = [m.name.lower() for m in patient.current_medications]
 
         for rule in self.known_interactions:
+            # Skip safe/compatible pairs: they are non-interactions
+            if rule.get("severity", "").lower() in ["none", "safe"] or "safe" in rule.get("interaction_type", "").lower():
+                continue
+
             rule_herb = rule["herb"].lower()
             rule_drug = rule["drug"].lower()
 
             # Check if candidate contains this herb and patient takes this drug
             if rule_herb in c_lower and any(rule_drug in m for m in med_names):
+                raw_grade = rule.get("evidence_level", "Established")
+                try:
+                    ev_grade = EvidenceGrade(raw_grade)
+                except ValueError:
+                    ev_grade = EvidenceGrade.ESTABLISHED
+
                 provenance = EvidenceProvenance(
                     source_id=f"PUBMED-{rule.get('pmid', 'REF')}",
                     source_title=rule.get("citation", "Clinical interaction literature"),
                     citation_type="PubMed / Clinical Monograph",
                     pmid_or_ref=rule.get("pmid"),
-                    grade=EvidenceGrade(rule.get("evidence_level", "Established")),
+                    grade=ev_grade,
                 )
 
                 finding = InteractionFinding(
@@ -96,7 +106,7 @@ class RuleEngine:
                     interaction_type="Known Rule",
                     severity=rule.get("severity", "Moderate"),
                     mechanism=rule.get("mechanism", "Pharmacodynamic or pharmacokinetic interaction"),
-                    evidence_strength=EvidenceGrade(rule.get("evidence_level", "Established")),
+                    evidence_strength=ev_grade,
                     prediction_confidence=0.98,
                     source_refs=[provenance],
                 )

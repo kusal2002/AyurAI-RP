@@ -1,19 +1,54 @@
-from typing import List, Tuple
+import logging
+from pathlib import Path
+from typing import List, Tuple, Optional
+import torch
+
 from app.models.patient_context import PatientContext
 from app.models.safety_output import InteractionFinding
+from app.ml.patient_encoder import PatientEncoder
+from app.ml.models.context_fusion_network import ContextFusionNetwork
+
+logger = logging.getLogger(__name__)
+M4_WEIGHTS_PATH = Path(__file__).resolve().parent.parent / "ml" / "weights" / "context_fusion_m4.pt"
 
 
 class ContextFusionLayer:
-    """Stage 3: Patient Context Fusion Layer (M4 - Proposed Contribution).
+    """Stage 3: Patient Context Fusion Layer (M4 - Proposed Novelty).
 
     Dynamically modulates raw in-silico and rule-based interaction probabilities
     by integrating patient-specific susceptibility factors:
     - Renal clearance (eGFR & CKD stage)
     - Hepatic impairment
     - Age-related pharmacokinetics
-    - Polypharmacy burden (≥ 5 concurrent drugs)
+    - Polypharmacy burden (>= 5 concurrent drugs)
     - Underlying anemia severity from Component 1
+
+    Combines deep neural vulnerability gating (M4 network) with clinical
+    interpretability and deterministic contraindication safety floors.
     """
+
+    def __init__(self):
+        self.m4_model: Optional[ContextFusionNetwork] = None
+        self._load_m4_model()
+
+    def _load_m4_model(self):
+        """Loads trained M4 ContextFusionNetwork if checkpoint exists."""
+        if M4_WEIGHTS_PATH.exists():
+            try:
+                checkpoint = torch.load(M4_WEIGHTS_PATH, map_location=torch.device("cpu"), weights_only=False)
+                self.m4_model = ContextFusionNetwork(
+                    graph_dim=checkpoint.get("graph_dim", 32),
+                    patient_dim=checkpoint.get("patient_dim", 16),
+                    hidden_dim=checkpoint.get("hidden_dim", 32),
+                    num_classes=checkpoint.get("num_classes", 3),
+                    dropout=0.0,
+                )
+                self.m4_model.load_state_dict(checkpoint["model_state_dict"])
+                self.m4_model.eval()
+                logger.info("Successfully loaded M4 ContextFusionNetwork from %s", M4_WEIGHTS_PATH)
+            except Exception as e:
+                logger.warning("Could not load M4 weights: %s. Using heuristic gating.", str(e))
+                self.m4_model = None
 
     def fuse_context(
         self,
@@ -30,7 +65,7 @@ class ContextFusionLayer:
         modifier_notes: List[str] = []
         risk_multiplier = 1.0
 
-        # 1. Immediate contraindications heavily drive risk score
+        # 1. Immediate contraindications override
         if contraindications:
             risk_multiplier += 1.5 * len(contraindications)
             modifier_notes.append(f"Hard clinical contraindications triggered ({len(contraindications)} warnings).")
@@ -82,14 +117,29 @@ class ContextFusionLayer:
             risk_multiplier += 0.20
             modifier_notes.append("Patient has High Anemia Risk (C1): heightened vulnerability to cardiovascular stress or fatigue.")
 
-        # 7. Aggregate with baseline finding confidences
+        # 7. Neural M4 Gating Execution
+        if self.m4_model is not None and not contraindications:
+            try:
+                x_patient_tensor = PatientEncoder.encode_patient(patient, anemia_risk_tier).unsqueeze(0)
+                # Compute graph interaction magnitude
+                max_conf = max((f.prediction_confidence for f in base_findings), default=0.10)
+                # Synthetic 32-D graph representation scaled by interaction confidence
+                h_graph_tensor = torch.full((1, 32), float(max_conf), dtype=torch.float32)
+
+                m4_out = self.m4_model.predict_safety(h_graph_tensor, x_patient_tensor)
+                neural_risk = m4_out["fused_risk_score"]
+
+                # Blend neural prediction with heuristic clinical bounds
+                fused_score = min(1.0, max(0.0, 0.6 * neural_risk + 0.4 * (max_conf * risk_multiplier * 0.4)))
+                return round(fused_score, 3), modifier_notes
+            except Exception as e:
+                logger.warning("Error running M4 neural inference: %s. Falling back to heuristic fusion.", str(e))
+
+        # Baseline heuristic calculation (or when contraindications present)
         base_risk = 0.10
         if base_findings:
-            # Take max severity and average confidence of findings
             max_conf = max(f.prediction_confidence for f in base_findings)
             base_risk = max_conf * 0.50
 
-        # Calculate bounded fused risk score
         fused_score = min(1.0, max(0.0, base_risk * risk_multiplier))
-
         return round(fused_score, 3), modifier_notes
