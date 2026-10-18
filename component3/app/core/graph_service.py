@@ -87,21 +87,26 @@ class GraphService:
 
         if self.neo4j.is_connected:
             cypher = """
-            MATCH path = (h:Herb)-[:CONTAINS_COMPOUND]->(c:Compound)-[r:INHIBITS|INDUCES|BINDS_TO]->(mid)<-[:METABOLIZED_BY|ACTS_ON]-(d:Drug)
+            MATCH path = (h:Herb)-[:CONTAINS_COMPOUND]->(c:Compound)-[r:INHIBITS|INDUCES]->(mid)<-[:METABOLIZED_BY|ACTS_ON]-(d:Drug)
             WHERE toLower(h.common_name) = toLower($herb) AND toLower(d.generic_name) = toLower($drug)
             RETURN h.common_name AS herb, c.name AS compound, type(r) AS action,
-                   labels(mid)[0] AS intermediary_type, coalesce(mid.name, mid.enzyme) AS intermediary,
+                   labels(mid)[0] AS intermediary_type, mid.name AS intermediary,
                    d.generic_name AS drug
             LIMIT 5
             """
             records = self.neo4j.execute_query(cypher, {"herb": herb_name, "drug": drug_name})
             if records:
+                direct_interaction = next(
+                    (i for i in self.interactions if h_lower in i["herb"].lower() and d_lower in i["drug"].lower()),
+                    None
+                )
                 return {
                     "source": "neo4j_live",
                     "herb": herb_name,
                     "drug": drug_name,
                     "paths_found": len(records),
                     "pathways": records,
+                    "direct_interaction_rule": direct_interaction,
                 }
 
         # Offline local pathway reasoning fallback

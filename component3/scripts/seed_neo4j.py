@@ -7,6 +7,7 @@ Also generates a standalone 'artifacts/seed_dump.cypher' file for manual executi
 
 import json
 from pathlib import Path
+import re
 import sys
 
 # Ensure app package is importable
@@ -58,23 +59,47 @@ def build_cypher_statements():
         for comp in h.get("active_compounds", []):
             safe_comp = comp.replace("'", "\\'")
             statements.append(
-                f"MERGE (c:Compound {{name: '{safe_comp}'}});\n"
-                f"MATCH (h:Herb {{id: '{h['id']}'}}), (c:Compound {{name: '{safe_comp}'}}) "
+                f"MATCH (h:Herb {{id: '{h['id']}'}}) "
+                f"MERGE (c:Compound {{name: '{safe_comp}'}}) "
                 f"MERGE (h)-[:CONTAINS_COMPOUND]->(c);"
             )
         for cond in h.get("contraindications", []):
             safe_cond = cond.replace("'", "\\'")
             statements.append(
-                f"MERGE (cond:Condition {{name: '{safe_cond}'}});\n"
-                f"MATCH (h:Herb {{id: '{h['id']}'}}), (cond:Condition {{name: '{safe_cond}'}}) "
+                f"MATCH (h:Herb {{id: '{h['id']}'}}) "
+                f"MERGE (cond:Condition {{name: '{safe_cond}'}}) "
                 f"MERGE (h)-[:CONTRAINDICATED_IN]->(cond);"
             )
 
-    # 3. Ingest CYP Enzymes
+    # 3. Ingest CYP Enzymes & Compound Interactions
+    herb_comp_lookup = {c.lower(): c for h in herbs for c in h.get("active_compounds", [])}
     for cyp in cyp_enzymes:
         e_name = cyp["enzyme"].replace("'", "\\'")
         e_desc = cyp["description"].replace("'", "\\'")
         statements.append(f"MERGE (e:Enzyme {{name: '{e_name}'}}) SET e.description = '{e_desc}';")
+
+        for inh in cyp.get("inhibitors", []):
+            raw_comp = re.sub(r"\(.*?\)", "", inh).strip()
+            # Match against existing herb compound if available for exact casing
+            comp_name = herb_comp_lookup.get(raw_comp.lower(), raw_comp).replace("'", "\\'")
+            if comp_name:
+                statements.append(
+                    f"MERGE (c:Compound {{name: '{comp_name}'}}) "
+                    f"WITH c "
+                    f"MATCH (e:Enzyme {{name: '{e_name}'}}) "
+                    f"MERGE (c)-[:INHIBITS]->(e);"
+                )
+
+        for ind in cyp.get("inducers", []):
+            raw_comp = re.sub(r"\(.*?\)", "", ind).strip()
+            comp_name = herb_comp_lookup.get(raw_comp.lower(), raw_comp).replace("'", "\\'")
+            if comp_name:
+                statements.append(
+                    f"MERGE (c:Compound {{name: '{comp_name}'}}) "
+                    f"WITH c "
+                    f"MATCH (e:Enzyme {{name: '{e_name}'}}) "
+                    f"MERGE (c)-[:INDUCES]->(e);"
+                )
 
     # 4. Ingest Pharmaceutical Drugs
     for d in drugs:
@@ -88,15 +113,15 @@ def build_cypher_statements():
         for enz in d.get("metabolizing_enzymes", []):
             safe_enz = enz.replace("'", "\\'")
             statements.append(
-                f"MERGE (e:Enzyme {{name: '{safe_enz}'}});\n"
-                f"MATCH (d:Drug {{id: '{d['id']}'}}), (e:Enzyme {{name: '{safe_enz}'}}) "
+                f"MATCH (d:Drug {{id: '{d['id']}'}}) "
+                f"MERGE (e:Enzyme {{name: '{safe_enz}'}}) "
                 f"MERGE (d)-[:METABOLIZED_BY]->(e);"
             )
         for tgt in d.get("target_receptors", []):
             safe_tgt = tgt.replace("'", "\\'")
             statements.append(
-                f"MERGE (t:Target {{name: '{safe_tgt}'}});\n"
-                f"MATCH (d:Drug {{id: '{d['id']}'}}), (t:Target {{name: '{safe_tgt}'}}) "
+                f"MATCH (d:Drug {{id: '{d['id']}'}}) "
+                f"MERGE (t:Target {{name: '{safe_tgt}'}}) "
                 f"MERGE (d)-[:ACTS_ON]->(t);"
             )
 
@@ -145,7 +170,8 @@ def main():
         executed = 0
         for stmt in statements:
             try:
-                client.execute_write(stmt)
+                clean_stmt = stmt.strip().rstrip(";")
+                client.execute_write(clean_stmt)
                 executed += 1
             except Exception as e:
                 print(f"Warning on statement: {e}")

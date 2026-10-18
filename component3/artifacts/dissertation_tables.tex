@@ -1,0 +1,39 @@
+% ==========================================================================
+% AyurAI Component 3: LaTeX Publication Tables for Thesis Chapter 5
+% ==========================================================================
+
+\begin{table*}[t]
+\centering
+\small
+\caption{Ablation Study: Empirical Performance Comparison of Safety Prediction Architectures on Held-Out Test Set ($N = 150$). Best values in \textbf{bold}.}
+\label{tab:ablation_primary_results}
+\begin{tabular}{llccccccc}
+\toprule
+\textbf{Model} & \textbf{Context Mechanism} & \textbf{Accuracy} & \textbf{Macro-F1} & \textbf{PR-AUC} & \textbf{ROC-AUC} & \textbf{Sensitivity} & \textbf{Specificity} & \textbf{Brier Score} \\
+\midrule
+$M_1$ (Heuristic Rules Alone) & Static Lookup & 32.7\% & 0.3944 & 0.4869 & 0.6439 & 0.5608 & 0.7501 & 0.9693 \\
+$M_2$ (Static GNN Alone) & None & 26.0\% & 0.3966 & 0.5788 & 0.6650 & 0.6389 & 0.6921 & 1.4079 \\
+$M_3$ (Naive Context Concat) & Concat $[\mathbf{h} \parallel \mathbf{x}]$ & 73.3\% & 0.2821 & 0.7898 & 0.8834 & 0.3333 & 0.6667 & 0.3367 \\
+$M_4$ (\textbf{Context Fusion Layer - Ours}) & Gating $\mathbf{g} \odot (W_h \mathbf{h})$ & 90.7\% & \textbf{0.8771} & \textbf{0.9403} & 0.9640 & \textbf{0.8707} & 0.9173 & \textbf{0.1549} \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+
+
+\begin{table}[h]
+\centering
+\small
+\caption{Subgroup Stratification Analysis Across Clinical Vulnerability Cohorts ($N = 1,000$).}
+\label{tab:subgroup_stratification}
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Vulnerability Subgroup} & \textbf{Cohort $N$} & \textbf{$M_3$ Naive F1} & \textbf{$M_4$ Gated F1} & \textbf{Relative Gain} \\
+\midrule
+Overall Cohort & 1000 & 0.2846 & \textbf{0.8395} & \textbf{+195.0\%} \\
+Renal Impairment (eGFR $<$ 60) & 244 & 0.2784 & \textbf{0.7327} & \textbf{+163.2\%} \\
+Polypharmacy ($\ge$ 3 co-medications) & 662 & 0.2891 & \textbf{0.7581} & \textbf{+162.2\%} \\
+Elderly (Age $\ge$ 65) & 308 & 0.2871 & \textbf{0.6579} & \textbf{+129.2\%} \\
+\bottomrule
+\end{tabular}
+\end{table}

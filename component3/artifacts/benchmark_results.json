@@ -1,0 +1,765 @@
+{
+  "experiment_metadata": {
+    "cohort_size": 500,
+    "total_evaluations": 1000,
+    "test_samples": 150,
+    "classes": [
+      "Safe",
+      "Caution",
+      "High Risk"
+    ],
+    "seed": 42
+  },
+  "held_out_test_set": {
+    "M1: Heuristic Rules Alone": {
+      "sample_count": 150,
+      "accuracy": 0.3267,
+      "macro_f1": 0.3944,
+      "micro_f1": 0.3267,
+      "weighted_f1": 0.3946,
+      "macro_precision": 0.689,
+      "macro_recall_sensitivity": 0.5608,
+      "macro_specificity": 0.7501,
+      "confusion_matrix": [
+        [
+          12,
+          0,
+          0
+        ],
+        [
+          86,
+          24,
+          0
+        ],
+        [
+          14,
+          1,
+          13
+        ]
+      ],
+      "per_class": {
+        "Safe": {
+          "precision": 0.1071,
+          "sensitivity_recall": 1.0,
+          "specificity": 0.2754,
+          "f1_score": 0.1935,
+          "support": 12
+        },
+        "Caution": {
+          "precision": 0.96,
+          "sensitivity_recall": 0.2182,
+          "specificity": 0.975,
+          "f1_score": 0.3556,
+          "support": 110
+        },
+        "High Risk": {
+          "precision": 1.0,
+          "sensitivity_recall": 0.4643,
+          "specificity": 1.0,
+          "f1_score": 0.6341,
+          "support": 28
+        }
+      },
+      "brier_score": 0.9693,
+      "roc_auc": 0.6439,
+      "pr_auc": 0.4869
+    },
+    "M2: Static GNN Link Alone": {
+      "sample_count": 150,
+      "accuracy": 0.26,
+      "macro_f1": 0.3966,
+      "micro_f1": 0.26,
+      "weighted_f1": 0.1318,
+      "macro_precision": 0.331,
+      "macro_recall_sensitivity": 0.6389,
+      "macro_specificity": 0.6921,
+      "confusion_matrix": [
+        [
+          11,
+          1,
+          0
+        ],
+        [
+          3,
+          0,
+          107
+        ],
+        [
+          0,
+          0,
+          28
+        ]
+      ],
+      "per_class": {
+        "Safe": {
+          "precision": 0.7857,
+          "sensitivity_recall": 0.9167,
+          "specificity": 0.9783,
+          "f1_score": 0.8462,
+          "support": 12
+        },
+        "Caution": {
+          "precision": 0.0,
+          "sensitivity_recall": 0.0,
+          "specificity": 0.975,
+          "f1_score": 0.0,
+          "support": 110
+        },
+        "High Risk": {
+          "precision": 0.2074,
+          "sensitivity_recall": 1.0,
+          "specificity": 0.123,
+          "f1_score": 0.3436,
+          "support": 28
+        }
+      },
+      "brier_score": 1.4079,
+      "roc_auc": 0.665,
+      "pr_auc": 0.5788
+    },
+    "M3: Naive Context (Concatenation)": {
+      "sample_count": 150,
+      "accuracy": 0.7333,
+      "macro_f1": 0.2821,
+      "micro_f1": 0.7333,
+      "weighted_f1": 0.6205,
+      "macro_precision": 0.2444,
+      "macro_recall_sensitivity": 0.3333,
+      "macro_specificity": 0.6667,
+      "confusion_matrix": [
+        [
+          0,
+          12,
+          0
+        ],
+        [
+          0,
+          110,
+          0
+        ],
+        [
+          0,
+          28,
+          0
+        ]
+      ],
+      "per_class": {
+        "Safe": {
+          "precision": 0.0,
+          "sensitivity_recall": 0.0,
+          "specificity": 1.0,
+          "f1_score": 0.0,
+          "support": 12
+        },
+        "Caution": {
+          "precision": 0.7333,
+          "sensitivity_recall": 1.0,
+          "specificity": 0.0,
+          "f1_score": 0.8462,
+          "support": 110
+        },
+        "High Risk": {
+          "precision": 0.0,
+          "sensitivity_recall": 0.0,
+          "specificity": 1.0,
+          "f1_score": 0.0,
+          "support": 28
+        }
+      },
+      "brier_score": 0.3367,
+      "roc_auc": 0.8834,
+      "pr_auc": 0.7898
+    },
+    "M4: Proposed Context Fusion (Ours)": {
+      "sample_count": 150,
+      "accuracy": 0.9067,
+      "macro_f1": 0.8771,
+      "micro_f1": 0.9067,
+      "weighted_f1": 0.9056,
+      "macro_precision": 0.8843,
+      "macro_recall_sensitivity": 0.8707,
+      "macro_specificity": 0.9173,
+      "confusion_matrix": [
+        [
+          11,
+          1,
+          0
+        ],
+        [
+          1,
+          104,
+          5
+        ],
+        [
+          0,
+          7,
+          21
+        ]
+      ],
+      "per_class": {
+        "Safe": {
+          "precision": 0.9167,
+          "sensitivity_recall": 0.9167,
+          "specificity": 0.9928,
+          "f1_score": 0.9167,
+          "support": 12
+        },
+        "Caution": {
+          "precision": 0.9286,
+          "sensitivity_recall": 0.9455,
+          "specificity": 0.8,
+          "f1_score": 0.9369,
+          "support": 110
+        },
+        "High Risk": {
+          "precision": 0.8077,
+          "sensitivity_recall": 0.75,
+          "specificity": 0.959,
+          "f1_score": 0.7778,
+          "support": 28
+        }
+      },
+      "brier_score": 0.1549,
+      "roc_auc": 0.964,
+      "pr_auc": 0.9403
+    }
+  },
+  "full_cohort": {
+    "M3: Naive Context (Concatenation)": {
+      "sample_count": 1000,
+      "accuracy": 0.745,
+      "macro_f1": 0.2846,
+      "micro_f1": 0.745,
+      "weighted_f1": 0.6361,
+      "macro_precision": 0.2483,
+      "macro_recall_sensitivity": 0.3333,
+      "macro_specificity": 0.6667,
+      "confusion_matrix": [
+        [
+          0,
+          76,
+          0
+        ],
+        [
+          0,
+          745,
+          0
+        ],
+        [
+          0,
+          179,
+          0
+        ]
+      ],
+      "per_class": {
+        "Safe": {
+          "precision": 0.0,
+          "sensitivity_recall": 0.0,
+          "specificity": 1.0,
+          "f1_score": 0.0,
+          "support": 76
+        },
+        "Caution": {
+          "precision": 0.745,
+          "sensitivity_recall": 1.0,
+          "specificity": 0.0,
+          "f1_score": 0.8539,
+          "support": 745
+        },
+        "High Risk": {
+          "precision": 0.0,
+          "sensitivity_recall": 0.0,
+          "specificity": 1.0,
+          "f1_score": 0.0,
+          "support": 179
+        }
+      },
+      "brier_score": 0.3365,
+      "roc_auc": 0.8587,
+      "pr_auc": 0.75
+    },
+    "M4: Proposed Context Fusion (Ours)": {
+      "sample_count": 1000,
+      "accuracy": 0.89,
+      "macro_f1": 0.8395,
+      "micro_f1": 0.89,
+      "weighted_f1": 0.888,
+      "macro_precision": 0.8626,
+      "macro_recall_sensitivity": 0.8192,
+      "macro_specificity": 0.8953,
+      "confusion_matrix": [
+        [
+          62,
+          13,
+          1
+        ],
+        [
+          7,
+          703,
+          35
+        ],
+        [
+          0,
+          54,
+          125
+        ]
+      ],
+      "per_class": {
+        "Safe": {
+          "precision": 0.8986,
+          "sensitivity_recall": 0.8158,
+          "specificity": 0.9924,
+          "f1_score": 0.8552,
+          "support": 76
+        },
+        "Caution": {
+          "precision": 0.913,
+          "sensitivity_recall": 0.9436,
+          "specificity": 0.7373,
+          "f1_score": 0.9281,
+          "support": 745
+        },
+        "High Risk": {
+          "precision": 0.7764,
+          "sensitivity_recall": 0.6983,
+          "specificity": 0.9562,
+          "f1_score": 0.7353,
+          "support": 179
+        }
+      },
+      "brier_score": 0.1654,
+      "roc_auc": 0.9577,
+      "pr_auc": 0.9175
+    }
+  },
+  "subgroup_stratification": {
+    "M3: Naive Context (Concatenation)": {
+      "Overall Cohort": {
+        "sample_count": 1000,
+        "accuracy": 0.745,
+        "macro_f1": 0.2846,
+        "micro_f1": 0.745,
+        "weighted_f1": 0.6361,
+        "macro_precision": 0.2483,
+        "macro_recall_sensitivity": 0.3333,
+        "macro_specificity": 0.6667,
+        "confusion_matrix": [
+          [
+            0,
+            76,
+            0
+          ],
+          [
+            0,
+            745,
+            0
+          ],
+          [
+            0,
+            179,
+            0
+          ]
+        ],
+        "per_class": {
+          "Safe": {
+            "precision": 0.0,
+            "sensitivity_recall": 0.0,
+            "specificity": 1.0,
+            "f1_score": 0.0,
+            "support": 76
+          },
+          "Caution": {
+            "precision": 0.745,
+            "sensitivity_recall": 1.0,
+            "specificity": 0.0,
+            "f1_score": 0.8539,
+            "support": 745
+          },
+          "High Risk": {
+            "precision": 0.0,
+            "sensitivity_recall": 0.0,
+            "specificity": 1.0,
+            "f1_score": 0.0,
+            "support": 179
+          }
+        },
+        "brier_score": 0.3365,
+        "roc_auc": 0.8587,
+        "pr_auc": 0.75
+      },
+      "Renal Impairment (eGFR < 60)": {
+        "sample_count": 244,
+        "accuracy": 0.7172,
+        "macro_f1": 0.2784,
+        "micro_f1": 0.7172,
+        "weighted_f1": 0.5991,
+        "macro_precision": 0.2391,
+        "macro_recall_sensitivity": 0.3333,
+        "macro_specificity": 0.6667,
+        "confusion_matrix": [
+          [
+            0,
+            6,
+            0
+          ],
+          [
+            0,
+            175,
+            0
+          ],
+          [
+            0,
+            63,
+            0
+          ]
+        ],
+        "per_class": {
+          "Safe": {
+            "precision": 0.0,
+            "sensitivity_recall": 0.0,
+            "specificity": 1.0,
+            "f1_score": 0.0,
+            "support": 6
+          },
+          "Caution": {
+            "precision": 0.7172,
+            "sensitivity_recall": 1.0,
+            "specificity": 0.0,
+            "f1_score": 0.8353,
+            "support": 175
+          },
+          "High Risk": {
+            "precision": 0.0,
+            "sensitivity_recall": 0.0,
+            "specificity": 1.0,
+            "f1_score": 0.0,
+            "support": 63
+          }
+        },
+        "brier_score": 0.3281,
+        "roc_auc": 0.8671,
+        "pr_auc": 0.6645
+      },
+      "Polypharmacy (>= 3 co-medications)": {
+        "sample_count": 662,
+        "accuracy": 0.7659,
+        "macro_f1": 0.2891,
+        "micro_f1": 0.7659,
+        "weighted_f1": 0.6643,
+        "macro_precision": 0.2553,
+        "macro_recall_sensitivity": 0.3333,
+        "macro_specificity": 0.6667,
+        "confusion_matrix": [
+          [
+            0,
+            22,
+            0
+          ],
+          [
+            0,
+            507,
+            0
+          ],
+          [
+            0,
+            133,
+            0
+          ]
+        ],
+        "per_class": {
+          "Safe": {
+            "precision": 0.0,
+            "sensitivity_recall": 0.0,
+            "specificity": 1.0,
+            "f1_score": 0.0,
+            "support": 22
+          },
+          "Caution": {
+            "precision": 0.7659,
+            "sensitivity_recall": 1.0,
+            "specificity": 0.0,
+            "f1_score": 0.8674,
+            "support": 507
+          },
+          "High Risk": {
+            "precision": 0.0,
+            "sensitivity_recall": 0.0,
+            "specificity": 1.0,
+            "f1_score": 0.0,
+            "support": 133
+          }
+        },
+        "brier_score": 0.3042,
+        "roc_auc": 0.8672,
+        "pr_auc": 0.6673
+      },
+      "Elderly (Age >= 65)": {
+        "sample_count": 308,
+        "accuracy": 0.7565,
+        "macro_f1": 0.2871,
+        "micro_f1": 0.7565,
+        "weighted_f1": 0.6516,
+        "macro_precision": 0.2522,
+        "macro_recall_sensitivity": 0.3333,
+        "macro_specificity": 0.6667,
+        "confusion_matrix": [
+          [
+            0,
+            9,
+            0
+          ],
+          [
+            0,
+            233,
+            0
+          ],
+          [
+            0,
+            66,
+            0
+          ]
+        ],
+        "per_class": {
+          "Safe": {
+            "precision": 0.0,
+            "sensitivity_recall": 0.0,
+            "specificity": 1.0,
+            "f1_score": 0.0,
+            "support": 9
+          },
+          "Caution": {
+            "precision": 0.7565,
+            "sensitivity_recall": 1.0,
+            "specificity": 0.0,
+            "f1_score": 0.8614,
+            "support": 233
+          },
+          "High Risk": {
+            "precision": 0.0,
+            "sensitivity_recall": 0.0,
+            "specificity": 1.0,
+            "f1_score": 0.0,
+            "support": 66
+          }
+        },
+        "brier_score": 0.2912,
+        "roc_auc": 0.9074,
+        "pr_auc": 0.7817
+      }
+    },
+    "M4: Proposed Context Fusion (Ours)": {
+      "Overall Cohort": {
+        "sample_count": 1000,
+        "accuracy": 0.89,
+        "macro_f1": 0.8395,
+        "micro_f1": 0.89,
+        "weighted_f1": 0.888,
+        "macro_precision": 0.8626,
+        "macro_recall_sensitivity": 0.8192,
+        "macro_specificity": 0.8953,
+        "confusion_matrix": [
+          [
+            62,
+            13,
+            1
+          ],
+          [
+            7,
+            703,
+            35
+          ],
+          [
+            0,
+            54,
+            125
+          ]
+        ],
+        "per_class": {
+          "Safe": {
+            "precision": 0.8986,
+            "sensitivity_recall": 0.8158,
+            "specificity": 0.9924,
+            "f1_score": 0.8552,
+            "support": 76
+          },
+          "Caution": {
+            "precision": 0.913,
+            "sensitivity_recall": 0.9436,
+            "specificity": 0.7373,
+            "f1_score": 0.9281,
+            "support": 745
+          },
+          "High Risk": {
+            "precision": 0.7764,
+            "sensitivity_recall": 0.6983,
+            "specificity": 0.9562,
+            "f1_score": 0.7353,
+            "support": 179
+          }
+        },
+        "brier_score": 0.1654,
+        "roc_auc": 0.9577,
+        "pr_auc": 0.9175
+      },
+      "Renal Impairment (eGFR < 60)": {
+        "sample_count": 244,
+        "accuracy": 0.8648,
+        "macro_f1": 0.7327,
+        "micro_f1": 0.8648,
+        "weighted_f1": 0.8659,
+        "macro_precision": 0.7275,
+        "macro_recall_sensitivity": 0.7389,
+        "macro_specificity": 0.8987,
+        "confusion_matrix": [
+          [
+            3,
+            3,
+            0
+          ],
+          [
+            3,
+            156,
+            16
+          ],
+          [
+            0,
+            11,
+            52
+          ]
+        ],
+        "per_class": {
+          "Safe": {
+            "precision": 0.5,
+            "sensitivity_recall": 0.5,
+            "specificity": 0.9874,
+            "f1_score": 0.5,
+            "support": 6
+          },
+          "Caution": {
+            "precision": 0.9176,
+            "sensitivity_recall": 0.8914,
+            "specificity": 0.7971,
+            "f1_score": 0.9043,
+            "support": 175
+          },
+          "High Risk": {
+            "precision": 0.7647,
+            "sensitivity_recall": 0.8254,
+            "specificity": 0.9116,
+            "f1_score": 0.7939,
+            "support": 63
+          }
+        },
+        "brier_score": 0.2069,
+        "roc_auc": 0.9476,
+        "pr_auc": 0.7917
+      },
+      "Polypharmacy (>= 3 co-medications)": {
+        "sample_count": 662,
+        "accuracy": 0.8716,
+        "macro_f1": 0.7581,
+        "micro_f1": 0.8716,
+        "weighted_f1": 0.8672,
+        "macro_precision": 0.8558,
+        "macro_recall_sensitivity": 0.7033,
+        "macro_specificity": 0.8629,
+        "confusion_matrix": [
+          [
+            11,
+            11,
+            0
+          ],
+          [
+            1,
+            477,
+            29
+          ],
+          [
+            0,
+            44,
+            89
+          ]
+        ],
+        "per_class": {
+          "Safe": {
+            "precision": 0.9167,
+            "sensitivity_recall": 0.5,
+            "specificity": 0.9984,
+            "f1_score": 0.6471,
+            "support": 22
+          },
+          "Caution": {
+            "precision": 0.8966,
+            "sensitivity_recall": 0.9408,
+            "specificity": 0.6452,
+            "f1_score": 0.9182,
+            "support": 507
+          },
+          "High Risk": {
+            "precision": 0.7542,
+            "sensitivity_recall": 0.6692,
+            "specificity": 0.9452,
+            "f1_score": 0.7092,
+            "support": 133
+          }
+        },
+        "brier_score": 0.1835,
+        "roc_auc": 0.9477,
+        "pr_auc": 0.8765
+      },
+      "Elderly (Age >= 65)": {
+        "sample_count": 308,
+        "accuracy": 0.8636,
+        "macro_f1": 0.6579,
+        "micro_f1": 0.8636,
+        "weighted_f1": 0.8513,
+        "macro_precision": 0.896,
+        "macro_recall_sensitivity": 0.5966,
+        "macro_specificity": 0.8409,
+        "confusion_matrix": [
+          [
+            2,
+            7,
+            0
+          ],
+          [
+            0,
+            224,
+            9
+          ],
+          [
+            0,
+            26,
+            40
+          ]
+        ],
+        "per_class": {
+          "Safe": {
+            "precision": 1.0,
+            "sensitivity_recall": 0.2222,
+            "specificity": 1.0,
+            "f1_score": 0.3636,
+            "support": 9
+          },
+          "Caution": {
+            "precision": 0.8716,
+            "sensitivity_recall": 0.9614,
+            "specificity": 0.56,
+            "f1_score": 0.9143,
+            "support": 233
+          },
+          "High Risk": {
+            "precision": 0.8163,
+            "sensitivity_recall": 0.6061,
+            "specificity": 0.9628,
+            "f1_score": 0.6957,
+            "support": 66
+          }
+        },
+        "brier_score": 0.2003,
+        "roc_auc": 0.9388,
+        "pr_auc": 0.8698
+      }
+    }
+  }
+}
