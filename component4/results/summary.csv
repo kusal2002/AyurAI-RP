@@ -1,0 +1,11 @@
+strategy,target_epsilon,runs,rounds,final_accuracy_mean,final_accuracy_std,epsilon_spent_max,data_source
+fedavg,0.1,3,10,0.3333333333333333,0.1201850425154663,0.09884583137332664,"PLACEHOLDER (random features, not real patient data)"
+fedavg,0.5,3,10,0.32222222222222224,0.08388704928078612,0.49943271522183263,"PLACEHOLDER (random features, not real patient data)"
+fedavg,1.0,3,10,0.34444444444444444,0.01924500897298752,0.9949937467763715,"PLACEHOLDER (random features, not real patient data)"
+fedavg,2.0,3,10,0.36666666666666664,0.033333333333333354,1.991969015062205,"PLACEHOLDER (random features, not real patient data)"
+fedavg,5.0,3,10,0.34444444444444444,0.03849001794597504,4.999873190460982,"PLACEHOLDER (random features, not real patient data)"
+fedprox,0.1,3,10,0.3333333333333333,0.13333333333333333,0.09884583137332664,"PLACEHOLDER (random features, not real patient data)"
+fedprox,0.5,3,10,0.35555555555555557,0.10183501544346311,0.49943271522183263,"PLACEHOLDER (random features, not real patient data)"
+fedprox,1.0,3,10,0.3222222222222222,0.07698003589195009,0.9949937467763715,"PLACEHOLDER (random features, not real patient data)"
+fedprox,2.0,3,10,0.3333333333333333,0.05773502691896256,1.991969015062205,"PLACEHOLDER (random features, not real patient data)"
+fedprox,5.0,3,10,0.36666666666666664,0.0,4.999873190460982,"PLACEHOLDER (random features, not real patient data)"
