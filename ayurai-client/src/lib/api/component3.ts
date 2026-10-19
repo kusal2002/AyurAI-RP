@@ -31,4 +31,8 @@ export const component3Api = {
     component3Client.get<C3KnownInteraction[]>("/api/v1/safety/known-interactions", { signal }),
   cypPathways: (signal?: AbortSignal) =>
     component3Client.get<C3CypPathway[]>("/api/v1/safety/cyp-pathways", { signal }),
+  graphStats: (signal?: AbortSignal) =>
+    component3Client.get<Record<string, unknown>>("/api/v1/safety/graph-stats", { signal }),
+  benchmarks: (signal?: AbortSignal) =>
+    component3Client.get<Record<string, unknown>>("/api/v1/safety/benchmarks", { signal }),
 }
