@@ -73,6 +73,36 @@ class ChainStatus(BaseModel):
     head_hash: str | None
 
 
+class AnchorOut(BaseModel):
+    id: int
+    created_at: datetime
+    head_entry_id: int
+    head_hash: str
+    onchain_id: int
+    tx_hash: str
+    block_number: int
+    contract_address: str
+    anchored_by: str
+    explorer_url: str      # Etherscan page for the transaction
+
+
+class AnchorCheck(BaseModel):
+    """Result of comparing one anchor with the blockchain and the current database."""
+    anchor_id: int
+    onchain_id: int
+    head_entry_id: int
+    onchain_hash: str            # what the contract stores
+    current_db_hash: str | None  # what the database holds for that entry today
+    matches: bool
+
+
+class AnchorVerification(BaseModel):
+    local_chain_valid: bool          # recomputing the hash chain inside the database
+    anchors_checked: int
+    all_anchors_match: bool          # every on-chain hash equals the database today
+    checks: list[AnchorCheck]
+
+
 class ServiceEvent(BaseModel):
     """An audit event posted by another AyurAI service (e.g. C2's AuditRecord)."""
     service: Literal["component2", "component3"]

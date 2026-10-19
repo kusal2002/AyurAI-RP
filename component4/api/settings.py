@@ -24,3 +24,12 @@ JWT_EXPIRE_MINUTES = int(os.getenv("JWT_EXPIRE_MINUTES", "60"))
 SERVICE_API_KEY = os.getenv("C4_SERVICE_API_KEY", "")
 
 RESULTS_DIR = COMPONENT_DIR / "results"
+
+# ---------- Blockchain anchoring (Ethereum Sepolia testnet) ----------
+# All optional: without them the API runs normally and anchoring returns 503.
+SEPOLIA_RPC_URL = os.getenv("SEPOLIA_RPC_URL", "")          # contains the Alchemy key: never log it
+CONTRACT_ADDRESS = os.getenv("CONTRACT_ADDRESS", "").strip()  # deployed AuditAnchor contract
+WALLET_PRIVATE_KEY = os.getenv("WALLET_PRIVATE_KEY", "").strip()  # signs anchor transactions: never log it
+SEPOLIA_CHAIN_ID = 11155111
+ETHERSCAN_URL = "https://sepolia.etherscan.io"
+ANCHOR_ABI_PATH = COMPONENT_DIR / "security" / "AuditAnchor.abi.json"
