@@ -59,3 +59,14 @@ def get_multi_hop_pathway(herb: str, drug: str):
     from app.core.graph_service import GraphService
     service = GraphService()
     return service.find_multi_hop_path(herb, drug)
+
+
+@router.get("/benchmarks")
+def get_ablation_benchmarks():
+    """Returns empirical ablation study benchmarking results (M1 through M4 models)."""
+    artifacts_dir = Path(__file__).resolve().parent.parent.parent / "artifacts"
+    bench_file = artifacts_dir / "benchmark_results.json"
+    if bench_file.exists():
+        with open(bench_file, "r", encoding="utf-8") as f:
+            return json.load(f)
+    return {"error": "Benchmark results not yet generated"}
