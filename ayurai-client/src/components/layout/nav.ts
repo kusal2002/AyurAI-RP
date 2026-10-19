@@ -6,9 +6,11 @@ import {
   LayoutDashboard,
   Leaf,
   ListOrdered,
+  LockKeyhole,
   Network,
   ScrollText,
   Settings2,
+  Share2,
   ShieldCheck,
   Stethoscope,
 } from "lucide-react"
@@ -51,6 +53,8 @@ export const navGroups: { title: string; items: NavItem[] }[] = [
   {
     title: "Governance",
     items: [
+      { label: "Federated training", to: "/federation", icon: Share2, component: "C4" },
+      { label: "Privacy budget", to: "/privacy", icon: LockKeyhole, component: "C4" },
       { label: "Audit & governance", to: "/governance", icon: ScrollText, component: "C4" },
       { label: "Administration", to: "/admin", icon: Settings2 },
     ],

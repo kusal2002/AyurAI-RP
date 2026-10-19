@@ -1,6 +1,6 @@
 import * as React from "react"
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router"
-import { FlaskConical, Leaf, Menu, Plus, Radio, ShieldCheck, X } from "lucide-react"
+import { FlaskConical, Leaf, LogIn, LogOut, Menu, Plus, Radio, ShieldCheck, UserRound, X } from "lucide-react"
 
 import {
   AlertDialog,
@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button"
 import { navGroups, navItemFor } from "@/components/layout/nav"
+import { roleLabels, useAuth } from "@/context/auth"
 import { useWorkspace } from "@/context/workspace"
 import type { DataMode } from "@/lib/env"
 import { cn } from "@/lib/utils"
@@ -186,6 +187,31 @@ function ModeSwitch() {
   )
 }
 
+/** Signed-in Component 4 user (name, role, clinic) with sign-out, or a sign-in link. */
+function UserMenu() {
+  const { user, signOut } = useAuth()
+  if (!user) {
+    return (
+      <Button variant="outline" size="sm" render={<NavLink to="/login" />} nativeButton={false}>
+        <LogIn /> Sign in
+      </Button>
+    )
+  }
+  return (
+    <div className="flex items-center gap-1.5">
+      <span className="hidden items-center gap-1.5 rounded-lg bg-slate-50 px-2.5 py-1.5 text-xs text-slate-600 ring-1 ring-slate-200 ring-inset md:inline-flex">
+        <UserRound aria-hidden className="size-3.5" />
+        <span className="font-semibold text-slate-800">{user.username}</span>
+        {roleLabels[user.role]}
+        {user.clinic_id ? ` · ${user.clinic_id}` : ""}
+      </span>
+      <Button variant="ghost" size="icon" aria-label="Sign out" title="Sign out" onClick={signOut}>
+        <LogOut />
+      </Button>
+    </div>
+  )
+}
+
 export function AppShell() {
   const [mobileOpen, setMobileOpen] = React.useState(false)
   const location = useLocation()
@@ -259,6 +285,7 @@ export function AppShell() {
           </div>
           <div className="flex shrink-0 items-center gap-2">
             <ModeSwitch />
+            <UserMenu />
             <Button
               size="sm"
               className="hidden bg-emerald-700 hover:bg-emerald-800 sm:inline-flex"
