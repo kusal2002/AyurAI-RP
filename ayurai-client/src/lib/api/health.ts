@@ -3,9 +3,10 @@ import * as React from "react"
 import { isAbortError, isApiError } from "@/lib/api/client"
 import { component2Api } from "@/lib/api/component2"
 import { component3Api } from "@/lib/api/component3"
+import { component4Api } from "@/lib/api/component4"
 
 export type ServiceCheck = {
-  key: "c2" | "c2-neo4j" | "c3"
+  key: "c2" | "c2-neo4j" | "c3" | "c4"
   label: string
   endpoint: string
   state: "loading" | "online" | "offline" | "degraded"
@@ -16,6 +17,7 @@ const initial: ServiceCheck[] = [
   { key: "c2", label: "Component 2 reasoning API", endpoint: "GET /health", state: "loading", message: "" },
   { key: "c2-neo4j", label: "Component 2 knowledge graph (Neo4j)", endpoint: "GET /health/neo4j", state: "loading", message: "" },
   { key: "c3", label: "Component 3 safety API", endpoint: "GET /health", state: "loading", message: "" },
+  { key: "c4", label: "Component 4 governance API", endpoint: "GET /health", state: "loading", message: "" },
 ]
 
 /** Health checks send no patient data. Only enabled in live mode. */
@@ -48,6 +50,7 @@ export function useServiceHealth(enabled: boolean) {
     void run("c2", () => component2Api.health(controller.signal))
     void run("c2-neo4j", () => component2Api.neo4jHealth(controller.signal))
     void run("c3", () => component3Api.health(controller.signal))
+    void run("c4", () => component4Api.health(controller.signal))
     return () => controller.abort()
   }, [enabled, tick])
 

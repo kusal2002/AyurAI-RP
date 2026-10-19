@@ -12,6 +12,7 @@ export default defineConfig(({ mode }) => {
   // through this same-origin proxy during local development.
   const c2Target = env.C2_PROXY_TARGET || "http://127.0.0.1:8000"
   const c3Target = env.C3_PROXY_TARGET || "http://127.0.0.1:8003"
+  const c4Target = env.C4_PROXY_TARGET || "http://127.0.0.1:8004"
 
   return {
     plugins: [react(), tailwindcss()],
@@ -31,6 +32,11 @@ export default defineConfig(({ mode }) => {
           target: c3Target,
           changeOrigin: true,
           rewrite: (path) => path.replace(/^\/c3-api/, ""),
+        },
+        "/c4-api": {
+          target: c4Target,
+          changeOrigin: true,
+          rewrite: (path) => path.replace(/^\/c4-api/, ""),
         },
       },
     },

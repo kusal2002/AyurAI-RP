@@ -93,7 +93,7 @@ type WorkspaceContextValue = {
 
 const WorkspaceContext = React.createContext<WorkspaceContextValue | undefined>(undefined)
 
-function toErrorInfo(error: unknown): ErrorInfo {
+export function toErrorInfo(error: unknown): ErrorInfo {
   if (isApiError(error)) {
     return { kind: error.kind, message: error.message, details: error.details }
   }
