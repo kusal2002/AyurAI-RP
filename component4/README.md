@@ -35,7 +35,11 @@ component4/
 ├── results/            # experiment CSVs + summary.csv
 ├── docs/               # research logbook
 ├── .env.example        # configuration template (copy to .env)
-└── requirements.txt
+├── requirements.txt
+├── Dockerfile          # image for the federated nodes (CPU-only PyTorch)
+├── requirements-docker.txt   # packages inside that image
+├── docker-compose.yml  # server + 3 clinics; PostgreSQL + Neo4j under profile "db"
+└── .dockerignore
 ```
 
 ## Setup (Windows)
@@ -76,6 +80,50 @@ The dashboard (`ayurai-client`) reaches the API through its Vite proxy at
 
 Demo accounts: `practitioner.clinic1`, `practitioner.clinic2`,
 `practitioner.clinic3`, `supervisor`, `researcher`.
+
+## Running with Docker
+
+Requires Docker Desktop. Run these from the `component4/` folder.
+
+**1. Settings.** Copy the template and choose your own passwords (never commit `.env`):
+
+```powershell
+copy .env.example .env
+# then edit .env: POSTGRES_PASSWORD, NEO4J_PASSWORD (min 8 characters), EPSILON
+```
+
+**2. Federated nodes** (1 server + 3 clinic containers, FedAvg). Results are written to
+`component4/results/` on your machine:
+
+```powershell
+docker compose up --build        # first run builds the image; later runs can omit --build
+docker compose down              # remove the stopped containers
+```
+
+Run with a different privacy budget (Windows PowerShell):
+
+```powershell
+$env:EPSILON = "0.5"
+docker compose up
+Remove-Item Env:EPSILON          # go back to the value in .env
+```
+
+**3. Databases** (profile `db`, not started by the commands above):
+
+```powershell
+docker compose --profile db up -d postgres neo4j     # start in the background
+docker compose --profile db stop postgres neo4j      # stop (data is kept)
+```
+
+- Neo4j browser: http://localhost:7474 (user `neo4j`, password from `.env`)
+- PostgreSQL shell: `docker exec -it ayurai-postgres psql -U <POSTGRES_USER> -d ayurai_audit`
+- To use the Docker PostgreSQL from the Component 4 API, set in `.env`:
+  `DATABASE_URL=postgresql+psycopg2://<POSTGRES_USER>:<POSTGRES_PASSWORD>@localhost:5432/ayurai_audit`
+  The API creates its tables (`users`, `decisions`, hash-chained `audit_logs`) on startup.
+  Then run `python api/seed_users.py --password <choose-one>` once to create the demo accounts.
+
+Passwords are applied only when a database is **first** created. To change them later,
+delete the data volumes (this erases the databases): `docker compose --profile db down -v`.
 
 ## Status
 
