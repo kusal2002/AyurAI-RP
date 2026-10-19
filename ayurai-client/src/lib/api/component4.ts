@@ -50,6 +50,34 @@ export type ChainStatus = {
   head_hash: string | null
 }
 
+/** One audit-chain head hash written to the AuditAnchor contract on Ethereum Sepolia. */
+export type Anchor = {
+  id: number
+  created_at: string
+  head_entry_id: number
+  head_hash: string
+  onchain_id: number
+  tx_hash: string
+  block_number: number
+  contract_address: string
+  anchored_by: string
+  explorer_url: string
+}
+
+export type AnchorVerification = {
+  local_chain_valid: boolean
+  anchors_checked: number
+  all_anchors_match: boolean
+  checks: {
+    anchor_id: number
+    onchain_id: number
+    head_entry_id: number
+    onchain_hash: string
+    current_db_hash: string | null
+    matches: boolean
+  }[]
+}
+
 export type FederationConfig = {
   num_clinics: number
   num_rounds: number
@@ -119,6 +147,15 @@ export const component4Api = {
     component4Client.get<AuditEntry[]>("/api/v1/c4/audit/logs?limit=200", { signal }),
   /** Supervisor only: recompute every hash in the audit chain. */
   verifyChain: () => component4Client.get<ChainStatus>("/api/v1/c4/audit/verify"),
+
+  /** Supervisor only: write the audit chain's head hash to Sepolia (waits for the block). */
+  anchorToChain: () =>
+    component4Client.post<Anchor>("/api/v1/c4/audit/anchor", {}, { timeoutMs: 120_000 }),
+  anchors: (signal?: AbortSignal) =>
+    component4Client.get<Anchor[]>("/api/v1/c4/audit/anchors", { signal }),
+  /** Supervisor only: compare every on-chain anchor with the database as it is now. */
+  verifyAgainstChain: () =>
+    component4Client.get<AnchorVerification>("/api/v1/c4/audit/anchors/verify", { timeoutMs: 60_000 }),
 
   federationConfig: (signal?: AbortSignal) =>
     component4Client.get<FederationConfig>("/api/v1/c4/federation/config", { signal }),
