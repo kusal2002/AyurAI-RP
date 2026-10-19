@@ -1,5 +1,6 @@
 import argparse
 import csv
+import os
 from pathlib import Path
 
 import flwr as fl
@@ -68,9 +69,11 @@ def save_history_to_csv(history, strategy, epsilon, run):
 
 
 if __name__ == "__main__":
-    # These arguments come from run.py; epsilon and run only name the CSV
+    # These arguments come from run.py; epsilon and run only name the CSV.
+    # Epsilon priority: explicit argument > EPSILON environment variable
+    # (set by docker-compose.yml) > 2.0.
     parser = argparse.ArgumentParser(description="AyurAI federated server")
-    parser.add_argument("epsilon", type=float, nargs="?", default=2.0)
+    parser.add_argument("epsilon", type=float, nargs="?", default=float(os.getenv("EPSILON", "2.0")))
     parser.add_argument("--strategy", choices=["fedavg", "fedprox"], default="fedavg")
     parser.add_argument("--run", type=int, default=1)
     args = parser.parse_args()

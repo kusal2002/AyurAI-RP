@@ -5,7 +5,11 @@ same values (for example, the number of rounds the privacy budget is
 spread over).
 """
 
-SERVER_ADDRESS = "127.0.0.1:8080"
+import os
+
+# Where clients find the server. Local runs use the default; in Docker,
+# docker-compose.yml sets SERVER_ADDRESS=server:8080 (the server container).
+SERVER_ADDRESS = os.getenv("SERVER_ADDRESS", "127.0.0.1:8080")
 NUM_CLINICS = 3          # simulated clinic nodes (proposal SO1)
 NUM_ROUNDS = 10          # federated rounds per run
 LOCAL_EPOCHS = 5         # local training epochs per round
