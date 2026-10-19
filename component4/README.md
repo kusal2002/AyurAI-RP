@@ -6,9 +6,9 @@ coordinated with [Flower](https://flower.ai/) using FedProx (proposed) and FedAv
 (baseline), and every clinic applies differential privacy with
 [Opacus](https://opacus.ai/) before its model update leaves the node. A FastAPI
 service adds the security and governance layer: JWT sign-in, role-based access
-control, practitioner decisions and a tamper-evident (hash-chained) audit log.
-Later phases add FAKL (federated Neo4j knowledge-graph weights) and Ethereum
-Sepolia anchoring of the audit log.
+control, practitioner decisions and a tamper-evident (hash-chained) audit log whose
+head hash is anchored on the Ethereum Sepolia test network. A later phase adds FAKL
+(federated Neo4j knowledge-graph weights).
 
 ## Folder structure
 
@@ -81,6 +81,23 @@ The dashboard (`ayurai-client`) reaches the API through its Vite proxy at
 Demo accounts: `practitioner.clinic1`, `practitioner.clinic2`,
 `practitioner.clinic3`, `supervisor`, `researcher`.
 
+## Blockchain anchoring (Ethereum Sepolia)
+
+The audit log is hash-chained: each entry stores the SHA-256 of the previous one. That
+detects an edit to any single row, but not someone who rewrites the whole log and
+recomputes every hash. Anchoring closes that gap: a supervisor writes the newest entry's
+hash to the `AuditAnchor` smart contract (`security/AuditAnchor.sol`) on the Sepolia test
+network. Only that 32-byte hash goes on-chain, never patient data or log records.
+
+- **Anchor:** `POST /api/v1/c4/audit/anchor` (supervisor). Takes ~10-30 s while the block is mined.
+- **Verify:** `GET /api/v1/c4/audit/anchors/verify` compares every on-chain hash with the
+  database as it is now; a rewritten log no longer matches.
+- **Dashboard:** Audit & governance → *Blockchain anchoring* (sign in as a supervisor).
+
+Setup: deploy `security/AuditAnchor.sol` from a test-only wallet (e.g. with Remix), then fill
+the blockchain section of `.env` (see `.env.example`). Check the connection with
+`python component4/security/check_sepolia.py`; `security/test_anchor.py` sends one test anchor.
+
 ## Running with Docker
 
 Requires Docker Desktop. Run these from the `component4/` folder.
@@ -137,16 +154,19 @@ delete the data volumes (this erases the databases): `docker compose --profile d
   service endpoint for C2/C3 audit events, federation results endpoints
 - Dashboard: sign-in, decision buttons on Practitioner review, live audit ledger,
   Federated training and Privacy budget pages
+- Blockchain: audit-chain head hash anchored on the `AuditAnchor` contract (Sepolia);
+  verification detects even a full rewrite of the log with recomputed hashes
 
 **Placeholder / known limitations**
 - Training data is **random placeholder features**, so accuracy (≈0.33) is not
   meaningful. Waiting for the CP-AnemiC data used by Component 1.
-- SQLite is used until PostgreSQL is installed.
+- SQLite is the default database; PostgreSQL is available via Docker (`DATABASE_URL`).
 - Audit writes are not locked against concurrent writers (prototype).
+- Anchoring is manual (a supervisor clicks it), on a public testnet; the contract owner
+  cannot be changed, so a lost key means redeploying.
 
 **Next**
 - Connect the Component 1 dataset (CP-AnemiC) and rerun the sweep
-- Ethereum Sepolia anchoring of the audit chain head hash
 - FAKL: federate practitioner-feedback changes to Component 2 claim confidence
 - Component 2 / 3 posting their audit records to `/api/v1/c4/audit/events`
 - Centralised-training baseline
