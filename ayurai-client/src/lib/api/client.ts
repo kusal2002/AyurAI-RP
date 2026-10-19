@@ -8,6 +8,8 @@ export type ApiErrorKind =
   | "validation"
   | "unavailable"
   | "parse"
+  | "unauthorized"
+  | "forbidden"
 
 /** Error raised by the API layer. Messages are safe to show to users. */
 export class ApiError extends Error {
@@ -103,6 +105,14 @@ function httpError(serviceName: string, status: number, body: unknown): ApiError
       { status },
     )
   }
+  if (status === 401) {
+    return new ApiError("unauthorized", `${serviceName}: your session is missing or has expired. Sign in again.`, {
+      status,
+    })
+  }
+  if (status === 403) {
+    return new ApiError("forbidden", `${serviceName}: your role is not allowed to do this.`, { status })
+  }
   if (status === 409) {
     return new ApiError("http", `${serviceName} reported a conflict (duplicate record).`, {
       status,
@@ -126,8 +136,13 @@ function httpError(serviceName: string, status: number, body: unknown): ApiError
  * - JSON request/response handling
  * - timeout plus caller-supplied cancellation
  * - typed, user-safe errors (no response bodies or patient data are logged)
+ * - optional bearer token (Component 4 JWT); services without auth pass none
  */
-export function createApiClient(serviceName: string, baseUrl: string) {
+export function createApiClient(
+  serviceName: string,
+  baseUrl: string,
+  getToken?: () => string | null,
+) {
   async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
     const controller = new AbortController()
     const timeoutMs = options.timeoutMs ?? env.timeoutMs
@@ -143,6 +158,8 @@ export function createApiClient(serviceName: string, baseUrl: string) {
       else options.signal.addEventListener("abort", onCallerAbort, { once: true })
     }
 
+    const token = getToken?.() ?? null
+
     let response: Response
     try {
       response = await fetch(`${baseUrl}${path}`, {
@@ -150,6 +167,7 @@ export function createApiClient(serviceName: string, baseUrl: string) {
         headers: {
           Accept: "application/json",
           ...(options.body !== undefined ? { "Content-Type": "application/json" } : {}),
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
         body: options.body !== undefined ? JSON.stringify(options.body) : undefined,
         signal: controller.signal,
