@@ -33,7 +33,9 @@ component4/
 │   ├── schemas.py      # request/response validation
 │   ├── routers/        # auth, decisions, audit, federation, FAKL-readiness endpoints
 │   └── seed_users.py   # demo accounts
-├── privacy/ fakl/ security/   # (planned) later phases
+├── fakl/               # FAKL prototype: algorithm.py, synthetic.py, run_fakl.py
+├── security/           # AuditAnchor smart contract + Sepolia scripts
+├── privacy/            # (planned) later phases
 ├── data/               # datasets (data/raw/ is git-ignored)
 ├── results/            # experiment CSVs + summary.csv
 ├── docs/               # research logbook
@@ -182,7 +184,11 @@ delete the data volumes (this erases the databases): `docker compose --profile d
   Federated training and Privacy budget pages
 - Scalability (NFR, ≥ 10 nodes): `C4_NUM_CLINICS=10` runs 10 clinic nodes with no code
   change; on 2026-10-20 all 10 joined every round and 10 rounds took 21 s (ε = 2.0, FedProx)
-- Automated API tests: `python -m unittest discover component4/tests -v`
+- FAKL prototype (`fakl/`): per-clinic agree / disagree counts → optional suppression and
+  DP noise → federated confidence update of knowledge-graph claims. On synthetic claims in
+  Component 2's schema it matches centralised pooling exactly (no privacy); the DP gap
+  shrinks as ε grows. Run: `python component4/fakl/run_fakl.py`
+- Automated tests (API + FAKL): `python -m unittest discover component4/tests -v`
 - Blockchain: audit-chain head hash anchored on the `AuditAnchor` contract (Sepolia);
   verification detects even a full rewrite of the log with recomputed hashes
 
@@ -202,8 +208,7 @@ delete the data volumes (this erases the databases): `docker compose --profile d
 **Next**
 - Image model (CNN, or Component 1's trained model with a DP-trained final layer)
 - Cross-validation; more data (Ghana conjunctiva / fingernail sets)
-- FAKL: federate practitioner-feedback changes to Component 2 claim confidence
-  (designed; the dashboard's *Knowledge federation* page shows the design and a live,
-  read-only readiness check of Component 2's graph via `GET /api/v1/c4/fakl/status`.
-  Currently the graph has no claims or feedback, and feedback has no `clinic_id` yet)
+- FAKL integration: run the prototype on Component 2's real graph (read-only) once it has
+  claims and clinic-tagged feedback; the dashboard's *Knowledge federation* page checks this
+  live via `GET /api/v1/c4/fakl/status` (currently: no claims, no feedback, no `clinic_id`)
 - Component 2 / 3 posting their audit records to `/api/v1/c4/audit/events`
