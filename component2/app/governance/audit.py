@@ -43,6 +43,11 @@ class AuditRecord(BaseModel):
     candidate_ids_returned: list[str]
     candidate_ids_forwarded: list[str]
     sufficiency_status: str
+    # The decision and its policy are logged; the triggered risk rules are
+    # not, because they would reveal the risk tier and confidence, which
+    # this record deliberately excludes.
+    decision: str
+    risk_policy_id: str
     abstained: bool
     abstention_reasons: list[str]
     review_required: bool
@@ -89,6 +94,8 @@ def build_audit_record(output: Component2Output) -> AuditRecord:
             if c.disposition.value == "forward_for_safety_assessment"
         ],
         sufficiency_status=output.sufficiency_status.value,
+        decision=output.decision.value,
+        risk_policy_id=output.risk_context.policy_id,
         abstained=output.abstention.abstain,
         abstention_reasons=output.abstention.reasons,
         review_required=output.review_required,

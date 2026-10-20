@@ -106,6 +106,24 @@ class EvidenceRetrievalService:
             )
             return stats
 
+    def status(self) -> dict[str, Any]:
+        """State for health reporting. Never loads the model or the index."""
+        if self.last_error:
+            state = "unavailable"
+        elif self._indexed:
+            state = "ready"
+        else:
+            state = "not_initialised"
+        return {
+            "status": state,
+            "model_id": self.model_id,
+            "model_loaded": bool(getattr(self._encoder, "is_loaded", self._model_verified)),
+            "model_verified": self._model_verified,
+            "indexed_evidence": len(self._index.evidence_ids) if self._indexed else None,
+            "indexed_chunks": self._index.size if self._indexed else None,
+            "last_error": self.last_error,
+        }
+
     def ensure_ready(self, driver: Driver | None = None) -> bool:
         """Build the index on first use. Returns False if unavailable."""
         if self._indexed:
@@ -153,3 +171,28 @@ def get_retrieval_service() -> EvidenceRetrievalService:
             if _default_service is None:
                 _default_service = EvidenceRetrievalService()
     return _default_service
+
+
+_research_service: EvidenceRetrievalService | None = None
+
+
+def get_research_retrieval_service() -> EvidenceRetrievalService:
+    """Index over approved AND provisional evidence (research scope only).
+
+    Shares the loaded embedding model with the default service, so the
+    model is held in memory once.
+    """
+    global _research_service
+    if _research_service is None:
+        # Resolve the base service first: _default_lock is not re-entrant.
+        base = get_retrieval_service()
+        with _default_lock:
+            if _research_service is None:
+                from app.db.research_repository import list_research_evidence
+
+                _research_service = EvidenceRetrievalService(
+                    settings=base.settings,
+                    encoder=base._encoder,
+                    evidence_loader=lambda driver: list_research_evidence(driver),
+                )
+    return _research_service

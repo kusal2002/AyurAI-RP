@@ -6,8 +6,9 @@ load the embedding model.
 """
 
 import logging
+from typing import Literal
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from neo4j import Driver
 from neo4j.exceptions import Neo4jError, ServiceUnavailable
 
@@ -27,8 +28,23 @@ from app.reasoning.pipeline import run_component2_reasoning
 from app.retrieval.embedding import EmbeddingModelUnavailableError
 from app.retrieval.service import (
     EvidenceRetrievalService,
+    get_research_retrieval_service,
     get_retrieval_service,
 )
+
+KnowledgeScopeParam = Literal["approved", "approved_and_provisional"]
+KNOWLEDGE_SCOPE_QUERY = Query(
+    "approved",
+    description=(
+        "approved (default): human-approved claims only. approved_and_provisional: "
+        "research mode that also reads unverified, AI-assisted draft claims; every "
+        "provisional item is labelled and can never make a candidate sufficient."
+    ),
+)
+
+
+def get_research_service() -> EvidenceRetrievalService:
+    return get_research_retrieval_service()
 
 
 logger = logging.getLogger(__name__)
@@ -56,12 +72,20 @@ _GRAPH_UNAVAILABLE = HTTPException(
 )
 
 
-def _run(request, driver, retrieval_service) -> Component2Output:
+def _run(request, driver, retrieval_service, knowledge_scope="approved",
+         research_service=None) -> Component2Output:
+    graph = None
+    if knowledge_scope == "approved_and_provisional":
+        from app.db.research_repository import ResearchGraphAccess
+
+        graph = ResearchGraphAccess(driver)
+        retrieval_service = research_service or get_research_retrieval_service()
     try:
         output = run_component2_reasoning(
             request,
             driver=driver,
             retrieval_service=retrieval_service,
+            graph=graph,
         )
     except (ServiceUnavailable, Neo4jError, OSError):
         logger.warning(
@@ -89,12 +113,36 @@ def _run(request, driver, retrieval_service) -> Component2Output:
 @router.post("/reasoning", response_model=Component2Output)
 def reason(
     request: Component2ReasoningRequest,
+    knowledge_scope: KnowledgeScopeParam = KNOWLEDGE_SCOPE_QUERY,
     driver: Driver = Depends(get_driver),
     retrieval_service: EvidenceRetrievalService = Depends(
         get_retrieval_service
     ),
+    research_service: EvidenceRetrievalService = Depends(get_research_service),
 ) -> Component2Output:
-    return _run(request, driver, retrieval_service)
+    return _run(request, driver, retrieval_service, knowledge_scope, research_service)
+
+
+@router.get("/research/knowledge")
+def research_knowledge(
+    category: str | None = Query(None, max_length=64),
+    limit: int = Query(200, ge=1, le=500),
+    driver: Driver = Depends(get_driver),
+):
+    """Provisional (unverified) claims with their quoted evidence. Read-only."""
+    from app.db.research_repository import list_provisional_knowledge, list_reference_evidence
+
+    try:
+        claims = list_provisional_knowledge(driver, category=category, limit=limit)
+        references = list_reference_evidence(driver, limit=limit)
+    except (ServiceUnavailable, Neo4jError, OSError):
+        raise _GRAPH_UNAVAILABLE
+    return {
+        "knowledge_status": "provisional",
+        "notice": "Unverified — practitioner review pending. AI-assisted drafts quoted from the cited sources; not approved knowledge and not clinical evidence of efficacy.",
+        "claims": claims,
+        "reference_evidence": references,
+    }
 
 
 @router.post("/reasoning/component3-handoff", response_model=Component3Handoff)
