@@ -16,12 +16,15 @@ head hash is anchored on the Ethereum Sepolia test network. A later phase adds F
 component4/
 ├── federated/          # Flower + Opacus experiments
 │   ├── config.py       # shared settings: rounds, μ, δ, ε values, clinic profiles
-│   ├── data.py         # per-clinic non-IID data (PLACEHOLDER until C1 data arrives)
+│   ├── features.py     # conjunctiva photo -> 10 colour (pallor) features
+│   ├── prepare_data.py # CP-AnemiC images + lab Hb -> features CSV, clinic per patient
+│   ├── data.py         # per-clinic non-IID data (real CP-AnemiC, or placeholder fallback)
 │   ├── model.py        # anemia risk classifier
 │   ├── client.py       # clinic node: DP training + FedProx proximal step
 │   ├── server.py       # FedAvg / FedProx server; writes per-round CSV
-│   ├── run.py          # one experiment: server + 3 clinics
-│   └── sweep.py        # full grid: 2 strategies × 5 ε × 3 runs → summary.csv
+│   ├── run.py          # one experiment: server + 3 clinics (--no-dp for a reference run)
+│   ├── centralized.py  # baselines: majority class + centralised training without DP
+│   └── sweep.py        # full grid: 2 strategies × 5 ε × 3 runs + baselines
 ├── api/                # Component 4 FastAPI service (port 8004)
 │   ├── main.py         # app entry point
 │   ├── security.py     # bcrypt, JWT, role checks
@@ -56,6 +59,21 @@ copy component4\.env.example component4\.env   # then fill in the secrets
 Leave `DATABASE_URL` empty to use a local SQLite file; set it to a PostgreSQL
 URL once PostgreSQL is installed.
 
+### Data (CP-AnemiC v2, from Component 1)
+
+Patient images are **never** stored in the repo. Unzip the datasets to a folder outside
+the repo and outside OneDrive (e.g. `C:\ayurai-data\datasets`) and set
+`C4_DATA_DIR` in `component4/.env`. Then build the features file once:
+
+```powershell
+python component4/federated/prepare_data.py
+```
+
+This reads the 251 conjunctiva images and their lab haemoglobin, turns each image into
+10 colour features, labels it Low / Moderate / High risk (Hb ≥ 11 / 8–10.9 / < 8) and
+assigns each patient to one clinic (non-IID). Without this file, training falls back to
+random placeholder data (as in Docker).
+
 ## Running
 
 From the repository root, with the venv activated:
@@ -67,7 +85,13 @@ python component4/federated/run.py 2.0
 # FedProx at ε = 0.5, run 2
 python component4/federated/run.py 0.5 --strategy fedprox --run 2
 
-# Full experiment grid (≈10 minutes) → component4/results/summary.csv
+# Reference run without differential privacy
+python component4/federated/run.py --no-dp --strategy fedprox
+
+# Baselines only: majority class + centralised training without DP
+python component4/federated/centralized.py --runs 3
+
+# Everything (≈15 minutes) → results/summary.csv and results/baselines.csv
 python component4/federated/sweep.py --runs 3
 
 # API: create demo accounts once, then start the service on port 8004
@@ -148,7 +172,9 @@ delete the data volumes (this erases the databases): `docker compose --profile d
 - FedAvg and FedProx (μ = 0.1) across 3 simulated clinics with a non-IID split
 - Opacus DP calibrated over the whole run: ε spent stays within the target for all
   five budgets (0.1, 0.5, 1.0, 2.0, 5.0), δ = 10⁻⁵
-- Sweep with 3 runs per setting and a summary of mean ± std accuracy
+- Real data: CP-AnemiC v2 (251 patients, lab Hb) via colour features; patient-level split
+- Sweep with 3 runs per setting: mean ± std accuracy and macro-F1, plus baselines
+  (majority class, centralised without DP, federated without DP)
 - API: JWT sign-in, roles (practitioner / supervisor / researcher), clinic-scoped
   access, practitioner decisions, hash-chained audit log with tamper detection,
   service endpoint for C2/C3 audit events, federation results endpoints
@@ -158,15 +184,20 @@ delete the data volumes (this erases the databases): `docker compose --profile d
   verification detects even a full rewrite of the log with recomputed hashes
 
 **Placeholder / known limitations**
-- Training data is **random placeholder features**, so accuracy (≈0.33) is not
-  meaningful. Waiting for the CP-AnemiC data used by Component 1.
+- Small dataset (251 patients, only 19 High-risk) and simple colour features: the signal
+  is modest, and results vary between runs.
+- Learning rate and feature scaling were chosen on pooled results; there is no separate
+  validation set yet (cross-validation is future work).
+- Feature-scaling statistics (per-clinic sums and counts) are shared without DP.
+- Risk-tier Hb thresholds follow WHO severity bands; to be confirmed with Component 1.
+- The Docker nodes still use placeholder data (the dataset is not mounted).
 - SQLite is the default database; PostgreSQL is available via Docker (`DATABASE_URL`).
 - Audit writes are not locked against concurrent writers (prototype).
 - Anchoring is manual (a supervisor clicks it), on a public testnet; the contract owner
   cannot be changed, so a lost key means redeploying.
 
 **Next**
-- Connect the Component 1 dataset (CP-AnemiC) and rerun the sweep
+- Image model (CNN, or Component 1's trained model with a DP-trained final layer)
+- Cross-validation; more data (Ghana conjunctiva / fingernail sets)
 - FAKL: federate practitioner-feedback changes to Component 2 claim confidence
 - Component 2 / 3 posting their audit records to `/api/v1/c4/audit/events`
-- Centralised-training baseline
