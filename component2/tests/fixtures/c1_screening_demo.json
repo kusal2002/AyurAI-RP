@@ -1,0 +1,70 @@
+{
+  "screening_id": "SCR-001",
+  "session_id": "demo_c44cd0a6",
+  "screening_result": {
+    "condition": "possible_anaemia",
+    "risk_level": "moderate",
+    "screening_confidence": null,
+    "evidence_strength": "limited",
+    "status": "simulated_demo",
+    "requires_clinician_review": true
+  },
+  "hemoglobin": {
+    "estimated_g_dl": 10.2,
+    "measured_lab_g_dl": null,
+    "source": "experimental_image_model",
+    "clinically_validated": false
+  },
+  "modality_results": {
+    "conjunctiva": {
+      "model_predictions": [
+        {
+          "model": "cp_anemic_v2",
+          "class_score": 0.33
+        },
+        {
+          "model": "ghana_conjunctiva",
+          "class_score": 0.78
+        }
+      ],
+      "quality_score": 0.85,
+      "agreement": false
+    },
+    "nailbeds": {
+      "anaemia_class_score": 0.65,
+      "estimated_hb_g_dl": 12.95,
+      "quality_score": 0.90
+    },
+    "tongue": {
+      "quality_status": "passed",
+      "anaemia_prediction": null
+    },
+    "ppg": {
+      "estimated_hb_g_dl": null,
+      "signal_quality": null,
+      "status": "not_available"
+    }
+  },
+  "symptoms": [
+    {
+      "name": "fatigue",
+      "present": true
+    },
+    {
+      "name": "dizziness",
+      "present": true
+    }
+  ],
+  "clinical_findings": [],
+  "contributing_factors": [
+    "Reported fatigue",
+    "Reported dizziness",
+    "Conjunctiva models disagree"
+  ],
+  "missing_data": [
+    "ppg_signal"
+  ],
+  "recommendation": "Clinical review and laboratory Hb testing may be appropriate.",
+  "model_version": "ayurai-fusion-v1-prototype",
+  "disclaimer": "Research screening prototype, not a clinical diagnosis."
+}

@@ -80,8 +80,9 @@ class CandidateDisposition(str, Enum):
 
 class UpstreamScreeningMetadata(BaseModel):
     risk_tier: RiskTier
-    calibrated_confidence: float = Field(
-        description=SCORE_SEMANTICS["upstream.calibrated_confidence"]
+    calibrated_confidence: float | None = Field(
+        default=None,
+        description=SCORE_SEMANTICS["upstream.calibrated_confidence"],
     )
 
 
