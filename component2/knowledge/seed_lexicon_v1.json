@@ -1,0 +1,240 @@
+{
+  "lexicon_version": "seed-2",
+  "review_status": "unreviewed_seed",
+  "description": "Small starting lexicon for the Pandu research scope. Each concept lists spelling and script variants of the same term (romanized, IAST, Devanagari, and Sinhala where known). It does not assert equivalence between different words or languages: for example 'anaemia' is not listed under Pandu. Concept IDs follow the existing graph convention (R-, S-, H-, F-). This file needs review by an Ayurveda expert before extraction results are relied on.",
+  "concepts": [
+    {
+      "concept_id": "R-PANDU",
+      "concept_type": "Roga",
+      "label": "Pandu",
+      "allow_compound": true,
+      "terms": [
+        "pandu",
+        "pāṇḍu",
+        "pandu roga",
+        "pāṇḍuroga",
+        "पाण्डु",
+        "पांडु",
+        "पाण्डुरोग",
+        "පාණ්ඩු",
+        "pa'ndu"
+      ],
+      "note": "'pa'ndu' is the apostrophe-for-long-vowel spelling used in older English translations (e.g. Bhishagratna's Sushruta)."
+    },
+    {
+      "concept_id": "R-KAMALA",
+      "concept_type": "Roga",
+      "label": "Kamala",
+      "terms": [
+        "kamala",
+        "kāmalā",
+        "कामला"
+      ],
+      "ambiguous": true,
+      "note": "'kamala' also means lotus."
+    },
+    {
+      "concept_id": "R-RAKTAPITTA",
+      "concept_type": "Roga",
+      "label": "Raktapitta",
+      "terms": [
+        "raktapitta",
+        "rakta pitta",
+        "रक्तपित्त"
+      ]
+    },
+    {
+      "concept_id": "S-PALLOR",
+      "concept_type": "Symptom",
+      "label": "pallor",
+      "terms": [
+        "pallor",
+        "paleness"
+      ]
+    },
+    {
+      "concept_id": "S-FATIGUE",
+      "concept_type": "Symptom",
+      "label": "fatigue",
+      "terms": [
+        "fatigue",
+        "tiredness"
+      ]
+    },
+    {
+      "concept_id": "S-BREATHLESSNESS",
+      "concept_type": "Symptom",
+      "label": "breathlessness",
+      "terms": [
+        "breathlessness",
+        "dyspnoea",
+        "dyspnea",
+        "shortness of breath"
+      ]
+    },
+    {
+      "concept_id": "S-PALPITATION",
+      "concept_type": "Symptom",
+      "label": "palpitation",
+      "terms": [
+        "palpitation",
+        "palpitations"
+      ]
+    },
+    {
+      "concept_id": "DO-VATA",
+      "concept_type": "Dosha",
+      "label": "Vata",
+      "allow_compound": true,
+      "terms": [
+        "vata",
+        "vāta",
+        "vaata",
+        "वात"
+      ]
+    },
+    {
+      "concept_id": "DO-PITTA",
+      "concept_type": "Dosha",
+      "label": "Pitta",
+      "allow_compound": true,
+      "terms": [
+        "pitta",
+        "पित्त"
+      ],
+      "ambiguous": true,
+      "note": "Also used for bile."
+    },
+    {
+      "concept_id": "DO-KAPHA",
+      "concept_type": "Dosha",
+      "label": "Kapha",
+      "allow_compound": true,
+      "terms": [
+        "kapha",
+        "kafa",
+        "कफ"
+      ]
+    },
+    {
+      "concept_id": "DH-RAKTA",
+      "concept_type": "Dhatu",
+      "label": "Rakta dhatu",
+      "allow_compound": true,
+      "terms": [
+        "rakta",
+        "rakta dhatu",
+        "रक्त"
+      ],
+      "ambiguous": true,
+      "note": "'rakta' also means blood or red."
+    },
+    {
+      "concept_id": "DH-RASA",
+      "concept_type": "Dhatu",
+      "label": "Rasa dhatu",
+      "terms": [
+        "rasa dhatu",
+        "rasa dhātu",
+        "रस धातु"
+      ]
+    },
+    {
+      "concept_id": "H-PUNARNAVA",
+      "concept_type": "Herb",
+      "label": "Punarnava",
+      "terms": [
+        "punarnava",
+        "punarnavā",
+        "पुनर्नवा"
+      ]
+    },
+    {
+      "concept_id": "H-GUDUCHI",
+      "concept_type": "Herb",
+      "label": "Guduchi",
+      "terms": [
+        "guduchi",
+        "guḍūcī",
+        "guduci",
+        "गुडूची"
+      ]
+    },
+    {
+      "concept_id": "H-AMALAKI",
+      "concept_type": "Herb",
+      "label": "Amalaki",
+      "terms": [
+        "amalaki",
+        "āmalakī",
+        "amalaka",
+        "āmalaka",
+        "आमलकी",
+        "aamalaki"
+      ]
+    },
+    {
+      "concept_id": "H-HARITAKI",
+      "concept_type": "Herb",
+      "label": "Haritaki",
+      "terms": [
+        "haritaki",
+        "harītakī",
+        "हरीतकी"
+      ]
+    },
+    {
+      "concept_id": "H-BIBHITAKI",
+      "concept_type": "Herb",
+      "label": "Bibhitaki",
+      "terms": [
+        "bibhitaki",
+        "vibhitaki",
+        "bibhītakī",
+        "vibhītakī",
+        "बिभीतकी"
+      ]
+    },
+    {
+      "concept_id": "H-HARIDRA",
+      "concept_type": "Herb",
+      "label": "Haridra",
+      "terms": [
+        "haridra",
+        "haridrā",
+        "हरिद्रा"
+      ]
+    },
+    {
+      "concept_id": "F-TRIPHALA",
+      "concept_type": "Formulation",
+      "label": "Triphala",
+      "terms": [
+        "triphala",
+        "triphalā",
+        "त्रिफला"
+      ]
+    },
+    {
+      "concept_id": "F-PUNARNAVA-MANDURA",
+      "concept_type": "Formulation",
+      "label": "Punarnava Mandura",
+      "terms": [
+        "punarnava mandura",
+        "punarnavā maṇḍūra",
+        "punarnavadi mandura",
+        "पुनर्नवा मण्डूर"
+      ]
+    },
+    {
+      "concept_id": "F-DHATRI-LAUHA",
+      "concept_type": "Formulation",
+      "label": "Dhatri Lauha",
+      "terms": [
+        "dhatri lauha",
+        "dhātrī lauha",
+        "धात्री लौह"
+      ]
+    }
+  ]
+}
