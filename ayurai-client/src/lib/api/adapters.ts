@@ -93,7 +93,8 @@ export function buildC3Package(
     package: {
       case_id: options.caseId,
       anemia_risk_tier: tierLabel[output.upstream.risk_tier],
-      anemia_confidence: output.upstream.calibrated_confidence,
+      // Null only reaches here if the caller skipped the guard in runSafety.
+      anemia_confidence: output.upstream.calibrated_confidence ?? Number.NaN,
       ayurvedic_interpretation: interpretation,
       symptom_summary: output.symptom_mappings
         .filter((mapping) => mapping.found)

@@ -1,6 +1,6 @@
 import * as React from "react"
 import { Link } from "react-router"
-import { Bot, BookOpen, CheckCircle2, CircleSlash, Database, RefreshCw, UserCheck } from "lucide-react"
+import { Bot, BookOpen, CheckCircle2, CircleSlash, Database, RefreshCw, TriangleAlert, UserCheck } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
 
 import { CaseBar, WithReasoning } from "@/components/shared/case"
@@ -9,12 +9,14 @@ import {
   EvidenceReferenceRow,
   ExplanationList,
   FlagList,
+  ResearchScopeBanner,
   ScoreCaveat,
 } from "@/components/shared/c2"
 import { EmptyState, IdChip, KeyValueList, Notice, PageHeader, Panel } from "@/components/shared/page"
 import {
   StatusBadge,
   abstentionSpec,
+  decisionSpec,
   dispositionSpec,
   safetySpec,
   sufficiencySpec,
@@ -22,9 +24,9 @@ import {
 } from "@/components/shared/status"
 import { Button } from "@/components/ui/button"
 import { useWorkspace, type CaseRecord } from "@/context/workspace"
-import type { Component2Output, EvidenceReference } from "@/lib/api/types"
+import type { C1SymptomMapping, Component2Output, EvidenceReference } from "@/lib/api/types"
 import { conceptNames, indexEvidence } from "@/lib/c2-derive"
-import { conceptTypeLabels, describeFlag, formatDateTime, formatScore } from "@/lib/labels"
+import { conceptTypeLabels, describeFlag, formatDateTime, formatScore, humanizeCode } from "@/lib/labels"
 
 /** Labels that separate who produced each piece of information. */
 export function OriginTag({ kind }: { kind: "model" | "knowledge" | "practitioner" }) {
@@ -80,7 +82,7 @@ function InterpretationSection({ output }: { output: Component2Output }) {
               <li key={concept.concept_id} className="rounded-xl border border-slate-200 p-3">
                 <div className="flex flex-wrap items-start justify-between gap-2">
                   <div className="min-w-0">
-                    <p className="font-semibold text-slate-900">{concept.name ?? "Name not supplied"}</p>
+                    <p className="font-semibold text-slate-900">{concept.name ?? concept.concept_id}</p>
                     <IdChip>{concept.concept_id}</IdChip>
                   </div>
                   <div className="flex flex-wrap gap-1">
@@ -174,6 +176,48 @@ function SafetyStatus({ record }: { record: CaseRecord }) {
   )
 }
 
+function DecisionNotice({ output }: { output: Component2Output }) {
+  if (output.decision !== "caution") return null
+  const evidenceReasons = output.decision_reasons.filter((reason) => reason.startsWith("evidence:"))
+  return (
+    <Notice tone="caution" title="Decision: caution" icon={TriangleAlert}>
+      <ul className="list-disc space-y-1 pl-5">
+        {output.risk_context.escalation.map((note) => (
+          <li key={note}>{note}</li>
+        ))}
+        {evidenceReasons.map((reason) => (
+          <li key={reason}>Evidence status: {humanizeCode(reason.slice("evidence:".length))}.</li>
+        ))}
+      </ul>
+      <p className="mt-1.5 text-xs">
+        Risk rules ({output.risk_context.policy_id}) only gate this decision. They never change candidate ranking,
+        evidence sufficiency or which candidates are forwarded.
+      </p>
+    </Notice>
+  )
+}
+
+function C1MappingList({ mapping }: { mapping: C1SymptomMapping }) {
+  return (
+    <div className="mt-3 rounded-lg border border-slate-200 p-3">
+      <p className="text-xs font-semibold text-slate-700">Component 1 symptom names → knowledge-graph symptoms</p>
+      <ul className="mt-1.5 space-y-1 text-xs text-slate-600">
+        {mapping.resolved_symptoms.map((item) => (
+          <li key={`r-${item.input_name}`}>
+            “{item.input_name}” → {item.canonical_name} <IdChip>{item.symptom_id}</IdChip>
+          </li>
+        ))}
+        {mapping.unresolved_symptoms.map((item) => (
+          <li key={`u-${item.input_name}`} className="text-amber-800">
+            “{item.input_name}”: {item.status.replace(/_/g, " ")}
+            {item.candidate_ids?.length ? ` (matches ${item.candidate_ids.join(", ")}; not guessed)` : " (not guessed)"}
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
+}
+
 function ReasoningDetail({ output, record }: { output: Component2Output; record: CaseRecord }) {
   const { runReasoning } = useWorkspace()
   const names = React.useMemo(() => conceptNames(output), [output])
@@ -186,11 +230,9 @@ function ReasoningDetail({ output, record }: { output: Component2Output; record:
     <div className="space-y-5">
       <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3">
         <div className="flex flex-wrap items-center gap-2">
-          {output.abstention.abstain ? (
-            <StatusBadge size="md" spec={abstentionSpec} />
-          ) : (
-            <StatusBadge size="md" spec={sufficiencySpec(output.sufficiency_status)} />
-          )}
+          <StatusBadge size="md" spec={decisionSpec(output.decision)} />
+          <span className="text-xs text-slate-500">Evidence:</span>
+          <StatusBadge spec={sufficiencySpec(output.sufficiency_status)} />
           {output.review_required && (
             <span className="text-xs font-medium text-slate-600">Practitioner review required</span>
           )}
@@ -203,6 +245,9 @@ function ReasoningDetail({ output, record }: { output: Component2Output; record:
           </Button>
         </div>
       </div>
+
+      <ResearchScopeBanner output={output} />
+      <DecisionNotice output={output} />
 
       <div className="flex flex-wrap gap-2 text-xs text-slate-500">
         <span>Information origin:</span>
@@ -219,10 +264,19 @@ function ReasoningDetail({ output, record }: { output: Component2Output; record:
                 { label: "Case reference", value: record.caseRef },
                 { label: "Component 1 risk tier", value: <span className="capitalize">{output.upstream.risk_tier}</span> },
                 { label: "Component 1 calibrated confidence", value: formatScore(output.upstream.calibrated_confidence) },
-                { label: "Summary origin", value: record.c1?.origin === "demo_fixture" ? "Demo fixture" : "Manual entry of approved C1 result" },
+                {
+                  label: "Summary origin",
+                  value:
+                    record.c1?.origin === "demo_fixture"
+                      ? "Demo fixture"
+                      : record.c1?.origin === "c1_payload"
+                        ? `Imported Component 1 payload (${record.c1.payloadSource ?? "unknown source"})`
+                        : "Manual entry of approved C1 result",
+                },
                 { label: "Symptoms mapped", value: `${mapped} of ${output.symptom_mappings.length}` },
               ]}
             />
+            {record.c1?.mapping && <C1MappingList mapping={record.c1.mapping} />}
             <div className="mt-2">
               <ScoreCaveat>
                 The screening confidence is upstream metadata only. Component 2 does not reuse it as confidence in any
@@ -399,11 +453,14 @@ function ReasoningDetail({ output, record }: { output: Component2Output; record:
         ) : (
           <div className="space-y-2 text-sm text-slate-700">
             <p className="flex flex-wrap items-center gap-2">
-              Component 2 did not abstain. Request-level status:
+              Decision:
+              <StatusBadge spec={decisionSpec(output.decision)} />
+              Evidence status:
               <StatusBadge spec={sufficiencySpec(output.sufficiency_status)} />
             </p>
             <p className="text-xs text-slate-500">
-              {sufficiencySpec(output.sufficiency_status).description} Sufficiency rules are a provisional prototype policy.
+              {decisionSpec(output.decision).description} {sufficiencySpec(output.sufficiency_status).description}{" "}
+              Sufficiency and risk-context rules are provisional prototype policies.
             </p>
           </div>
         )}

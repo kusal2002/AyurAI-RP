@@ -5,7 +5,10 @@ import { ApiError, isAbortError, isApiError } from "@/lib/api/client"
 import { component1IntakeApi, component2Api } from "@/lib/api/component2"
 import { component3Api } from "@/lib/api/component3"
 import type {
+  C1ScreeningPayload,
+  C1SymptomMapping,
   Component2Output,
+  KnowledgeScope,
   PatientContext,
   PractitionerFeedbackRequest,
   PractitionerFeedbackResponse,
@@ -44,11 +47,21 @@ export type ScreeningInputs = {
 
 export type C1Summary = {
   risk_tier: RiskTier
-  calibrated_confidence: number
+  /** Null when Component 1 supplied no calibrated confidence. */
+  calibrated_confidence: number | null
   symptom_ids: string[]
-  /** How this summary was obtained. No Component 1 model service exists yet. */
-  origin: "manual_entry" | "demo_fixture"
+  /**
+   * How this summary was obtained. No Component 1 model service exists yet:
+   * manual entry, a demo fixture, or an imported C1 screening payload.
+   */
+  origin: "manual_entry" | "demo_fixture" | "c1_payload"
   intake: AsyncState<{ status: string; message: string }>
+  /** Imported Component 1 payload (held in this tab only). */
+  payload?: C1ScreeningPayload
+  /** Symptom-name mapping reported by POST /api/v1/c1/reasoning. */
+  mapping?: C1SymptomMapping
+  /** Label of the payload source shown to the user (e.g. "synthetic scenario"). */
+  payloadSource?: string
 }
 
 export type FeedbackRecord = {
@@ -76,6 +89,10 @@ export type CaseRecord = {
 
 type WorkspaceContextValue = {
   mode: DataMode
+  /** Data mode reported by the Component 2 service (live mode only). */
+  /** Knowledge scope for the next reasoning run (approved by default; never stored). */
+  knowledgeScope: KnowledgeScope
+  setKnowledgeScope: (scope: KnowledgeScope) => void
   setMode: (mode: DataMode) => void
   cases: CaseRecord[]
   activeCase: CaseRecord | null
@@ -87,6 +104,8 @@ type WorkspaceContextValue = {
   }) => string
   validateIntake: (caseId: string) => Promise<void>
   runReasoning: (caseId: string) => Promise<void>
+  /** Create one case per Component 1 payload and run C1 -> C2 for each, in order. */
+  importC1Payloads: (payloads: C1ScreeningPayload[], payloadSource: string) => Promise<string[]>
   runSafety: (caseId: string, patient: PatientContext, candidateIds: string[]) => Promise<void>
   submitFeedback: (caseId: string, request: PractitionerFeedbackRequest) => Promise<FeedbackRecord>
 }
@@ -147,6 +166,11 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
   const [activeId, setActiveId] = React.useState<string | null>(
     () => initialCases(env.defaultDataMode)[0]?.id ?? null,
   )
+  const [knowledgeScope, setKnowledgeScope] = React.useState<KnowledgeScope>("approved")
+  const scopeRef = React.useRef<KnowledgeScope>("approved")
+  React.useEffect(() => {
+    scopeRef.current = knowledgeScope
+  }, [knowledgeScope])
   const controllers = React.useRef(new Map<string, AbortController>())
   const casesRef = React.useRef(cases)
   React.useEffect(() => {
@@ -261,6 +285,44 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
       }
 
       const controller = startRequest(`${caseId}:c2`)
+      if (record.c1.origin === "c1_payload" && record.c1.payload) {
+        try {
+          const response = await component2Api.reasonFromScreening(
+            record.c1.payload,
+            controller.signal,
+            scopeRef.current,
+          )
+          updateCase(caseId, (current) => ({
+            ...current,
+            c1: current.c1
+              ? {
+                  ...current.c1,
+                  mapping: response.mapping,
+                  symptom_ids: response.mapping.resolved_symptoms.map((item) => item.symptom_id),
+                }
+              : current.c1,
+            c2: response.reasoning
+              ? { status: "success", data: response.reasoning, receivedAt: new Date().toISOString() }
+              : {
+                  status: "error",
+                  error: {
+                    kind: "validation",
+                    message:
+                      response.status === "blocked"
+                        ? `Component 2 did not run: the Component 1 payload was blocked (${response.mapping.reason ?? "unknown reason"}).`
+                        : `Component 2 did not run: no present symptom resolved to a knowledge-graph symptom (${response.mapping.reason ?? "unknown reason"}). Nothing was guessed.`,
+                    details: response.mapping.unresolved_symptoms.map(
+                      (item) => `${item.input_name}: ${item.status.replace(/_/g, " ")}`,
+                    ),
+                  },
+                },
+          }))
+        } catch (error) {
+          if (isAbortError(error)) return
+          updateCase(caseId, (current) => ({ ...current, c2: { status: "error", error: toErrorInfo(error) } }))
+        }
+        return
+      }
       try {
         const output = await component2Api.reason(
           {
@@ -269,6 +331,7 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
             symptom_ids: record.c1.symptom_ids,
           },
           controller.signal,
+          scopeRef.current,
         )
         updateCase(caseId, (current) => ({
           ...current,
@@ -282,10 +345,64 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
     [findCase, startRequest, updateCase],
   )
 
+  const importC1Payloads = React.useCallback(
+    async (payloads: C1ScreeningPayload[], payloadSource: string) => {
+      const ids: string[] = []
+      for (const payload of payloads) {
+        const tier = payload.screening_result.risk_level.trim().toLowerCase()
+        const id = localId("case")
+        const record: CaseRecord = {
+          id,
+          source: mode,
+          caseRef: payload.screening_id,
+          createdAt: new Date().toISOString(),
+          screening: null,
+          c1: {
+            // An unsupported tier is still sent: the service reports it as blocked.
+            risk_tier: tier as RiskTier,
+            calibrated_confidence: payload.screening_result.screening_confidence,
+            symptom_ids: [],
+            origin: "c1_payload",
+            intake: { status: "idle" },
+            payload,
+            payloadSource,
+          },
+          c2: { status: "idle" },
+          c3: { status: "idle" },
+          c3Build: null,
+          feedback: [],
+        }
+        casesRef.current = [record, ...casesRef.current]
+        setCases((current) => [record, ...current])
+        ids.push(id)
+      }
+      if (ids.length) setActiveId(ids[0])
+      // Sequential: the first request may load the embedding model.
+      for (const id of ids) await runReasoning(id)
+      return ids
+    },
+    [mode, runReasoning],
+  )
+
   const runSafety = React.useCallback(
     async (caseId: string, patient: PatientContext, candidateIds: string[]) => {
       const record = findCase(caseId)
       if (!record || record.c2.status !== "success") return
+      if (record.source !== "demo" && record.c2.data.upstream.calibrated_confidence === null) {
+        updateCase(caseId, (current) => ({
+          ...current,
+          c3: {
+            status: "error",
+            error: {
+              kind: "validation",
+              message:
+                "Not sent to Component 3: its contract requires a Component 1 confidence score, and this case has none. No value is substituted.",
+              details: [],
+            },
+          },
+        }))
+        return
+      }
       updateCase(caseId, (current) => ({ ...current, c3: { status: "loading" } }))
 
       if (record.source === "demo") {
@@ -370,6 +487,8 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
   const value = React.useMemo<WorkspaceContextValue>(
     () => ({
       mode,
+      knowledgeScope,
+      setKnowledgeScope,
       setMode,
       cases,
       activeCase,
@@ -377,10 +496,11 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
       createCase,
       validateIntake,
       runReasoning,
+      importC1Payloads,
       runSafety,
       submitFeedback,
     }),
-    [mode, setMode, cases, activeCase, createCase, validateIntake, runReasoning, runSafety, submitFeedback],
+    [mode, knowledgeScope, setMode, cases, activeCase, createCase, validateIntake, runReasoning, importC1Payloads, runSafety, submitFeedback],
   )
 
   return <WorkspaceContext.Provider value={value}>{children}</WorkspaceContext.Provider>

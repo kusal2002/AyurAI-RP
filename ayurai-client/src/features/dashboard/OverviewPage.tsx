@@ -17,10 +17,9 @@ import { SourceBadge } from "@/components/shared/case"
 import { EmptyState, Notice, PageHeader, Panel } from "@/components/shared/page"
 import {
   StatusBadge,
-  abstentionSpec,
+  decisionSpec,
   safetySpec,
   serviceStateSpecs,
-  sufficiencySpec,
 } from "@/components/shared/status"
 import { WorkflowStrip } from "@/components/shared/workflow"
 import { Button } from "@/components/ui/button"
@@ -70,8 +69,7 @@ export function CaseStatusBadge({ record }: { record: CaseRecord }) {
     return <span className="text-xs text-slate-500">{caseStage(record)}</span>
   }
   if (record.c3.status === "success") return <StatusBadge spec={safetySpec(record.c3.data.overall_safety_tier)} />
-  if (record.c2.data.abstention.abstain) return <StatusBadge spec={abstentionSpec} />
-  return <StatusBadge spec={sufficiencySpec(record.c2.data.sufficiency_status)} />
+  return <StatusBadge spec={decisionSpec(record.c2.data.decision)} />
 }
 
 export function OverviewPage() {

@@ -2,15 +2,20 @@ import * as React from "react"
 import { ArrowRight, ExternalLink, Info, TriangleAlert } from "lucide-react"
 
 import { IdChip } from "@/components/shared/page"
+import { FilterChips, Notice } from "@/components/shared/page"
 import {
   StatusBadge,
+  evidenceRoleSpecs,
+  provisionalSpec,
   relationshipSpecs,
   verificationSpec,
 } from "@/components/shared/status"
 import type {
   ClaimStep,
+  Component2Output,
   EvidenceReference,
   ExplanationStatement,
+  KnowledgeScope,
 } from "@/lib/api/types"
 import {
   conceptTypeLabels,
@@ -103,11 +108,16 @@ export function ConceptLabel({
     <span className="inline-flex min-w-0 flex-col">
       <span className="truncate text-sm font-medium text-slate-800">{name ?? id}</span>
       <span className="truncate text-[11px] text-slate-500">
-        {type ? conceptTypeLabels[type] ?? type : "Type not supplied"}
-        {name ? ` · ${id}` : ""}
+        {[type ? conceptTypeLabels[type] ?? type : null, name ? id : null].filter(Boolean).join(" · ")}
       </span>
     </span>
   )
+}
+
+/** Joins the known parts; renders nothing when none are known. */
+export function SourceLine({ parts }: { parts: (string | null | undefined)[] }) {
+  const text = parts.filter(Boolean).join(" · ")
+  return text ? <p className="text-xs text-slate-500">{text}</p> : null
 }
 
 export function EvidenceReferenceRow({
@@ -124,17 +134,23 @@ export function EvidenceReferenceRow({
         <div className="flex flex-wrap items-center gap-2">
           <StatusBadge spec={spec} />
           <IdChip>{reference.evidence_id}</IdChip>
+          {reference.knowledge_status === "provisional" && <StatusBadge spec={provisionalSpec} />}
+          {reference.evidence_role && evidenceRoleSpecs[reference.evidence_role] && (
+            <StatusBadge spec={evidenceRoleSpecs[reference.evidence_role]} />
+          )}
           {!reference.provenance_complete && (
             <span className="inline-flex items-center gap-1 text-[11px] font-medium text-amber-800">
               <TriangleAlert aria-hidden className="size-3.5" /> Incomplete provenance
             </span>
           )}
         </div>
-        <p className="mt-1 text-sm text-slate-800">{reference.title ?? "Title not supplied"}</p>
-        <p className="text-xs text-slate-500">
-          {reference.source_name ?? "Source not supplied"}
-          {reference.evidence_type ? ` · ${evidenceTypeLabels[reference.evidence_type] ?? reference.evidence_type}` : ""}
-        </p>
+        {reference.title && <p className="mt-1 text-sm text-slate-800">{reference.title}</p>}
+        <SourceLine
+          parts={[
+            reference.source_name,
+            reference.evidence_type ? evidenceTypeLabels[reference.evidence_type] ?? reference.evidence_type : null,
+          ]}
+        />
       </div>
       {onSelect && (
         <button
@@ -164,7 +180,10 @@ export function ClaimCard({
     <div className="rounded-xl border border-slate-200 bg-white p-3">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <IdChip>{claim.claim_id}</IdChip>
-        <StatusBadge spec={verificationSpec(claim.verification_status)} />
+        <span className="flex flex-wrap items-center gap-1.5">
+          {claim.knowledge_status === "provisional" && <StatusBadge spec={provisionalSpec} />}
+          <StatusBadge spec={verificationSpec(claim.verification_status)} />
+        </span>
       </div>
       <div className="mt-2 grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2">
         <ConceptLabel id={claim.subject_id} type={claim.subject_type} names={names} />
@@ -184,6 +203,13 @@ export function ClaimCard({
         {formatScore(claim.retrieval_similarity)} (relevance only) · stored confidence{" "}
         {claim.stored_confidence === null ? "not set" : formatScore(claim.stored_confidence)}
       </p>
+      {claim.uncertainty_notes && claim.uncertainty_notes.length > 0 && (
+        <ul className="mt-2 list-disc space-y-0.5 pl-5 text-[11px] text-amber-800">
+          {claim.uncertainty_notes.map((note) => (
+            <li key={note}>{note}</li>
+          ))}
+        </ul>
+      )}
       {claim.evidence_lookup_failed && (
         <p className="mt-2 text-xs font-medium text-rose-700">Evidence lookup failed for this claim.</p>
       )}
@@ -203,6 +229,22 @@ export function ClaimCard({
                 />
               ))}
             </ul>
+          )}
+          {claim.qualifying_evidence && claim.qualifying_evidence.length > 0 && (
+            <div className="pt-1">
+              <p className="text-[11px] font-semibold text-sky-800">
+                Modern evidence that qualifies this claim (kept separate; not support)
+              </p>
+              <ul className="mt-1 space-y-1.5">
+                {claim.qualifying_evidence.map((reference) => (
+                  <EvidenceReferenceRow
+                    key={`Q-${reference.evidence_id}`}
+                    reference={reference}
+                    onSelect={onSelectEvidence}
+                  />
+                ))}
+              </ul>
+            </div>
           )}
         </div>
       )}
@@ -260,5 +302,47 @@ export function ConceptPath({ ids, names }: { ids: string[]; names: Map<string, 
         </li>
       ))}
     </ol>
+  )
+}
+
+const scopeOptions: { value: KnowledgeScope; label: string }[] = [
+  { value: "approved", label: "Approved knowledge only" },
+  { value: "approved_and_provisional", label: "Research: include unverified drafts" },
+]
+
+/** Knowledge-scope selector for the next reasoning run (approved by default). */
+export function KnowledgeScopeToggle({
+  value,
+  onChange,
+}: {
+  value: KnowledgeScope
+  onChange: (value: KnowledgeScope) => void
+}) {
+  return (
+    <div className="space-y-2 rounded-xl border border-slate-200 bg-white px-4 py-3">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <p className="text-xs font-semibold text-slate-700">Knowledge scope for Component 2</p>
+        <FilterChips label="Knowledge scope" options={scopeOptions} value={value} onChange={onChange} />
+      </div>
+      {value === "approved_and_provisional" && (
+        <p className="text-[11px] leading-5 text-amber-800">
+          Research mode also reads AI-assisted draft claims quoted from classical texts. Every such item is labelled
+          “{provisionalSpec.label}”, can never make a candidate sufficient, and is not clinical evidence.
+        </p>
+      )}
+    </div>
+  )
+}
+
+/** Output-level banner shown whenever an output was produced in research scope. */
+export function ResearchScopeBanner({ output, className }: { output: Component2Output; className?: string }) {
+  if (output.knowledge_scope !== "approved_and_provisional") return null
+  const provisionalUsed = output.uncertainty_flags.includes("provisional_unverified_knowledge_used")
+  return (
+    <Notice tone="caution" title={`Research scope · ${provisionalSpec.label}`} className={className}>
+      {provisionalUsed
+        ? "This output uses provisional, AI-assisted draft claims that no practitioner has reviewed. They are quoted from the cited sources but are not approved knowledge; affected candidates are withheld pending review."
+        : "This output was run in research scope; no provisional record was used."}
+    </Notice>
   )
 }

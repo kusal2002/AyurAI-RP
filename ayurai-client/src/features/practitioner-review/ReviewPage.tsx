@@ -5,7 +5,7 @@ import { Ban, CheckCircle2, ClipboardCheck, FilePenLine, Lock, Send, TriangleAle
 import { CaseBar, WithReasoning } from "@/components/shared/case"
 import { FlagList } from "@/components/shared/c2"
 import { EmptyState, IdChip, KeyValueList, Notice, PageHeader, Panel, fieldClass } from "@/components/shared/page"
-import { StatusBadge, abstentionSpec, safetySpec, sufficiencySpec } from "@/components/shared/status"
+import { StatusBadge, decisionSpec, safetySpec, sufficiencySpec } from "@/components/shared/status"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -30,7 +30,7 @@ import type {
   ReviewerRole,
 } from "@/lib/api/types"
 import { indexClaims } from "@/lib/c2-derive"
-import { formatDateTime, humanizeCode } from "@/lib/labels"
+import { formatDateTime, formatScore, humanizeCode } from "@/lib/labels"
 
 const ID_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/
 
@@ -66,7 +66,7 @@ function CaseSummary({ output, record }: { output: Component2Output; record: Cas
         <KeyValueList
           items={[
             { label: "Risk tier", value: <span className="capitalize">{output.upstream.risk_tier}</span> },
-            { label: "Calibrated confidence", value: output.upstream.calibrated_confidence.toFixed(2) },
+            { label: "Calibrated confidence", value: formatScore(output.upstream.calibrated_confidence) },
             { label: "Symptoms mapped", value: `${output.symptom_mappings.filter((m) => m.found).length} of ${output.symptom_mappings.length}` },
             { label: "Origin", value: record.c1?.origin === "demo_fixture" ? "Demo fixture" : "Manual entry" },
           ]}
@@ -74,7 +74,8 @@ function CaseSummary({ output, record }: { output: Component2Output; record: Cas
       </Panel>
       <Panel title="Component 2 · Reasoning" actions={<Link className="text-xs font-semibold text-emerald-700" to="/analysis">Analysis</Link>}>
         <div className="space-y-2">
-          {output.abstention.abstain ? <StatusBadge spec={abstentionSpec} /> : <StatusBadge spec={sufficiencySpec(output.sufficiency_status)} />}
+          <StatusBadge spec={decisionSpec(output.decision)} />
+          <StatusBadge spec={sufficiencySpec(output.sufficiency_status)} />
           <KeyValueList
             items={[
               { label: "Interpreted concepts", value: output.interpretation.length },

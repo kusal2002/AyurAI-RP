@@ -168,7 +168,7 @@ const path = (claims: ClaimStep[]) => ({
 })
 
 export const demoComponent2Output: Component2Output = {
-  schema_version: "c2-output/0.1.0",
+  schema_version: "c2-output/0.2.0",
   request_id: "c2req-DEMO-0001",
   generated_at: "2026-01-01T09:00:00Z",
   upstream: { risk_tier: "moderate", calibrated_confidence: 0.72 },
@@ -384,6 +384,15 @@ export const demoComponent2Output: Component2Output = {
     },
   ],
   sufficiency_status: "sufficient_for_review",
+  decision: "recommend_for_review",
+  decision_reasons: [],
+  risk_context: {
+    risk_tier: "moderate",
+    calibrated_confidence: 0.72,
+    rules_triggered: [],
+    escalation: [],
+    policy_id: "prototype-risk-context-v0.1-provisional",
+  },
   uncertainty_flags: ["retrieved_evidence_not_linked_to_claims", "ontology_invalid_paths_rejected"],
   evidence_gaps: ["no_supporting_evidence:DEMO-CL-7", "incomplete_provenance:DEMO-EV-6"],
   review_required: true,
