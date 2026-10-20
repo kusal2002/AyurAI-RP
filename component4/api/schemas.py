@@ -1,12 +1,25 @@
 """Request / response shapes (Pydantic). FastAPI validates every request against these."""
 
-from datetime import datetime
-from typing import Literal
+from datetime import datetime, timezone
+from typing import Annotated, Literal
 
-from pydantic import BaseModel, Field, model_validator
+from pydantic import AfterValidator, BaseModel, Field, model_validator
 
 # Same identifier rule as Component 2, so IDs pass between services unchanged
 ID_PATTERN = r"^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
+
+
+def _as_utc(value: datetime) -> datetime:
+    """All times are stored in UTC. SQLite drops the timezone when reading them back,
+    so mark naive values as UTC; the JSON then ends in +00:00 and the browser
+    converts it to the user's local time (otherwise UTC was shown as local time)."""
+    if value.tzinfo is None:
+        return value.replace(tzinfo=timezone.utc)
+    return value.astimezone(timezone.utc)
+
+
+# Use for every datetime the API returns
+UTCDateTime = Annotated[datetime, AfterValidator(_as_utc)]
 
 
 class LoginRequest(BaseModel):
@@ -50,12 +63,12 @@ class DecisionOut(BaseModel):
     rationale: str
     reviewer: str
     clinic_id: str | None
-    created_at: datetime
+    created_at: UTCDateTime
 
 
 class AuditEntryOut(BaseModel):
     id: int
-    timestamp: datetime
+    timestamp: UTCDateTime
     actor: str
     role: str
     clinic_id: str | None
@@ -75,7 +88,7 @@ class ChainStatus(BaseModel):
 
 class AnchorOut(BaseModel):
     id: int
-    created_at: datetime
+    created_at: UTCDateTime
     head_entry_id: int
     head_hash: str
     onchain_id: int
