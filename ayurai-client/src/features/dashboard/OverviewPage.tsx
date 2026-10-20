@@ -209,10 +209,6 @@ export function OverviewPage() {
               <span className="text-sm text-slate-700">Component 1 screening model</span>
               <StatusBadge spec={serviceStateSpecs.missing} />
             </li>
-            <li className="flex items-center justify-between gap-3 rounded-lg border border-slate-100 px-3 py-2">
-              <span className="text-sm text-slate-700">Component 4 governance service</span>
-              <StatusBadge spec={serviceStateSpecs.missing} />
-            </li>
           </ul>
         </Panel>
       </section>

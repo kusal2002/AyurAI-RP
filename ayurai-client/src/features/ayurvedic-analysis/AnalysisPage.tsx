@@ -422,7 +422,8 @@ function ReasoningDetail({ output, record }: { output: Component2Output; record:
                 : `${record.feedback.length} feedback submission(s) in this session; ${feedbackRecorded} recorded by the Component 2 service.`}
             </p>
             <p className="mt-1 text-xs text-slate-500">
-              Final approval is not available: no Component 4 decision service exists. Nothing has been approved.
+              Final approval is recorded by Component 4 on the Practitioner review page (signed-in practitioners,
+              live mode). Nothing is approved on this page.
             </p>
           </div>
           <Button className="bg-emerald-700 hover:bg-emerald-800" size="sm" render={<Link to="/review" />} nativeButton={false}>
