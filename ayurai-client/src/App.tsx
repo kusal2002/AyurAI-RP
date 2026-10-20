@@ -96,6 +96,17 @@ const NewScreeningPage = lazy(() =>
   })),
 )
 
+const ImportC1Page = lazy(() =>
+  import("@/features/screening/ImportC1Page").then((module) => ({
+    default: module.ImportC1Page,
+  })),
+)
+
+const ResearchKnowledgePage = lazy(() =>
+  import("@/features/knowledge-graph/ResearchKnowledgePage").then((module) => ({
+    default: module.ResearchKnowledgePage,
+  })),
+)
 const ScreeningRecordsPage = lazy(() =>
   import("@/features/screening/ScreeningRecordsPage").then((module) => ({
     default: module.ScreeningRecordsPage,
@@ -155,6 +166,10 @@ export function App() {
           element={withPageFallback(<NewScreeningPage />)}
         />
         <Route
+          path="screening/import"
+          element={withPageFallback(<ImportC1Page />)}
+        />
+        <Route
           path="screenings"
           element={withPageFallback(<ScreeningRecordsPage />)}
         />
@@ -171,6 +186,7 @@ export function App() {
           element={withPageFallback(<KnowledgeGraphPage />)}
         />
         <Route path="evidence" element={withPageFallback(<EvidencePage />)} />
+        <Route path="research-knowledge" element={withPageFallback(<ResearchKnowledgePage />)} />
         <Route
           path="candidates"
           element={withPageFallback(<CandidatesPage />)}
