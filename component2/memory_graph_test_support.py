@@ -130,3 +130,25 @@ class InMemoryGraph:
         counts["Evidence"] = len(self.evidence)
         counts["Source"] = 1
         return counts
+
+
+def memory_environment(graph: InMemoryGraph, encoder=None, retrieval_settings=None):
+    """BaselineEnvironment over the in-memory graph (no Neo4j)."""
+    from app.llm.baselines import BaselineEnvironment
+    from app.reasoning.pipeline import run_component2_reasoning
+    from app.retrieval.service import EvidenceRetrievalService
+
+    retrieval = EvidenceRetrievalService(
+        settings=retrieval_settings,
+        encoder=encoder,
+        evidence_loader=lambda driver: graph.list_evidence(),
+    )
+    return BaselineEnvironment(
+        graph_source=f"test:{graph.fixture_name}",
+        knowledge_scope="approved",
+        resolve_symptom=graph.resolve_symptom_reference,
+        run_reasoning=lambda request: run_component2_reasoning(
+            request, retrieval_service=retrieval, graph=graph
+        ),
+        retrieval=retrieval,
+    )
