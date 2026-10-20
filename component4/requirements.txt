@@ -7,6 +7,10 @@ opacus==1.6.0
 numpy==2.4.6
 pandas==3.0.6
 
+# Real-data preparation (federated/prepare_data.py): read images and the Hb Excel file
+pillow==13.0.0
+openpyxl==3.1.5
+
 # Component 4 API (security & governance)
 fastapi==0.138.2
 uvicorn==0.49.0
