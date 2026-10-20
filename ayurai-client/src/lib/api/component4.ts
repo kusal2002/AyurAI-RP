@@ -101,6 +101,20 @@ export type RoundMetrics = {
   epsilon_spent: number | null
 }
 
+/** Read-only readiness check of Component 2's knowledge graph for FAKL (counts only). */
+export type FaklStatus = {
+  configured: boolean
+  connected: boolean
+  error: string | null
+  counts: {
+    claims: number
+    claims_with_confidence: number
+    feedback: number
+    feedback_with_clinic: number
+    feedback_links: number
+  } | null
+}
+
 /** One row of results/baselines.csv (CSV values arrive as strings). */
 export type BaselineRow = {
   method: "majority_class" | "centralised_no_dp" | "fedavg_no_dp" | "fedprox_no_dp"
@@ -180,6 +194,8 @@ export const component4Api = {
     component4Client.get<FederationRun[]>("/api/v1/c4/federation/runs", { signal }),
   federationSummary: (signal?: AbortSignal) =>
     component4Client.get<SummaryRow[]>("/api/v1/c4/federation/summary", { signal }),
+  faklStatus: (signal?: AbortSignal) =>
+    component4Client.get<FaklStatus>("/api/v1/c4/fakl/status", { signal, timeoutMs: 30_000 }),
   federationBaselines: (signal?: AbortSignal) =>
     component4Client.get<BaselineRow[]>("/api/v1/c4/federation/baselines", { signal }),
 }

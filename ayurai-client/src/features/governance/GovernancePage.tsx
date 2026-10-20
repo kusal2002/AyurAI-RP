@@ -74,7 +74,8 @@ const capabilities: { area: string; status: StatusSpec; detail: string }[] = [
   {
     area: "Federated knowledge-graph learning (FAKL)",
     status: missing,
-    detail: "Planned: federate practitioner-feedback-driven changes to claim confidence across clinics. Not implemented yet.",
+    detail:
+      "Designed, not implemented: federate practitioner-feedback-driven changes to claim confidence across clinics. The Knowledge federation page shows the design and a live, read-only readiness check of Component 2's graph. Scheduled Dec 2026 – Feb 2027.",
   },
   {
     area: "Client-side data handling",
