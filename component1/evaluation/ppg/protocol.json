@@ -1,0 +1,21 @@
+{
+  "source": "hb_ppg_max30102",
+  "target": "Hb in g/dL",
+  "selected_by": "validation MAE",
+  "validation_winner": "Ridge",
+  "features": [
+    "red_dc",
+    "ir_dc",
+    "red_ac_dc",
+    "ir_ac_dc",
+    "red_rel_range",
+    "ir_rel_range",
+    "red_ir_dc_ratio",
+    "red_ir_ac_dc_ratio",
+    "red_ir_correlation",
+    "red_diff_variability",
+    "ir_diff_variability"
+  ],
+  "test_used": false,
+  "limitation": "68 participants; PPG sampling rate unknown; transfer to live ESP32 unverified"
+}

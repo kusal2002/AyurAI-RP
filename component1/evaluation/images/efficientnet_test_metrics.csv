@@ -1,0 +1,2 @@
+Model,Test_Accuracy,Test_Sensitivity,Test_Specificity,Test_F1,Test_AUROC
+EfficientNet-B0,0.5,0.3125,0.6363636363636364,0.3448275862068966,0.4744318181818182
