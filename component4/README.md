@@ -180,6 +180,9 @@ delete the data volumes (this erases the databases): `docker compose --profile d
   service endpoint for C2/C3 audit events, federation results endpoints
 - Dashboard: sign-in, decision buttons on Practitioner review, live audit ledger,
   Federated training and Privacy budget pages
+- Scalability (NFR, ≥ 10 nodes): `C4_NUM_CLINICS=10` runs 10 clinic nodes with no code
+  change; on 2026-10-20 all 10 joined every round and 10 rounds took 21 s (ε = 2.0, FedProx)
+- Automated API tests: `python -m unittest discover component4/tests -v`
 - Blockchain: audit-chain head hash anchored on the `AuditAnchor` contract (Sepolia);
   verification detects even a full rewrite of the log with recomputed hashes
 
