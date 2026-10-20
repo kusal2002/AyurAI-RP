@@ -31,7 +31,7 @@ component4/
 │   ├── audit.py        # hash-chained audit log + verification
 │   ├── models.py       # database tables
 │   ├── schemas.py      # request/response validation
-│   ├── routers/        # auth, decisions, audit, federation endpoints
+│   ├── routers/        # auth, decisions, audit, federation, FAKL-readiness endpoints
 │   └── seed_users.py   # demo accounts
 ├── privacy/ fakl/ security/   # (planned) later phases
 ├── data/               # datasets (data/raw/ is git-ignored)
@@ -203,4 +203,7 @@ delete the data volumes (this erases the databases): `docker compose --profile d
 - Image model (CNN, or Component 1's trained model with a DP-trained final layer)
 - Cross-validation; more data (Ghana conjunctiva / fingernail sets)
 - FAKL: federate practitioner-feedback changes to Component 2 claim confidence
+  (designed; the dashboard's *Knowledge federation* page shows the design and a live,
+  read-only readiness check of Component 2's graph via `GET /api/v1/c4/fakl/status`.
+  Currently the graph has no claims or feedback, and feedback has no `clinic_id` yet)
 - Component 2 / 3 posting their audit records to `/api/v1/c4/audit/events`
