@@ -23,7 +23,10 @@ class AyurAIClient(fl.client.NumPyClient):
 
     def __init__(self, clinic_id, epsilon, run_id):
         self.clinic_id = clinic_id
-        self.epsilon = epsilon  # total privacy budget for the WHOLE federated run
+        # Total privacy budget for the WHOLE federated run.
+        # None = reference run WITHOUT differential privacy (to separate the cost of
+        # federation from the cost of DP noise when reading the results).
+        self.epsilon = epsilon
 
         # Different seed per run and clinic, so repeated runs give
         # independent DP noise (results are averaged over runs).
@@ -37,7 +40,11 @@ class AyurAIClient(fl.client.NumPyClient):
         self.num_train = len(train_set)
         self.train_loader = DataLoader(train_set, batch_size=BATCH_SIZE)
         self.test_loader = DataLoader(test_set, batch_size=BATCH_SIZE)
-        print(f"Clinic {clinic_id} ready — {self.num_train} train / {len(test_set)} test rows | target ε={epsilon}")
+        print(f"Clinic {clinic_id} ready — {self.num_train} train / {len(test_set)} test rows | target ε={epsilon or 'no DP'}")
+
+        if epsilon is None:
+            self.privacy_engine = None   # plain training: no clipping, no noise
+            return
 
         # Attach Opacus: clips each sample's gradient and adds Gaussian noise.
         # The noise is calibrated for ALL the training this client will do
@@ -95,6 +102,9 @@ class AyurAIClient(fl.client.NumPyClient):
                 batches += 1
 
         avg_loss = total_loss / max(batches, 1)
+        if self.privacy_engine is None:   # no-DP reference run: nothing to account for
+            print(f"Clinic {self.clinic_id} trained — loss {avg_loss:.4f} | μ={mu} | no DP")
+            return self.get_parameters(config={}), self.num_train, {}
         epsilon_spent = self.privacy_engine.get_epsilon(delta=DELTA)
         print(f"Clinic {self.clinic_id} trained — loss {avg_loss:.4f} | μ={mu} | ε spent so far {epsilon_spent:.4f}")
         return self.get_parameters(config={}), self.num_train, {"epsilon_spent": epsilon_spent}
@@ -105,15 +115,24 @@ class AyurAIClient(fl.client.NumPyClient):
         self.set_parameters(parameters)
         self.model.eval()
         total_loss, correct, count = 0.0, 0, 0
+        # Per-tier counts let the server compute macro-F1 across clinics:
+        # tp = correctly predicted as tier c, fp = wrongly predicted as c, fn = missed c
+        counts = {f"{kind}_{c}": 0 for c in range(3) for kind in ("tp", "fp", "fn")}
         with torch.no_grad():
             for X_batch, y_batch in self.test_loader:
                 output = self.model(X_batch)
+                pred = output.argmax(dim=1)
                 total_loss += self.criterion(output, y_batch).item() * len(y_batch)
-                correct += (output.argmax(dim=1) == y_batch).sum().item()
+                correct += (pred == y_batch).sum().item()
                 count += len(y_batch)
+                for c in range(3):
+                    counts[f"tp_{c}"] += ((pred == c) & (y_batch == c)).sum().item()
+                    counts[f"fp_{c}"] += ((pred == c) & (y_batch != c)).sum().item()
+                    counts[f"fn_{c}"] += ((pred != c) & (y_batch == c)).sum().item()
         loss, accuracy = total_loss / count, correct / count
         print(f"Clinic {self.clinic_id} eval — loss {loss:.4f} | accuracy {accuracy:.4f}")
-        return loss, count, {"accuracy": accuracy}
+        # Only counts are shared, never individual patients' predictions
+        return loss, count, {"accuracy": accuracy, **counts}
 
 
 if __name__ == "__main__":
@@ -121,10 +140,12 @@ if __name__ == "__main__":
     parser.add_argument("clinic_id", type=int)
     parser.add_argument("epsilon", type=float)
     parser.add_argument("--run", type=int, default=1, help="run number (sets the random seed)")
+    parser.add_argument("--no-dp", action="store_true", help="reference run without differential privacy")
     args = parser.parse_args()
+    epsilon = None if args.no_dp else args.epsilon
 
-    print(f"Starting AyurAI Client — Clinic {args.clinic_id} | target ε={args.epsilon} | run {args.run}")
+    print(f"Starting AyurAI Client — Clinic {args.clinic_id} | target ε={epsilon or 'no DP'} | run {args.run}")
     fl.client.start_client(
         server_address=SERVER_ADDRESS,
-        client=AyurAIClient(args.clinic_id, args.epsilon, args.run).to_client(),
+        client=AyurAIClient(args.clinic_id, epsilon, args.run).to_client(),
     )
