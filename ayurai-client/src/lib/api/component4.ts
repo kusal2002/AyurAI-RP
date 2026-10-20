@@ -86,6 +86,10 @@ export type FederationConfig = {
   delta: number
   max_grad_norm: number
   epsilons: number[]
+  learning_rate: number
+  /** true when training uses the real CP-AnemiC features, false for placeholder data */
+  real_data: boolean
+  hb_thresholds: { high_risk_below: number; low_risk_from: number }
   clinics: { clinic_id: number; name: string; low: number; moderate: number; high: number }[]
 }
 
@@ -93,7 +97,18 @@ export type RoundMetrics = {
   round: number
   loss: number | null
   accuracy: number | null
+  macro_f1: number | null
   epsilon_spent: number | null
+}
+
+/** One row of results/baselines.csv (CSV values arrive as strings). */
+export type BaselineRow = {
+  method: "majority_class" | "centralised_no_dp" | "fedavg_no_dp" | "fedprox_no_dp"
+  accuracy_mean: string
+  accuracy_std: string
+  macro_f1_mean: string
+  runs: string
+  data_source: string
 }
 
 export type FederationRun = {
@@ -111,6 +126,8 @@ export type SummaryRow = {
   rounds: string
   final_accuracy_mean: string
   final_accuracy_std: string
+  final_macro_f1_mean?: string
+  final_macro_f1_std?: string
   epsilon_spent_max: string
   data_source: string
 }
@@ -163,4 +180,6 @@ export const component4Api = {
     component4Client.get<FederationRun[]>("/api/v1/c4/federation/runs", { signal }),
   federationSummary: (signal?: AbortSignal) =>
     component4Client.get<SummaryRow[]>("/api/v1/c4/federation/summary", { signal }),
+  federationBaselines: (signal?: AbortSignal) =>
+    component4Client.get<BaselineRow[]>("/api/v1/c4/federation/baselines", { signal }),
 }
