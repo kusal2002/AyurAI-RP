@@ -58,7 +58,8 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-}
       POSTGRES_DB: ${POSTGRES_DB:-ayurai_audit}
     ports:
-      - "5432:5432"
+      # 127.0.0.1 = reachable only from this laptop, not from the network (e.g. shared Wi-Fi)
+      - "127.0.0.1:5432:5432"
     volumes:
       - ayurai_pgdata:/var/lib/postgresql/data   # data survives container restarts
     # No init.sql: the Component 4 API creates its own tables (users, decisions,
@@ -76,8 +77,9 @@ services:
       NEO4J_server_memory_heap_max__size: 512m
       NEO4J_server_memory_pagecache_size: 256m
     ports:
-      - "7474:7474"                 # browser UI: http://localhost:7474
-      - "7687:7687"                 # Bolt protocol, used by Python drivers
+      # 127.0.0.1 = reachable only from this laptop, not from the network
+      - "127.0.0.1:7474:7474"       # browser UI: http://localhost:7474
+      - "127.0.0.1:7687:7687"       # Bolt protocol, used by Python drivers
     volumes:
       - ayurai_neo4jdata:/data
 
