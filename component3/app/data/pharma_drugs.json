@@ -1,0 +1,497 @@
+[
+  {
+    "id": "DRUG-001",
+    "generic_name": "Metformin",
+    "brand_names": ["Glucophage", "Diabex", "Cetapin"],
+    "drug_class": "Biguanide Antidiabetic",
+    "metabolizing_enzymes": ["OCT1", "OCT2", "MATE1"],
+    "target_receptors": ["AMPK"],
+    "narrow_therapeutic_index": false
+  },
+  {
+    "id": "DRUG-002",
+    "generic_name": "Omeprazole",
+    "brand_names": ["Losec", "Omez", "Ocid"],
+    "drug_class": "Proton Pump Inhibitor (PPI)",
+    "metabolizing_enzymes": ["CYP2C19", "CYP3A4"],
+    "target_receptors": ["H+/K+ ATPase"],
+    "narrow_therapeutic_index": false
+  },
+  {
+    "id": "DRUG-003",
+    "generic_name": "Atorvastatin",
+    "brand_names": ["Lipitor", "Atorva", "Storvas"],
+    "drug_class": "HMG-CoA Reductase Inhibitor",
+    "metabolizing_enzymes": ["CYP3A4"],
+    "target_receptors": ["HMG-CoA Reductase"],
+    "narrow_therapeutic_index": false
+  },
+  {
+    "id": "DRUG-004",
+    "generic_name": "Losartan",
+    "brand_names": ["Cozaar", "Losacar", "Angizaar"],
+    "drug_class": "Angiotensin II Receptor Blocker (ARB)",
+    "metabolizing_enzymes": ["CYP2C9", "CYP3A4"],
+    "target_receptors": ["AT1 Receptor"],
+    "narrow_therapeutic_index": false
+  },
+  {
+    "id": "DRUG-005",
+    "generic_name": "Amlodipine",
+    "brand_names": ["Norvasc", "Amlip", "Amlovas"],
+    "drug_class": "Dihydropyridine Calcium Channel Blocker",
+    "metabolizing_enzymes": ["CYP3A4"],
+    "target_receptors": ["L-type Calcium Channels"],
+    "narrow_therapeutic_index": false
+  },
+  {
+    "id": "DRUG-006",
+    "generic_name": "Ferrous Sulfate",
+    "brand_names": ["Fefol", "Ferro-Gradumet", "Iberet"],
+    "drug_class": "Oral Hematinic / Iron Supplement",
+    "metabolizing_enzymes": [],
+    "target_receptors": ["DMT1", "Transferrin"],
+    "narrow_therapeutic_index": false
+  },
+  {
+    "id": "DRUG-007",
+    "generic_name": "Levothyroxine",
+    "brand_names": ["Eltroxin", "Synthroid", "Thyronorm"],
+    "drug_class": "Synthetic Thyroid Hormone",
+    "metabolizing_enzymes": ["Deiodinase", "CYP3A4", "UGT1A1"],
+    "target_receptors": ["Thyroid Hormone Receptors TR-alpha/beta"],
+    "narrow_therapeutic_index": true
+  },
+  {
+    "id": "DRUG-008",
+    "generic_name": "Clonazepam",
+    "brand_names": ["Klonopin", "Rivotril", "Zapiz"],
+    "drug_class": "Benzodiazepine Anticonvulsant / Anxiolytic",
+    "metabolizing_enzymes": ["CYP3A4"],
+    "target_receptors": ["GABA-A Receptor"],
+    "narrow_therapeutic_index": false
+  },
+  {
+    "id": "DRUG-009",
+    "generic_name": "Warfarin",
+    "brand_names": ["Coumadin", "Marevan", "Warf"],
+    "drug_class": "Vitamin K Antagonist Anticoagulant",
+    "metabolizing_enzymes": ["CYP2C9", "CYP1A2", "CYP3A4"],
+    "target_receptors": ["VKORC1"],
+    "narrow_therapeutic_index": true
+  },
+  {
+    "id": "DRUG-010",
+    "generic_name": "Aspirin",
+    "brand_names": ["Disprin", "Cardiprin", "Ecosprin"],
+    "drug_class": "Antiplatelet / NSAID",
+    "metabolizing_enzymes": ["Esterases", "CYP2C9"],
+    "target_receptors": ["COX-1", "COX-2"],
+    "narrow_therapeutic_index": false
+  },
+  {
+    "id": "DRUG-011",
+    "generic_name": "Enalapril",
+    "brand_names": ["Renitec", "Enam", "Vasotec"],
+    "drug_class": "ACE Inhibitor Antihypertensive",
+    "metabolizing_enzymes": ["Hepatic Carboxylesterase-1"],
+    "target_receptors": ["Angiotensin-Converting Enzyme"],
+    "narrow_therapeutic_index": false
+  },
+  {
+    "id": "DRUG-012",
+    "generic_name": "Ramipril",
+    "brand_names": ["Altace", "Cardace", "Tritace"],
+    "drug_class": "ACE Inhibitor Antihypertensive",
+    "metabolizing_enzymes": ["Hepatic Esterases"],
+    "target_receptors": ["Angiotensin-Converting Enzyme"],
+    "narrow_therapeutic_index": false
+  },
+  {
+    "id": "DRUG-013",
+    "generic_name": "Atenolol",
+    "brand_names": ["Tenormin", "Betacard", "Aten"],
+    "drug_class": "Beta-1 Selective Adrenergic Blocker",
+    "metabolizing_enzymes": ["Minimal hepatic (Renal excretion 85%)"],
+    "target_receptors": ["Beta-1 Adrenergic Receptor"],
+    "narrow_therapeutic_index": false
+  },
+  {
+    "id": "DRUG-014",
+    "generic_name": "Bisoprolol",
+    "brand_names": ["Concor", "Biselect", "Zebeta"],
+    "drug_class": "Beta-1 Selective Adrenergic Blocker",
+    "metabolizing_enzymes": ["CYP3A4", "CYP2D6"],
+    "target_receptors": ["Beta-1 Adrenergic Receptor"],
+    "narrow_therapeutic_index": false
+  },
+  {
+    "id": "DRUG-015",
+    "generic_name": "Hydrochlorothiazide",
+    "brand_names": ["Esidrex", "Microzide", "Aquazide"],
+    "drug_class": "Thiazide Diuretic",
+    "metabolizing_enzymes": ["Renal elimination unchanged"],
+    "target_receptors": ["Na+/Cl- Cotransporter NCCT"],
+    "narrow_therapeutic_index": false
+  },
+  {
+    "id": "DRUG-016",
+    "generic_name": "Furosemide",
+    "brand_names": ["Lasix", "Frusid"],
+    "drug_class": "Loop Diuretic",
+    "metabolizing_enzymes": ["CYP2C9", "Glucuronidation"],
+    "target_receptors": ["Na+/K+/2Cl- Cotransporter NKCC2"],
+    "narrow_therapeutic_index": false
+  },
+  {
+    "id": "DRUG-017",
+    "generic_name": "Spironolactone",
+    "brand_names": ["Aldactone", "Spiractin"],
+    "drug_class": "Potassium-Sparing Aldosterone Antagonist",
+    "metabolizing_enzymes": ["CYP3A4"],
+    "target_receptors": ["Mineralocorticoid Receptor"],
+    "narrow_therapeutic_index": false
+  },
+  {
+    "id": "DRUG-018",
+    "generic_name": "Digoxin",
+    "brand_names": ["Lanoxin", "Cardoxin"],
+    "drug_class": "Cardiac Glycoside Inotrope",
+    "metabolizing_enzymes": ["P-gp / ABCB1 Substrate"],
+    "target_receptors": ["Na+/K+ ATPase"],
+    "narrow_therapeutic_index": true
+  },
+  {
+    "id": "DRUG-019",
+    "generic_name": "Glibenclamide",
+    "brand_names": ["Daonil", "Euglucon"],
+    "drug_class": "Sulfonylurea Antidiabetic",
+    "metabolizing_enzymes": ["CYP2C9", "CYP3A4"],
+    "target_receptors": ["SUR1 / Kir6.2 channel"],
+    "narrow_therapeutic_index": false
+  },
+  {
+    "id": "DRUG-020",
+    "generic_name": "Gliclazide",
+    "brand_names": ["Diamicron", "Glizid"],
+    "drug_class": "Second-Generation Sulfonylurea",
+    "metabolizing_enzymes": ["CYP2C9", "CYP2C19"],
+    "target_receptors": ["SUR1 Pancreatic Beta Cell Receptor"],
+    "narrow_therapeutic_index": false
+  },
+  {
+    "id": "DRUG-021",
+    "generic_name": "Sitagliptin",
+    "brand_names": ["Januvia", "Zita"],
+    "drug_class": "DPP-4 Inhibitor Antidiabetic",
+    "metabolizing_enzymes": ["CYP3A4", "CYP2C8"],
+    "target_receptors": ["Dipeptidyl Peptidase-4"],
+    "narrow_therapeutic_index": false
+  },
+  {
+    "id": "DRUG-022",
+    "generic_name": "Empagliflozin",
+    "brand_names": ["Jardiance", "Gibtulio"],
+    "drug_class": "SGLT-2 Inhibitor",
+    "metabolizing_enzymes": ["UGT2B7", "UGT1A3", "UGT1A8"],
+    "target_receptors": ["Sodium-Glucose Cotransporter 2"],
+    "narrow_therapeutic_index": false
+  },
+  {
+    "id": "DRUG-023",
+    "generic_name": "Pantoprazole",
+    "brand_names": ["Pantocid", "Protium", "Pan"],
+    "drug_class": "Proton Pump Inhibitor",
+    "metabolizing_enzymes": ["CYP2C19", "CYP3A4"],
+    "target_receptors": ["H+/K+ ATPase"],
+    "narrow_therapeutic_index": false
+  },
+  {
+    "id": "DRUG-024",
+    "generic_name": "Ranitidine",
+    "brand_names": ["Zantac", "Rantac"],
+    "drug_class": "H2 Receptor Antagonist",
+    "metabolizing_enzymes": ["CYP1A2", "CYP2D6"],
+    "target_receptors": ["Histamine H2 Receptor"],
+    "narrow_therapeutic_index": false
+  },
+  {
+    "id": "DRUG-025",
+    "generic_name": "Ciprofloxacin",
+    "brand_names": ["Cipro", "Cifran", "Ciplox"],
+    "drug_class": "Fluoroquinolone Antibiotic",
+    "metabolizing_enzymes": ["CYP1A2 (Strong Inhibitor)"],
+    "target_receptors": ["Bacterial DNA Gyrase", "Topoisomerase IV"],
+    "narrow_therapeutic_index": false
+  },
+  {
+    "id": "DRUG-026",
+    "generic_name": "Doxycycline",
+    "brand_names": ["Vibramycin", "Doxylar"],
+    "drug_class": "Tetracycline Antibiotic",
+    "metabolizing_enzymes": ["Non-enzymatic Chelation"],
+    "target_receptors": ["Bacterial 30S Ribosome Subunit"],
+    "narrow_therapeutic_index": false
+  },
+  {
+    "id": "DRUG-027",
+    "generic_name": "Amoxicillin",
+    "brand_names": ["Amoxil", "Moxikem"],
+    "drug_class": "Aminopenicillin Antibiotic",
+    "metabolizing_enzymes": ["Renal excretion unchanged"],
+    "target_receptors": ["Penicillin-Binding Proteins (PBPs)"],
+    "narrow_therapeutic_index": false
+  },
+  {
+    "id": "DRUG-028",
+    "generic_name": "Azithromycin",
+    "brand_names": ["Zithromax", "Azithral"],
+    "drug_class": "Macrolide Antibiotic",
+    "metabolizing_enzymes": ["CYP3A4 (Weak)", "Biliary excretion"],
+    "target_receptors": ["Bacterial 50S Ribosome Subunit"],
+    "narrow_therapeutic_index": false
+  },
+  {
+    "id": "DRUG-029",
+    "generic_name": "Ibuprofen",
+    "brand_names": ["Brufen", "Advil"],
+    "drug_class": "NSAID Non-selective",
+    "metabolizing_enzymes": ["CYP2C9", "CYP2C8"],
+    "target_receptors": ["COX-1", "COX-2"],
+    "narrow_therapeutic_index": false
+  },
+  {
+    "id": "DRUG-030",
+    "generic_name": "Diclofenac",
+    "brand_names": ["Voltaren", "Voveran"],
+    "drug_class": "Acetic Acid Derivative NSAID",
+    "metabolizing_enzymes": ["CYP2C9", "UGT2B7"],
+    "target_receptors": ["COX-1", "COX-2"],
+    "narrow_therapeutic_index": false
+  },
+  {
+    "id": "DRUG-031",
+    "generic_name": "Paracetamol",
+    "brand_names": ["Panadol", "Calpol"],
+    "drug_class": "Aniline Analgesic / Antipyretic",
+    "metabolizing_enzymes": ["CYP2E1", "UGT1A6", "SULT1A1"],
+    "target_receptors": ["Central TRPA1", "COX-3 putative"],
+    "narrow_therapeutic_index": false
+  },
+  {
+    "id": "DRUG-032",
+    "generic_name": "Tramadol",
+    "brand_names": ["Ultram", "Tramal"],
+    "drug_class": "Opioid Analgesic / SNRI",
+    "metabolizing_enzymes": ["CYP2D6", "CYP3A4"],
+    "target_receptors": ["Mu-opioid receptor", "Serotonin/Norepinephrine transporter"],
+    "narrow_therapeutic_index": false
+  },
+  {
+    "id": "DRUG-033",
+    "generic_name": "Sertraline",
+    "brand_names": ["Zoloft", "Serlift"],
+    "drug_class": "Selective Serotonin Reuptake Inhibitor (SSRI)",
+    "metabolizing_enzymes": ["CYP2B6", "CYP2C19", "CYP2D6", "CYP3A4"],
+    "target_receptors": ["Serotonin Transporter (SERT)"],
+    "narrow_therapeutic_index": false
+  },
+  {
+    "id": "DRUG-034",
+    "generic_name": "Fluoxetine",
+    "brand_names": ["Prozac", "Flunil"],
+    "drug_class": "Selective Serotonin Reuptake Inhibitor (SSRI)",
+    "metabolizing_enzymes": ["CYP2D6 (Potent Inhibitor)", "CYP2C9", "CYP3A4"],
+    "target_receptors": ["Serotonin Transporter (SERT)"],
+    "narrow_therapeutic_index": false
+  },
+  {
+    "id": "DRUG-035",
+    "generic_name": "Amitriptyline",
+    "brand_names": ["Elavil", "Tryptomer"],
+    "drug_class": "Tricyclic Antidepressant (TCA)",
+    "metabolizing_enzymes": ["CYP2D6", "CYP2C19", "CYP3A4"],
+    "target_receptors": ["5-HT/NE Reuptake", "H1 Receptor", "M1 Receptor"],
+    "narrow_therapeutic_index": true
+  },
+  {
+    "id": "DRUG-036",
+    "generic_name": "Gabapentin",
+    "brand_names": ["Neurontin", "Gabapin"],
+    "drug_class": "Gabapentinoid Anticonvulsant",
+    "metabolizing_enzymes": ["Renal elimination (LAT1 transporter)"],
+    "target_receptors": ["Alpha-2-delta Voltage-Gated Calcium Channels"],
+    "narrow_therapeutic_index": false
+  },
+  {
+    "id": "DRUG-037",
+    "generic_name": "Carbamazepine",
+    "brand_names": ["Tegretol", "Mazetol"],
+    "drug_class": "Iminostilbene Anticonvulsant",
+    "metabolizing_enzymes": ["CYP3A4 (Potent Auto-Inducer)", "CYP2C8"],
+    "target_receptors": ["Voltage-Gated Sodium Channels"],
+    "narrow_therapeutic_index": true
+  },
+  {
+    "id": "DRUG-038",
+    "generic_name": "Phenytoin",
+    "brand_names": ["Dilantin", "Eptoin"],
+    "drug_class": "Hydantoin Anticonvulsant",
+    "metabolizing_enzymes": ["CYP2C9", "CYP2C19 (Potent Inducer)"],
+    "target_receptors": ["Voltage-Gated Sodium Channels"],
+    "narrow_therapeutic_index": true
+  },
+  {
+    "id": "DRUG-039",
+    "generic_name": "Prednisolone",
+    "brand_names": ["Wysolone", "Prelone"],
+    "drug_class": "Systemic Corticosteroid",
+    "metabolizing_enzymes": ["CYP3A4", "11-beta-HSD1"],
+    "target_receptors": ["Glucocorticoid Receptor"],
+    "narrow_therapeutic_index": false
+  },
+  {
+    "id": "DRUG-040",
+    "generic_name": "Methotrexate",
+    "brand_names": ["Trexall", "Folitrax"],
+    "drug_class": "Antimetabolite Immunosuppressant",
+    "metabolizing_enzymes": ["Renal clearance (OAT1/OAT3)", "Aldehyde oxidase"],
+    "target_receptors": ["Dihydrofolate Reductase (DHFR)"],
+    "narrow_therapeutic_index": true
+  },
+  {
+    "id": "DRUG-041",
+    "generic_name": "Clopidogrel",
+    "brand_names": ["Plavix", "Clopilet"],
+    "drug_class": "Thienopyridine Antiplatelet",
+    "metabolizing_enzymes": ["CYP2C19 (Bioactivation)", "CYP3A4", "CYP1A2"],
+    "target_receptors": ["Platelet P2Y12 Receptor"],
+    "narrow_therapeutic_index": false
+  },
+  {
+    "id": "DRUG-042",
+    "generic_name": "Simvastatin",
+    "brand_names": ["Zocor", "Simvas"],
+    "drug_class": "HMG-CoA Reductase Inhibitor",
+    "metabolizing_enzymes": ["CYP3A4 (Major)"],
+    "target_receptors": ["HMG-CoA Reductase"],
+    "narrow_therapeutic_index": false
+  },
+  {
+    "id": "DRUG-043",
+    "generic_name": "Calcium Carbonate",
+    "brand_names": ["Caltrate", "Shelcal"],
+    "drug_class": "Mineral Supplement / Phosphate Binder",
+    "metabolizing_enzymes": ["Gastrointestinal Chelation"],
+    "target_receptors": ["Calcium-Sensing Receptor"],
+    "narrow_therapeutic_index": false
+  },
+  {
+    "id": "DRUG-044",
+    "generic_name": "Folic Acid",
+    "brand_names": ["Folvite", "Fol-5"],
+    "drug_class": "Water-soluble Vitamin Hematinic",
+    "metabolizing_enzymes": ["Dihydrofolate Reductase"],
+    "target_receptors": ["Folate Receptors FOLR1/FOLR2"],
+    "narrow_therapeutic_index": false
+  },
+  {
+    "id": "DRUG-045",
+    "generic_name": "Hydroxyzine",
+    "brand_names": ["Atarax"],
+    "drug_class": "First-Generation Antihistamine",
+    "metabolizing_enzymes": ["Alcohol Dehydrogenase", "CYP3A4/5"],
+    "target_receptors": ["Histamine H1 Receptor", "5-HT2A Receptor"],
+    "narrow_therapeutic_index": false
+  },
+  {
+    "id": "DRUG-046",
+    "generic_name": "Diazepam",
+    "brand_names": ["Valium", "Calmpose"],
+    "drug_class": "Long-Acting Benzodiazepine",
+    "metabolizing_enzymes": ["CYP2C19", "CYP3A4"],
+    "target_receptors": ["GABA-A Receptor"],
+    "narrow_therapeutic_index": false
+  },
+  {
+    "id": "DRUG-047",
+    "generic_name": "Metoprolol",
+    "brand_names": ["Lopressor", "Betaloc"],
+    "drug_class": "Beta-1 Selective Adrenergic Blocker",
+    "metabolizing_enzymes": ["CYP2D6 (Major)"],
+    "target_receptors": ["Beta-1 Adrenergic Receptor"],
+    "narrow_therapeutic_index": false
+  },
+  {
+    "id": "DRUG-048",
+    "generic_name": "Salbutamol",
+    "brand_names": ["Ventolin", "Asthalin"],
+    "drug_class": "Short-Acting Beta-2 Adrenergic Agonist",
+    "metabolizing_enzymes": ["SULT1A3"],
+    "target_receptors": ["Beta-2 Adrenergic Receptor"],
+    "narrow_therapeutic_index": false
+  },
+  {
+    "id": "DRUG-049",
+    "generic_name": "Domperidone",
+    "brand_names": ["Motilium", "Domstal"],
+    "drug_class": "Dopamine D2 Receptor Antagonist Prokinetic",
+    "metabolizing_enzymes": ["CYP3A4"],
+    "target_receptors": ["Peripheral Dopamine D2 Receptor"],
+    "narrow_therapeutic_index": false
+  },
+  {
+    "id": "DRUG-050",
+    "generic_name": "Cephalexin",
+    "brand_names": ["Keflex", "Sporidex"],
+    "drug_class": "First-Generation Cephalosporin Antibiotic",
+    "metabolizing_enzymes": ["Renal excretion unchanged (>90%)"],
+    "target_receptors": ["Bacterial Cell Wall Penicillin-Binding Proteins"],
+    "narrow_therapeutic_index": false
+  },
+  {
+    "id": "DRUG-051",
+    "generic_name": "Propranolol",
+    "brand_names": ["Inderal", "Betacap"],
+    "drug_class": "Non-selective Beta Adrenergic Receptor Antagonist",
+    "metabolizing_enzymes": ["CYP2D6", "CYP1A2", "UGT1A9"],
+    "target_receptors": ["Beta-1 and Beta-2 Adrenergic Receptors"],
+    "narrow_therapeutic_index": false
+  },
+  {
+    "id": "DRUG-052",
+    "generic_name": "Penicillamine",
+    "brand_names": ["Cuprimine", "Depen"],
+    "drug_class": "Heavy Metal Chelating Agent",
+    "metabolizing_enzymes": ["Hepatic methylation", "Renal excretion"],
+    "target_receptors": ["Copper and Iron Ion Binding Chelator"],
+    "narrow_therapeutic_index": true
+  },
+  {
+    "id": "DRUG-053",
+    "generic_name": "Metronidazole",
+    "brand_names": ["Flagyl", "Metrogyl"],
+    "drug_class": "Nitroimidazole Antibacterial and Antiprotozoal",
+    "metabolizing_enzymes": ["CYP2A6", "Hepatic oxidation"],
+    "target_receptors": ["Bacterial and Protozoal DNA Strand Breakdown"],
+    "narrow_therapeutic_index": false
+  },
+  {
+    "id": "DRUG-054",
+    "generic_name": "Theophylline",
+    "brand_names": ["Theo-24", "Phyllocontin"],
+    "drug_class": "Methylxanthine Phosphodiesterase Inhibitor",
+    "metabolizing_enzymes": ["CYP1A2 (Major)", "CYP2E1", "CYP3A4"],
+    "target_receptors": ["Adenosine A1/A2 Receptors", "Non-selective PDE"],
+    "narrow_therapeutic_index": true
+  },
+  {
+    "id": "DRUG-055",
+    "generic_name": "Rifampin",
+    "brand_names": ["Rifadin", "Rimactane"],
+    "drug_class": "Rifamycin Antimycobacterial Antibiotic",
+    "metabolizing_enzymes": ["CYP3A4 Auto-induction", "Biliary excretion"],
+    "target_receptors": ["Bacterial DNA-dependent RNA Polymerase"],
+    "narrow_therapeutic_index": false
+  }
+]

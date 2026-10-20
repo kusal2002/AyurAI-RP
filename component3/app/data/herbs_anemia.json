@@ -1,0 +1,272 @@
+[
+  {
+    "id": "HERB-001",
+    "common_name": "Punarnava",
+    "sanskrit_name": "Punarnava",
+    "botanical_name": "Boerhavia diffusa",
+    "active_compounds": ["Punarnavine", "Boeravinones", "Rotenoids", "Liriodendrin"],
+    "contraindications": ["Severe Renal Failure (eGFR < 15 unmonitored)", "First trimester pregnancy without guidance"],
+    "traditional_uses": ["Pandu Roga", "Shotha (Edema)", "Diuretic", "Yakritodara"]
+  },
+  {
+    "id": "HERB-002",
+    "common_name": "Amalaki",
+    "sanskrit_name": "Amalaki",
+    "botanical_name": "Phyllanthus emblica",
+    "active_compounds": ["Ascorbic Acid", "Ellagic Acid", "Gallic Acid", "Emblicanin A & B"],
+    "contraindications": ["Active hyperacidity flares with bleeding peptic ulcer"],
+    "traditional_uses": ["Pandu Roga", "Rasayana", "Enhances Iron Absorption", "Pitta Shamaka"]
+  },
+  {
+    "id": "HERB-003",
+    "common_name": "Mandura Bhasma",
+    "sanskrit_name": "Mandura Bhasma",
+    "botanical_name": "Ferric Oxide Calx (Fe2O3)",
+    "active_compounds": ["Ferric Oxide", "Ferrous Iron", "Trace Minerals"],
+    "contraindications": ["Hemochromatosis", "Thalassemia major", "Active Peptic Ulcer", "Severe CKD Stage 4-5"],
+    "traditional_uses": ["Pandu Roga", "Yakritodara (Hepatomegaly)", "Plihodara (Splenomegaly)"]
+  },
+  {
+    "id": "HERB-004",
+    "common_name": "Ashwagandha",
+    "sanskrit_name": "Ashwagandha",
+    "botanical_name": "Withania somnifera",
+    "active_compounds": ["Withaferin A", "Withanolide D", "Sitoindosides", "Somniferine"],
+    "contraindications": ["Pregnancy (uterine stimulant risk in high doses)", "Hyperthyroidism", "Active autoimmune flare"],
+    "traditional_uses": ["Balya", "Daurbalya (Debility)", "Pandu adjuvant", "Rasayana"]
+  },
+  {
+    "id": "HERB-005",
+    "common_name": "Yashtimadhu",
+    "sanskrit_name": "Yashtimadhu",
+    "botanical_name": "Glycyrrhiza glabra",
+    "active_compounds": ["Glycyrrhizin", "Glabridin", "Liquiritigenin", "Isoliquiritigenin"],
+    "contraindications": ["Uncontrolled Hypertension", "Hypokalemia", "Severe CKD Stage 4-5", "Cirrhosis"],
+    "traditional_uses": ["Pitta shamaka", "Raktapitta", "Rasayana", "Gastric mucosal protective"]
+  },
+  {
+    "id": "HERB-006",
+    "common_name": "Guduchi",
+    "sanskrit_name": "Guduchi",
+    "botanical_name": "Tinospora cordifolia",
+    "active_compounds": ["Tinosporaside", "Cordifolioside", "Berberine", "Tinosporine"],
+    "contraindications": ["Severe autoimmune hepatitis without monitoring", "Hypoglycemia (additive risk)"],
+    "traditional_uses": ["Pandu", "Jwara", "Deepana", "Rasayana", "Rakta Prasadana"]
+  },
+  {
+    "id": "HERB-007",
+    "common_name": "Haritaki",
+    "sanskrit_name": "Haritaki",
+    "botanical_name": "Terminalia chebula",
+    "active_compounds": ["Chebulic acid", "Chebulinic acid", "Corilagin", "Tannins"],
+    "contraindications": ["Severe acute dehydration", "Pregnancy (purgative anthraquinone effect)"],
+    "traditional_uses": ["Anulomana", "Pandu", "Shotha", "Deepana"]
+  },
+  {
+    "id": "HERB-008",
+    "common_name": "Shatavari",
+    "sanskrit_name": "Shatavari",
+    "botanical_name": "Asparagus racemosus",
+    "active_compounds": ["Shatavarin I-IV", "Sarsasapogenin", "Isoflavones"],
+    "contraindications": ["Estrogen-sensitive malignancies", "Severe congestive heart failure fluid overload"],
+    "traditional_uses": ["Rasayana", "Stanya", "Pitta-Vata Pandu", "Nutritive tonic"]
+  },
+  {
+    "id": "HERB-009",
+    "common_name": "Dhatri Lauha",
+    "sanskrit_name": "Dhatri Lauha",
+    "botanical_name": "Classical Compound (Amalaki + Lauha Bhasma + Yashtimadhu)",
+    "active_compounds": ["Elemental Iron", "Ascorbic Acid", "Glycyrrhizin", "Tannins"],
+    "contraindications": ["Hemochromatosis", "Active GI bleeding", "Concurrent oral tetracyclines without 4h gap"],
+    "traditional_uses": ["Pandu Roga Gold Standard", "Kshaya", "Pitta Pandu"]
+  },
+  {
+    "id": "HERB-010",
+    "common_name": "Punarnava Mandura",
+    "sanskrit_name": "Punarnavadi Mandura",
+    "botanical_name": "Classical Herbo-Mineral Compound",
+    "active_compounds": ["Punarnavine", "Ferric Oxide Calx", "Triphala Tannins", "Gingerols"],
+    "contraindications": ["End-stage renal failure (eGFR < 15)", "Hemochromatosis", "Severe peptic ulceration"],
+    "traditional_uses": ["Pandu Roga", "Kaphaja Pandu", "Shotha", "Grahani"]
+  },
+  {
+    "id": "HERB-011",
+    "common_name": "Navayasa Lauha",
+    "sanskrit_name": "Navayasa Churna / Lauha",
+    "botanical_name": "Classical Compound (Trikatu + Triphala + Musta + Vidanga + Chitraka + Lauha Bhasma)",
+    "active_compounds": ["Piperine", "Chebulic acid", "Embelin", "Plumbagin", "Elemental Iron"],
+    "contraindications": ["Severe gastritis flare", "Active ulcerative colitis", "Pregnancy first trimester"],
+    "traditional_uses": ["Pandu Roga First-line", "Kamala (Jaundice)", "Hridroga adjuvant"]
+  },
+  {
+    "id": "HERB-012",
+    "common_name": "Arogyavardhini Vati",
+    "sanskrit_name": "Arogyavardhini Vati",
+    "botanical_name": "Classical Herbo-Mineral Mineral Compound",
+    "active_compounds": ["Picroside I & II", "Guggulsterones", "Azadirachtin", "Purified Mercury & Sulphur Calx", "Lauha Bhasma"],
+    "contraindications": ["Pregnancy and lactation", "Severe renal impairment (eGFR < 30)", "Pediatric use < 12 years"],
+    "traditional_uses": ["Pandu with Hepatic Involvement", "Kamala", "Yakrit Vikara", "Deepana-Pachana"]
+  },
+  {
+    "id": "HERB-013",
+    "common_name": "Chandraprabha Vati",
+    "sanskrit_name": "Chandraprabha Vati",
+    "botanical_name": "Classical Herbo-Mineral Polyherbal",
+    "active_compounds": ["Fulvic acid", "Guggulsterones", "Berberine", "Piperine", "Iron Calx"],
+    "contraindications": ["Bleeding diathesis", "Severe hyperacidity flare"],
+    "traditional_uses": ["Pandu with urinary debility", "Prameha", "Daurbalya", "Rasayana"]
+  },
+  {
+    "id": "HERB-014",
+    "common_name": "Lohasava",
+    "sanskrit_name": "Lohasava",
+    "botanical_name": "Fermented Iron Calx Arishta",
+    "active_compounds": ["Bioavailable Ferrous Citrate", "Piperine", "Triphala Tannins", "Self-generated Alcohol (5-10%)"],
+    "contraindications": ["Gastric ulcer perforation risk", "Alcohol dependence", "Active hyperacidity"],
+    "traditional_uses": ["Pandu Roga", "Shotha", "Jataragni Mandya", "Gulma"]
+  },
+  {
+    "id": "HERB-015",
+    "common_name": "Drakshasava",
+    "sanskrit_name": "Drakshasava",
+    "botanical_name": "Fermented Raisin Formulation",
+    "active_compounds": ["Resveratrol", "Tartaric acid", "Polyphenols", "Piperine"],
+    "contraindications": ["Uncontrolled Diabetes Mellitus (high glycemic load)", "Alcohol aversion"],
+    "traditional_uses": ["Pandu debility", "Daurbalya", "Kshaya", "Raktapitta"]
+  },
+  {
+    "id": "HERB-016",
+    "common_name": "Kasisa Bhasma",
+    "sanskrit_name": "Kasisa Bhasma",
+    "botanical_name": "Incinerated Green Vitriol (FeSO4 . 7H2O)",
+    "active_compounds": ["Ferrous Sulphate", "Iron Oxide", "Trace Sulphur"],
+    "contraindications": ["Iron storage diseases", "Severe non-iron deficiency hemolytic anemia"],
+    "traditional_uses": ["Pandu Roga", "Kasa", "Shwasa", "Artavajanana"]
+  },
+  {
+    "id": "HERB-017",
+    "common_name": "Swarna Makshika Bhasma",
+    "sanskrit_name": "Swarna Makshika Bhasma",
+    "botanical_name": "Incinerated Chalcopyrite (CuFeS2)",
+    "active_compounds": ["Copper-Iron Sulphide Calx", "Trace Gold", "Micro-elements"],
+    "contraindications": ["Wilson's disease", "Advanced hepatic cirrhosis", "Hemochromatosis"],
+    "traditional_uses": ["Pandu Roga", "Anidra", "Hridroga", "Rasayana"]
+  },
+  {
+    "id": "HERB-018",
+    "common_name": "Loha Bhasma",
+    "sanskrit_name": "Lauha Bhasma (100 Puti)",
+    "botanical_name": "Incinerated Elemental Iron Calx",
+    "active_compounds": ["Microfine Elemental Fe (Fe2O3/Fe3O4)", "Magnetic nano-particles"],
+    "contraindications": ["Hemolytic anemia without iron deficiency", "Hemochromatosis", "Severe ulcerative lesions"],
+    "traditional_uses": ["Classical Pandu treatment", "Rakta Dhatu Vardhana", "Ayusya", "Vaya Sthapana"]
+  },
+  {
+    "id": "HERB-019",
+    "common_name": "Dadima",
+    "sanskrit_name": "Dadima",
+    "botanical_name": "Punica granatum",
+    "active_compounds": ["Punicalagin", "Ellagic acid", "Anthocyanins", "Punicic acid"],
+    "contraindications": ["Hypotension when combined with high-dose ACE inhibitors (additive)"],
+    "traditional_uses": ["Pandu Roga Diet", "Raktapitta", "Hridya", "Rochana", "Deepana"]
+  },
+  {
+    "id": "HERB-020",
+    "common_name": "Draksha",
+    "sanskrit_name": "Draksha",
+    "botanical_name": "Vitis vinifera",
+    "active_compounds": ["Resveratrol", "Proanthocyanidins", "Flavonoids", "Iron minerals"],
+    "contraindications": ["Diabetic gastroparesis in acute state", "Unchecked hyperglycemia in high doses"],
+    "traditional_uses": ["Pandu nutritional support", "Daurbalya", "Vata-Pitta Shamana", "Virechana mridu"]
+  },
+  {
+    "id": "HERB-021",
+    "common_name": "Bibhitaki",
+    "sanskrit_name": "Bibhitaki",
+    "botanical_name": "Terminalia bellirica",
+    "active_compounds": ["Bellericanin", "Gallic acid", "Ellagic acid", "Beta-sitosterol"],
+    "contraindications": ["Severe dry cough with mucosal erosion", "Marked emaciation"],
+    "traditional_uses": ["Triphala constituent in Pandu", "Kaphaja Pandu", "Rakta Shodhaka"]
+  },
+  {
+    "id": "HERB-022",
+    "common_name": "Musta",
+    "sanskrit_name": "Musta",
+    "botanical_name": "Cyperus rotundus",
+    "active_compounds": ["Cyperene", "Cyperotundone", "Patchoulenone", "Rotundene"],
+    "contraindications": ["Severe chronic constipation (Grahi action)"],
+    "traditional_uses": ["Amapachana in Pandu", "Grahani", "Yakritottejaka", "Jwara"]
+  },
+  {
+    "id": "HERB-023",
+    "common_name": "Vidanga",
+    "sanskrit_name": "Vidanga",
+    "botanical_name": "Embelia ribes",
+    "active_compounds": ["Embelin", "Homoembelin", "Vilangin", "Quercitol"],
+    "contraindications": ["Contraceptive desire / fertility therapy (antifertility activity documented)", "Pregnancy"],
+    "traditional_uses": ["Krimija Pandu (Helminth-induced anemia)", "Deepana", "Anulomana"]
+  },
+  {
+    "id": "HERB-024",
+    "common_name": "Shunthi",
+    "sanskrit_name": "Shunthi",
+    "botanical_name": "Zingiber officinale",
+    "active_compounds": ["6-Gingerol", "6-Shogaol", "Zingiberene", "Paradol"],
+    "contraindications": ["Active bleeding peptic ulcer", "Concomitant high-dose anticoagulant therapy (monitor)"],
+    "traditional_uses": ["Agnideepana", "Bioavailability enhancer for iron bhasmas", "Amadoshahara"]
+  },
+  {
+    "id": "HERB-025",
+    "common_name": "Pippali",
+    "sanskrit_name": "Pippali",
+    "botanical_name": "Piper longum",
+    "active_compounds": ["Piperine", "Piperlongumine", "Piperlonguminine", "Pipernonaline"],
+    "contraindications": ["Acute gastritis with ulceration", "Pitta prakopa state without cooling Anupana"],
+    "traditional_uses": ["Yogavahi (Bioenhancer for iron absorption)", "Plihodara", "Deepana"]
+  },
+  {
+    "id": "HERB-026",
+    "common_name": "Maricha",
+    "sanskrit_name": "Maricha",
+    "botanical_name": "Piper nigrum",
+    "active_compounds": ["Piperine", "Chavicine", "Piperidine", "Caryophyllene"],
+    "contraindications": ["Active peptic ulceration", "Severe esophageal reflux"],
+    "traditional_uses": ["Trikatu component", "Pramathi (Channel-clearing for Dhatu nourishment)", "Deepana"]
+  },
+  {
+    "id": "HERB-027",
+    "common_name": "Shilajit",
+    "sanskrit_name": "Shuddha Shilajit",
+    "botanical_name": "Asphaltum punjabianum",
+    "active_compounds": ["Fulvic acid", "Humic acid", "Dibenzo-alpha-pyrones", "Micro-trace elements"],
+    "contraindications": ["Hyperuricemia / active gouty arthritis", "Hemochromatosis", "Severe cardiac failure"],
+    "traditional_uses": ["Rasayana", "Kshaya", "Pandu adjuvant", "Dhatu Poshaka"]
+  },
+  {
+    "id": "HERB-028",
+    "common_name": "Katuki",
+    "sanskrit_name": "Katuki",
+    "botanical_name": "Picrorhiza kurroa",
+    "active_compounds": ["Picroside I", "Picroside II", "Kutkoside", "Apocynin"],
+    "contraindications": ["Severe non-infectious chronic diarrhea", "Hypotension with cardiac glycosides"],
+    "traditional_uses": ["Yakritodara in Pandu", "Kamala", "Bile secretagogue", "Pitta Rechana"]
+  },
+  {
+    "id": "HERB-029",
+    "common_name": "Manjistha",
+    "sanskrit_name": "Manjistha",
+    "botanical_name": "Rubia cordifolia",
+    "active_compounds": ["Purpurin", "Munjistin", "Alizarin", "Rubiadin"],
+    "contraindications": ["Pregnancy (mild emmenagogue)", "Severe acute nephrolithiasis"],
+    "traditional_uses": ["Raktashodhaka", "Pandu Raktapitta", "Varnya", "Rasayana"]
+  },
+  {
+    "id": "HERB-030",
+    "common_name": "Sariva",
+    "sanskrit_name": "Shveta Sariva",
+    "botanical_name": "Hemidesmus indicus",
+    "active_compounds": ["2-Hydroxy-4-methoxybenzaldehyde", "Lupeol", "Hemidesmin", "Resin acids"],
+    "contraindications": ["None prominent at therapeutic doses; caution in marked bradycardia"],
+    "traditional_uses": ["Pitta Pandu", "Daha Prashamana", "Rakta Prasadana", "Deepana"]
+  }
+]

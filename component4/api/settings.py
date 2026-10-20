@@ -1,0 +1,26 @@
+"""Configuration read from environment variables (or component4/.env)."""
+
+import os
+import secrets
+from pathlib import Path
+
+from dotenv import load_dotenv
+
+COMPONENT_DIR = Path(__file__).resolve().parent.parent  # component4/
+load_dotenv(COMPONENT_DIR / ".env")
+
+# PostgreSQL in the proposal, e.g.
+#   DATABASE_URL=postgresql+psycopg2://ayurai:password@localhost:5432/ayurai_c4
+# Falls back to a local SQLite file so the API also runs before Postgres is installed.
+DATABASE_URL = os.getenv("DATABASE_URL") or f"sqlite:///{COMPONENT_DIR / 'api' / 'c4_dev.sqlite3'}"
+
+# Secret used to sign JWTs. If none is configured, a random one is made per
+# process (safe, but every restart logs everybody out).
+JWT_SECRET = os.getenv("JWT_SECRET") or secrets.token_hex(32)
+JWT_ALGORITHM = "HS256"
+JWT_EXPIRE_MINUTES = int(os.getenv("JWT_EXPIRE_MINUTES", "60"))
+
+# Shared key that Component 2 / 3 services send to post audit events.
+SERVICE_API_KEY = os.getenv("C4_SERVICE_API_KEY", "")
+
+RESULTS_DIR = COMPONENT_DIR / "results"

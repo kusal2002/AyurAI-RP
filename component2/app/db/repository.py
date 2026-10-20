@@ -515,3 +515,138 @@ def get_symptom(
         ).single()
 
     return record["symptom"] if record else None
+
+def resolve_symptom_reference(
+    reference: str,
+    driver: Driver | None = None,
+) -> dict[str, Any]:
+    """Resolve a canonical symptom ID, name, or alias without guessing.
+
+    Returns:
+        {"status": "resolved", "symptom": {...}, "candidates": [...]}
+        {"status": "not_found", "symptom": None, "candidates": []}
+        {"status": "ambiguous", "symptom": None, "candidates": [...]}
+    """
+    if not isinstance(reference, str) or not reference.strip():
+        raise ValueError("reference must not be empty.")
+
+    normalized_reference = reference.strip()
+    db = _get_driver(driver)
+
+    query = """
+    MATCH (s:Symptom)
+    WHERE s.symptom_id = $reference
+       OR toLower(trim(coalesce(s.name, ''))) = $normalized_reference
+       OR any(
+           alias IN coalesce(s.aliases, [])
+           WHERE toLower(trim(alias)) = $normalized_reference
+       )
+    RETURN collect(DISTINCT properties(s)) AS symptoms
+    """
+
+    with db.session() as session:
+        record = session.run(
+            query,
+            reference=normalized_reference,
+            normalized_reference=normalized_reference.casefold(),
+        ).single()
+
+    candidates = record["symptoms"] if record else []
+
+    if len(candidates) == 1:
+        return {
+            "status": "resolved",
+            "symptom": candidates[0],
+            "candidates": candidates,
+        }
+
+    if len(candidates) > 1:
+        return {
+            "status": "ambiguous",
+            "symptom": None,
+            "candidates": candidates,
+        }
+
+    return {
+        "status": "not_found",
+        "symptom": None,
+        "candidates": [],
+    }
+
+def get_concepts(
+    concept_ids: list[str],
+    driver: Driver | None = None,
+) -> dict[str, dict[str, Any]]:
+    """Retrieve ontology labels and properties for many concept IDs at once.
+
+    Returns a mapping of concept_id -> {"labels": [...], "properties": {...}}.
+    IDs with no matching concept are absent from the mapping. When an ID
+    matches more than one ontology node, every matching label is returned
+    so the caller can treat the concept as ambiguous.
+    """
+    unique_ids = sorted(
+        {
+            concept_id.strip()
+            for concept_id in concept_ids
+            if isinstance(concept_id, str) and concept_id.strip()
+        }
+    )
+
+    if not unique_ids:
+        return {}
+
+    db = _get_driver(driver)
+
+    label_conditions = " OR ".join(
+        f"(node:{label} AND node.{identifier} = concept_id)"
+        for label, identifier in CONCEPT_IDENTIFIERS.items()
+    )
+
+    query = f"""
+    UNWIND $concept_ids AS concept_id
+    MATCH (node)
+    WHERE {label_conditions}
+    RETURN concept_id, labels(node) AS node_labels,
+           properties(node) AS properties
+    """
+
+    concepts: dict[str, dict[str, Any]] = {}
+
+    with db.session() as session:
+        for record in session.run(query, concept_ids=unique_ids):
+            entry = concepts.setdefault(
+                record["concept_id"],
+                {"labels": [], "properties": record["properties"]},
+            )
+            for label in record["node_labels"]:
+                if (
+                    label in CONCEPT_IDENTIFIERS
+                    and label not in entry["labels"]
+                ):
+                    entry["labels"].append(label)
+
+    return concepts
+
+
+def list_evidence(
+    driver: Driver | None = None,
+    limit: int = 10000,
+) -> list[dict[str, Any]]:
+    """Return stored evidence records ordered by evidence_id."""
+    if not isinstance(limit, int) or isinstance(limit, bool) or limit < 1:
+        raise ValueError("limit must be a positive integer.")
+
+    db = _get_driver(driver)
+
+    query = """
+    MATCH (e:Evidence)
+    RETURN properties(e) AS evidence
+    ORDER BY e.evidence_id
+    LIMIT $limit
+    """
+
+    with db.session() as session:
+        return [
+            record["evidence"]
+            for record in session.run(query, limit=limit)
+        ]

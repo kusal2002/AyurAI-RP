@@ -1,0 +1,7 @@
+# Optional dependencies for OCR of scanned source books.
+# Not needed by the API or by the unit tests.
+#   pip install -r requirements-ocr.txt
+# The Tesseract OCR engine itself is a separate local install; see
+# docs/knowledge_ingestion.md (OCR section).
+pillow==12.3.0
+pypdfium2==5.13.0

@@ -114,6 +114,18 @@ candidate.
 
 TherapeuticPrinciple -> RECOMMENDS_LIFESTYLE -> Lifestyle
 
+### CONTAINS_INGREDIENT (v1.1, descriptive)
+
+Records that a source lists a herb as an ingredient of a formulation.
+
+Formulation -> CONTAINS_INGREDIENT -> Herb
+
+Descriptive predicates live in `DESCRIPTIVE_RELATIONSHIP_RULES`, separate
+from the reasoning predicates. Knowledge-chain traversal and candidate
+ranking do not follow them, so they never change Component 2 output. They
+are accepted only by `validate_relationship(..., allow_descriptive=True)`,
+used when promoting reviewed source claims (Stage E).
+
 ### SUPPORTED_BY
 
 Associates a knowledge claim or graph relationship with provenance from

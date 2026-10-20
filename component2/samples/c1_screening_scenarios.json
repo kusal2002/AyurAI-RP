@@ -1,0 +1,529 @@
+{
+  "fixture": "c1_screening_scenarios_v1",
+  "warning": "SYNTHETIC scenarios for integration testing against the sandbox graph. Not real people.",
+  "scenarios": [
+    {
+      "scenario_id": "syn-01-high-classic",
+      "title": "High risk, pallor + fatigue + breathlessness present",
+      "expected": "completed: symptoms resolve (alias 'shortness of breath'); Pandu interpretation; herb one sufficient, herb two conflicting, formulation insufficient",
+      "payload": {
+        "session_id": "synthetic-scenarios-v1",
+        "screening_result": {
+          "condition": "anemia",
+          "risk_level": "high",
+          "screening_confidence": 0.86,
+          "evidence_strength": "moderate",
+          "status": "completed",
+          "requires_clinician_review": true
+        },
+        "hemoglobin": {
+          "estimated_g_dl": 8.9,
+          "measured_lab_g_dl": null,
+          "source": "synthetic multimodal estimate",
+          "clinically_validated": false
+        },
+        "modality_results": {
+          "conjunctiva": {
+            "model_predictions": [
+              {
+                "model": "synthetic-effnet",
+                "class_score": 0.71
+              }
+            ],
+            "quality_score": 0.82,
+            "agreement": true
+          },
+          "nailbeds": {
+            "anaemia_class_score": 0.64,
+            "estimated_hb_g_dl": 10.9,
+            "quality_score": 0.77
+          },
+          "tongue": {
+            "quality_status": "acceptable",
+            "anaemia_prediction": 0.58
+          },
+          "ppg": {
+            "estimated_hb_g_dl": 11.1,
+            "signal_quality": 0.69,
+            "status": "completed"
+          }
+        },
+        "symptoms": [
+          {
+            "name": "pallor",
+            "present": true
+          },
+          {
+            "name": "fatigue",
+            "present": true
+          },
+          {
+            "name": "shortness of breath",
+            "present": true
+          }
+        ],
+        "clinical_findings": [],
+        "contributing_factors": [],
+        "missing_data": [],
+        "recommendation": "Synthetic scenario for integration testing.",
+        "model_version": "synthetic-scenario-v1",
+        "disclaimer": "SYNTHETIC test payload. Not a real person and not a Component 1 model output.",
+        "screening_id": "syn-01-high-classic"
+      },
+      "expected_decision": "caution"
+    },
+    {
+      "scenario_id": "syn-02-moderate-fatigue",
+      "title": "Moderate risk, fatigue only",
+      "expected": "completed: absent pallor ignored; fatigue maps to Pandu",
+      "payload": {
+        "session_id": "synthetic-scenarios-v1",
+        "screening_result": {
+          "condition": "anemia",
+          "risk_level": "moderate",
+          "screening_confidence": 0.62,
+          "evidence_strength": "moderate",
+          "status": "completed",
+          "requires_clinician_review": true
+        },
+        "hemoglobin": {
+          "estimated_g_dl": 11.2,
+          "measured_lab_g_dl": null,
+          "source": "synthetic multimodal estimate",
+          "clinically_validated": false
+        },
+        "modality_results": {
+          "conjunctiva": {
+            "model_predictions": [
+              {
+                "model": "synthetic-effnet",
+                "class_score": 0.71
+              }
+            ],
+            "quality_score": 0.82,
+            "agreement": true
+          },
+          "nailbeds": {
+            "anaemia_class_score": 0.64,
+            "estimated_hb_g_dl": 10.9,
+            "quality_score": 0.77
+          },
+          "tongue": {
+            "quality_status": "acceptable",
+            "anaemia_prediction": 0.58
+          },
+          "ppg": {
+            "estimated_hb_g_dl": 11.1,
+            "signal_quality": 0.69,
+            "status": "completed"
+          }
+        },
+        "symptoms": [
+          {
+            "name": "fatigue",
+            "present": true
+          },
+          {
+            "name": "pallor",
+            "present": false
+          }
+        ],
+        "clinical_findings": [],
+        "contributing_factors": [],
+        "missing_data": [],
+        "recommendation": "Synthetic scenario for integration testing.",
+        "model_version": "synthetic-scenario-v1",
+        "disclaimer": "SYNTHETIC test payload. Not a real person and not a Component 1 model output.",
+        "screening_id": "syn-02-moderate-fatigue"
+      },
+      "expected_decision": "recommend_for_review"
+    },
+    {
+      "scenario_id": "syn-03-low-no-symptoms",
+      "title": "Low risk, all symptoms absent",
+      "expected": "insufficient_input: no present symptom to reason about",
+      "payload": {
+        "session_id": "synthetic-scenarios-v1",
+        "screening_result": {
+          "condition": "anemia",
+          "risk_level": "low",
+          "screening_confidence": 0.91,
+          "evidence_strength": "moderate",
+          "status": "completed",
+          "requires_clinician_review": true
+        },
+        "hemoglobin": {
+          "estimated_g_dl": 13.4,
+          "measured_lab_g_dl": null,
+          "source": "synthetic multimodal estimate",
+          "clinically_validated": false
+        },
+        "modality_results": {
+          "conjunctiva": {
+            "model_predictions": [
+              {
+                "model": "synthetic-effnet",
+                "class_score": 0.71
+              }
+            ],
+            "quality_score": 0.82,
+            "agreement": true
+          },
+          "nailbeds": {
+            "anaemia_class_score": 0.64,
+            "estimated_hb_g_dl": 10.9,
+            "quality_score": 0.77
+          },
+          "tongue": {
+            "quality_status": "acceptable",
+            "anaemia_prediction": 0.58
+          },
+          "ppg": {
+            "estimated_hb_g_dl": 11.1,
+            "signal_quality": 0.69,
+            "status": "completed"
+          }
+        },
+        "symptoms": [
+          {
+            "name": "pallor",
+            "present": false
+          },
+          {
+            "name": "fatigue",
+            "present": false
+          },
+          {
+            "name": "dizziness",
+            "present": false
+          }
+        ],
+        "clinical_findings": [],
+        "contributing_factors": [],
+        "missing_data": [],
+        "recommendation": "Synthetic scenario for integration testing.",
+        "model_version": "synthetic-scenario-v1",
+        "disclaimer": "SYNTHETIC test payload. Not a real person and not a Component 1 model output.",
+        "screening_id": "syn-03-low-no-symptoms"
+      },
+      "expected_decision": null
+    },
+    {
+      "scenario_id": "syn-04-unknown-symptom",
+      "title": "Moderate risk, one unknown symptom name",
+      "expected": "completed: 'hair loss' reported unresolved (not guessed); 'pale skin' resolves to pallor",
+      "payload": {
+        "session_id": "synthetic-scenarios-v1",
+        "screening_result": {
+          "condition": "anemia",
+          "risk_level": "moderate",
+          "screening_confidence": 0.58,
+          "evidence_strength": "moderate",
+          "status": "completed",
+          "requires_clinician_review": true
+        },
+        "hemoglobin": {
+          "estimated_g_dl": 11.0,
+          "measured_lab_g_dl": null,
+          "source": "synthetic multimodal estimate",
+          "clinically_validated": false
+        },
+        "modality_results": {
+          "conjunctiva": {
+            "model_predictions": [
+              {
+                "model": "synthetic-effnet",
+                "class_score": 0.71
+              }
+            ],
+            "quality_score": 0.82,
+            "agreement": true
+          },
+          "nailbeds": {
+            "anaemia_class_score": 0.64,
+            "estimated_hb_g_dl": 10.9,
+            "quality_score": 0.77
+          },
+          "tongue": {
+            "quality_status": "acceptable",
+            "anaemia_prediction": 0.58
+          },
+          "ppg": {
+            "estimated_hb_g_dl": 11.1,
+            "signal_quality": 0.69,
+            "status": "completed"
+          }
+        },
+        "symptoms": [
+          {
+            "name": "hair loss",
+            "present": true
+          },
+          {
+            "name": "pale skin",
+            "present": true
+          }
+        ],
+        "clinical_findings": [],
+        "contributing_factors": [],
+        "missing_data": [],
+        "recommendation": "Synthetic scenario for integration testing.",
+        "model_version": "synthetic-scenario-v1",
+        "disclaimer": "SYNTHETIC test payload. Not a real person and not a Component 1 model output.",
+        "screening_id": "syn-04-unknown-symptom"
+      },
+      "expected_decision": "recommend_for_review"
+    },
+    {
+      "scenario_id": "syn-05-null-confidence",
+      "title": "High risk with null confidence (missing modalities)",
+      "expected": "completed: confidence null passed through; dizziness claim is unverified, so no candidate is sufficient (request status conflicting_evidence because of herb two)",
+      "payload": {
+        "session_id": "synthetic-scenarios-v1",
+        "screening_result": {
+          "condition": "anemia",
+          "risk_level": "high",
+          "screening_confidence": null,
+          "evidence_strength": "moderate",
+          "status": "completed",
+          "requires_clinician_review": true
+        },
+        "hemoglobin": {
+          "estimated_g_dl": null,
+          "measured_lab_g_dl": null,
+          "source": "synthetic multimodal estimate",
+          "clinically_validated": false
+        },
+        "modality_results": {
+          "conjunctiva": {
+            "model_predictions": [
+              {
+                "model": "synthetic-effnet",
+                "class_score": 0.71
+              }
+            ],
+            "quality_score": 0.82,
+            "agreement": true
+          },
+          "nailbeds": {
+            "anaemia_class_score": 0.64,
+            "estimated_hb_g_dl": 10.9,
+            "quality_score": 0.77
+          },
+          "tongue": {
+            "quality_status": "not_collected",
+            "anaemia_prediction": null
+          },
+          "ppg": {
+            "estimated_hb_g_dl": null,
+            "signal_quality": null,
+            "status": "not_collected"
+          }
+        },
+        "symptoms": [
+          {
+            "name": "dizziness",
+            "present": true
+          }
+        ],
+        "clinical_findings": [],
+        "contributing_factors": [],
+        "missing_data": [
+          "ppg_signal",
+          "tongue_image"
+        ],
+        "recommendation": "Synthetic scenario for integration testing.",
+        "model_version": "synthetic-scenario-v1",
+        "disclaimer": "SYNTHETIC test payload. Not a real person and not a Component 1 model output.",
+        "screening_id": "syn-05-null-confidence"
+      },
+      "expected_decision": "caution"
+    },
+    {
+      "scenario_id": "syn-06-unsupported-tier",
+      "title": "Unsupported upstream risk level",
+      "expected": "blocked: unsupported_upstream_risk_tier",
+      "payload": {
+        "session_id": "synthetic-scenarios-v1",
+        "screening_result": {
+          "condition": "anemia",
+          "risk_level": "very_high",
+          "screening_confidence": 0.9,
+          "evidence_strength": "moderate",
+          "status": "completed",
+          "requires_clinician_review": true
+        },
+        "hemoglobin": {
+          "estimated_g_dl": 7.5,
+          "measured_lab_g_dl": null,
+          "source": "synthetic multimodal estimate",
+          "clinically_validated": false
+        },
+        "modality_results": {
+          "conjunctiva": {
+            "model_predictions": [
+              {
+                "model": "synthetic-effnet",
+                "class_score": 0.71
+              }
+            ],
+            "quality_score": 0.82,
+            "agreement": true
+          },
+          "nailbeds": {
+            "anaemia_class_score": 0.64,
+            "estimated_hb_g_dl": 10.9,
+            "quality_score": 0.77
+          },
+          "tongue": {
+            "quality_status": "acceptable",
+            "anaemia_prediction": 0.58
+          },
+          "ppg": {
+            "estimated_hb_g_dl": 11.1,
+            "signal_quality": 0.69,
+            "status": "completed"
+          }
+        },
+        "symptoms": [
+          {
+            "name": "pallor",
+            "present": true
+          }
+        ],
+        "clinical_findings": [],
+        "contributing_factors": [],
+        "missing_data": [],
+        "recommendation": "Synthetic scenario for integration testing.",
+        "model_version": "synthetic-scenario-v1",
+        "disclaimer": "SYNTHETIC test payload. Not a real person and not a Component 1 model output.",
+        "screening_id": "syn-06-unsupported-tier"
+      },
+      "expected_decision": null
+    },
+    {
+      "scenario_id": "syn-07-symptom-without-claims",
+      "title": "Symptom known to the graph but with no claims",
+      "expected": "completed: symptom found but no interpretation; explicit abstention",
+      "payload": {
+        "session_id": "synthetic-scenarios-v1",
+        "screening_result": {
+          "condition": "anemia",
+          "risk_level": "moderate",
+          "screening_confidence": 0.55,
+          "evidence_strength": "moderate",
+          "status": "completed",
+          "requires_clinician_review": true
+        },
+        "hemoglobin": {
+          "estimated_g_dl": 11.4,
+          "measured_lab_g_dl": null,
+          "source": "synthetic multimodal estimate",
+          "clinically_validated": false
+        },
+        "modality_results": {
+          "conjunctiva": {
+            "model_predictions": [
+              {
+                "model": "synthetic-effnet",
+                "class_score": 0.71
+              }
+            ],
+            "quality_score": 0.82,
+            "agreement": true
+          },
+          "nailbeds": {
+            "anaemia_class_score": 0.64,
+            "estimated_hb_g_dl": 10.9,
+            "quality_score": 0.77
+          },
+          "tongue": {
+            "quality_status": "acceptable",
+            "anaemia_prediction": 0.58
+          },
+          "ppg": {
+            "estimated_hb_g_dl": 11.1,
+            "signal_quality": 0.69,
+            "status": "completed"
+          }
+        },
+        "symptoms": [
+          {
+            "name": "palpitations",
+            "present": true
+          }
+        ],
+        "clinical_findings": [],
+        "contributing_factors": [],
+        "missing_data": [],
+        "recommendation": "Synthetic scenario for integration testing.",
+        "model_version": "synthetic-scenario-v1",
+        "disclaimer": "SYNTHETIC test payload. Not a real person and not a Component 1 model output.",
+        "screening_id": "syn-07-symptom-without-claims"
+      },
+      "expected_decision": "abstain"
+    },
+    {
+      "scenario_id": "syn-08-ambiguous-symptom",
+      "title": "Ambiguous symptom name",
+      "expected": "insufficient_input: 'weakness' is ambiguous (two symptoms) and is not guessed",
+      "payload": {
+        "session_id": "synthetic-scenarios-v1",
+        "screening_result": {
+          "condition": "anemia",
+          "risk_level": "moderate",
+          "screening_confidence": 0.6,
+          "evidence_strength": "moderate",
+          "status": "completed",
+          "requires_clinician_review": true
+        },
+        "hemoglobin": {
+          "estimated_g_dl": 11.3,
+          "measured_lab_g_dl": null,
+          "source": "synthetic multimodal estimate",
+          "clinically_validated": false
+        },
+        "modality_results": {
+          "conjunctiva": {
+            "model_predictions": [
+              {
+                "model": "synthetic-effnet",
+                "class_score": 0.71
+              }
+            ],
+            "quality_score": 0.82,
+            "agreement": true
+          },
+          "nailbeds": {
+            "anaemia_class_score": 0.64,
+            "estimated_hb_g_dl": 10.9,
+            "quality_score": 0.77
+          },
+          "tongue": {
+            "quality_status": "acceptable",
+            "anaemia_prediction": 0.58
+          },
+          "ppg": {
+            "estimated_hb_g_dl": 11.1,
+            "signal_quality": 0.69,
+            "status": "completed"
+          }
+        },
+        "symptoms": [
+          {
+            "name": "weakness",
+            "present": true
+          }
+        ],
+        "clinical_findings": [],
+        "contributing_factors": [],
+        "missing_data": [],
+        "recommendation": "Synthetic scenario for integration testing.",
+        "model_version": "synthetic-scenario-v1",
+        "disclaimer": "SYNTHETIC test payload. Not a real person and not a Component 1 model output.",
+        "screening_id": "syn-08-ambiguous-symptom"
+      },
+      "expected_decision": null
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+# Python environment
+.venv/
+__pycache__/
+*.pyc
+
+# Research datasets
+data/raw/
+data/external/
+data/processed/
+data/metadata/
+
+# Local configuration
+.env
+.env.*
