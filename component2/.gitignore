@@ -10,6 +10,7 @@ venv/
 # Environment variables / secrets
 .env
 .env.*
+!.env.example
 
 # Python tooling
 .pytest_cache/
@@ -25,3 +26,8 @@ chroma_db/
 # OS
 .DS_Store
 Thumbs.db
+
+# Source books and generated ingestion output (book text, manifests).
+# Never commit copyrighted or private source material.
+corpus/raw/
+corpus/extracted/
