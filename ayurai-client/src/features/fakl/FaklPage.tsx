@@ -6,8 +6,8 @@ import { StatusBadge, type StatusSpec } from "@/components/shared/status"
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/context/auth"
 import { toErrorInfo, useWorkspace, type ErrorInfo } from "@/context/workspace"
-import { isAbortError } from "@/lib/api/client"
-import { component4Api, type FaklStatus } from "@/lib/api/component4"
+import { isAbortError, isApiError } from "@/lib/api/client"
+import { component4Api, type FaklPrototype, type FaklStatus } from "@/lib/api/component4"
 import { C4SignInRequired } from "@/features/federation/shared"
 
 const ready: StatusSpec = { label: "Ready", tone: "positive", icon: CheckCircle2 }
@@ -115,6 +115,105 @@ function ReadinessCheck() {
   )
 }
 
+type PrototypeState =
+  | { status: "loading" }
+  | { status: "missing" }
+  | { status: "error"; error: ErrorInfo }
+  | { status: "success"; data: FaklPrototype }
+
+const fmt = (value: string) => Number(value).toFixed(3)
+
+/** Results of the FAKL algorithm on SYNTHETIC data (fakl/run_fakl.py). */
+function PrototypeResults() {
+  const [state, setState] = React.useState<PrototypeState>({ status: "loading" })
+
+  React.useEffect(() => {
+    const controller = new AbortController()
+    component4Api
+      .faklPrototype(controller.signal)
+      .then((data) => setState({ status: "success", data }))
+      .catch((error) => {
+        if (isAbortError(error)) return
+        // 404 = run_fakl.py has not produced results yet (not an error for this page)
+        setState(isApiError(error) && error.status === 404 ? { status: "missing" } : { status: "error", error: toErrorInfo(error) })
+      })
+    return () => controller.abort()
+  }, [])
+
+  if (state.status === "loading") return <LoadingState label="Loading prototype results…" />
+  if (state.status === "error") return <ErrorState error={state.error} />
+  if (state.status === "missing") {
+    return <p className="text-sm text-slate-500">No prototype results yet — run <code>component4/fakl/run_fakl.py</code>.</p>
+  }
+
+  const { summary, claims } = state.data
+  return (
+    <div className="space-y-5">
+      <Notice tone="caution" title="Synthetic data">
+        {summary[0]?.data}. These numbers show that the algorithm behaves as designed; they are not clinical findings.
+      </Notice>
+
+      <div>
+        <h3 className="mb-2 text-xs font-semibold tracking-wide text-slate-500 uppercase">
+          Gap to centralised pooling (lower = closer to sharing all feedback)
+        </h3>
+        <div className="overflow-x-auto rounded-lg border border-slate-100">
+          <table className="w-full min-w-[560px] text-left text-sm">
+            <thead>
+              <tr className="bg-slate-50/70 text-[10px] font-bold tracking-wider text-slate-400 uppercase">
+                <th className="px-4 py-3">Setting</th>
+                <th className="px-4 py-3">ε</th>
+                <th className="px-4 py-3">Mean gap ± std</th>
+                <th className="px-4 py-3">Numbers shared per clinic</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {summary.map((row) => (
+                <tr key={`${row.setting}-${row.epsilon}`}>
+                  <td className="px-4 py-2.5 font-medium text-slate-800">{row.setting}</td>
+                  <td className="px-4 py-2.5">{row.epsilon || "—"}</td>
+                  <td className="px-4 py-2.5 tabular-nums">{fmt(row.mean_abs_diff)} ± {fmt(row.std)}</td>
+                  <td className="px-4 py-2.5 tabular-nums">{Number(row.values_shared_per_clinic).toFixed(1)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div>
+        <h3 className="mb-2 text-xs font-semibold tracking-wide text-slate-500 uppercase">Claim confidence before and after</h3>
+        <div className="overflow-x-auto rounded-lg border border-slate-100">
+          <table className="w-full min-w-[720px] text-left text-sm">
+            <thead>
+              <tr className="bg-slate-50/70 text-[10px] font-bold tracking-wider text-slate-400 uppercase">
+                <th className="px-4 py-3">Claim (synthetic)</th>
+                <th className="px-4 py-3">Prior</th>
+                <th className="px-4 py-3">Centralised</th>
+                <th className="px-4 py-3">Federated</th>
+                <th className="px-4 py-3">+ suppression</th>
+                <th className="px-4 py-3">+ DP (ε = 1)</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {claims.map((claim) => (
+                <tr key={claim.claim_id}>
+                  <td className="px-4 py-2.5 text-slate-700">{claim.statement}</td>
+                  <td className="px-4 py-2.5 tabular-nums text-slate-500">{fmt(claim.prior)}</td>
+                  <td className="px-4 py-2.5 tabular-nums">{fmt(claim.centralised)}</td>
+                  <td className="px-4 py-2.5 tabular-nums font-semibold text-emerald-800">{fmt(claim.federated)}</td>
+                  <td className="px-4 py-2.5 tabular-nums">{fmt(claim.federated_suppression)}</td>
+                  <td className="px-4 py-2.5 tabular-nums">{fmt(claim.federated_dp_eps1)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export function FaklPage() {
   const { user } = useAuth()
   const { mode } = useWorkspace()
@@ -127,9 +226,10 @@ export function FaklPage() {
         description="Federating practitioner-driven updates to the Ayurvedic knowledge graph across clinics, without sharing feedback text or patient data (proposal SO3)."
       />
 
-      <Notice tone="info" icon={Clock} className="mb-5" title="Design stage — implementation scheduled Dec 2026 – Feb 2027">
-        This page shows the FAKL design and a live, read-only check of whether its data source is ready. No knowledge-graph
-        federation runs yet, and no results are shown or simulated.
+      <Notice tone="info" icon={Clock} className="mb-5" title="Prototype stage — full implementation scheduled Dec 2026 – Feb 2027">
+        The FAKL algorithm is implemented and tested on synthetic claims in Component 2's schema (results below). It is
+        not yet connected to Component 2's real graph, which has no claims or clinic-tagged feedback yet — see the live
+        readiness check.
       </Notice>
 
       <Panel className="mb-5" title="How FAKL will work" description="The same idea as federated model training, applied to the knowledge graph's claim confidences.">
@@ -152,6 +252,14 @@ export function FaklPage() {
         </ol>
       </Panel>
 
+      <Panel
+        className="mb-5"
+        title="Prototype results"
+        description="FAKL run on 3 simulated clinics: each clinic shares only per-claim agree / disagree counts, compared with pooling every clinic's feedback centrally."
+      >
+        {mode !== "live" || !user ? <C4SignInRequired what="Prototype results" /> : <PrototypeResults />}
+      </Panel>
+
       <div className="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]">
         <Panel
           title="Data-source readiness (live)"
@@ -164,7 +272,7 @@ export function FaklPage() {
         <Panel title="Plan">
           <KeyValueList
             items={[
-              { label: "1. Prototype", value: "Local Neo4j (Docker) with synthetic claims in Component 2's schema" },
+              { label: "1. Prototype ✓", value: "Algorithm + tests on synthetic claims in Component 2's schema (done)" },
               { label: "2. Privacy", value: "Suppress small counts; optional DP noise on per-claim Δ" },
               { label: "3. Integration", value: "Read Component 2's graph read-only once it has claims and clinic-tagged feedback" },
               { label: "4. Evaluation", value: "Compare federated confidences with pooled (centralised) feedback" },

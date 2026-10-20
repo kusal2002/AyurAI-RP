@@ -6,12 +6,14 @@ claims with a confidence value, and practitioner feedback that says which clinic
 it came from. It never writes to Component 2's database.
 """
 
-from fastapi import APIRouter, Depends
+import csv
+
+from fastapi import APIRouter, Depends, HTTPException
 from neo4j import GraphDatabase
 
 from models import User
 from security import get_current_user
-from settings import C2_NEO4J_DATABASE, C2_NEO4J_PASSWORD, C2_NEO4J_URI, C2_NEO4J_USERNAME
+from settings import C2_NEO4J_DATABASE, C2_NEO4J_PASSWORD, C2_NEO4J_URI, C2_NEO4J_USERNAME, RESULTS_DIR
 
 router = APIRouter(prefix="/api/v1/c4/fakl", tags=["FAKL (planned)"])
 
@@ -47,3 +49,16 @@ def fakl_status(user: User = Depends(get_current_user)):
         # Fixed message: the original error could contain the database address
         status["error"] = "Could not read Component 2's knowledge graph (offline, paused or credentials changed)."
     return status
+
+
+@router.get("/prototype")
+def fakl_prototype(user: User = Depends(get_current_user)):
+    """Results of the FAKL prototype on SYNTHETIC data (written by fakl/run_fakl.py)."""
+    summary_path, claims_path = RESULTS_DIR / "fakl_summary.csv", RESULTS_DIR / "fakl_claims.csv"
+    if not summary_path.exists() or not claims_path.exists():
+        raise HTTPException(404, "No FAKL prototype results yet — run component4/fakl/run_fakl.py")
+    with open(summary_path, newline="") as f:
+        summary = list(csv.DictReader(f))
+    with open(claims_path, newline="") as f:
+        claims = list(csv.DictReader(f))
+    return {"summary": summary, "claims": claims}

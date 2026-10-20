@@ -115,6 +115,29 @@ export type FaklStatus = {
   } | null
 }
 
+/** FAKL prototype results on SYNTHETIC data (CSV values arrive as strings). */
+export type FaklPrototype = {
+  summary: {
+    setting: string
+    epsilon: string
+    min_votes: string
+    mean_abs_diff: string
+    std: string
+    values_shared_per_clinic: string
+    data: string
+  }[]
+  claims: {
+    claim_id: string
+    statement: string
+    prior: string
+    centralised: string
+    federated: string
+    federated_suppression: string
+    federated_dp_eps1: string
+    data: string
+  }[]
+}
+
 /** One row of results/baselines.csv (CSV values arrive as strings). */
 export type BaselineRow = {
   method: "majority_class" | "centralised_no_dp" | "fedavg_no_dp" | "fedprox_no_dp"
@@ -194,6 +217,8 @@ export const component4Api = {
     component4Client.get<FederationRun[]>("/api/v1/c4/federation/runs", { signal }),
   federationSummary: (signal?: AbortSignal) =>
     component4Client.get<SummaryRow[]>("/api/v1/c4/federation/summary", { signal }),
+  faklPrototype: (signal?: AbortSignal) =>
+    component4Client.get<FaklPrototype>("/api/v1/c4/fakl/prototype", { signal }),
   faklStatus: (signal?: AbortSignal) =>
     component4Client.get<FaklStatus>("/api/v1/c4/fakl/status", { signal, timeoutMs: 30_000 }),
   federationBaselines: (signal?: AbortSignal) =>

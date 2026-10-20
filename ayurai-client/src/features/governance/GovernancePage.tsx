@@ -73,9 +73,9 @@ const capabilities: { area: string; status: StatusSpec; detail: string }[] = [
   },
   {
     area: "Federated knowledge-graph learning (FAKL)",
-    status: missing,
+    status: partial,
     detail:
-      "Designed, not implemented: federate practitioner-feedback-driven changes to claim confidence across clinics. The Knowledge federation page shows the design and a live, read-only readiness check of Component 2's graph. Scheduled Dec 2026 – Feb 2027.",
+      "Prototype: the FAKL algorithm (per-clinic agree / disagree counts, small-count suppression, optional DP noise, federated confidence update) is implemented and tested on synthetic claims in Component 2's schema, and matches centralised pooling exactly without privacy. Not yet connected to Component 2's real graph, which has no claims or clinic-tagged feedback yet (live check on the Knowledge federation page). Full implementation scheduled Dec 2026 – Feb 2027.",
   },
   {
     area: "Client-side data handling",
