@@ -1,0 +1,7 @@
+setting,epsilon,min_votes,mean_abs_diff,std,values_shared_per_clinic,data
+"federated, no privacy",,0,0.0,0.0,23.333333333333332,"SYNTHETIC (illustrative claims and feedback, not clinical knowledge)"
+federated + suppression,,3,0.011521695122394782,0.0,18,"SYNTHETIC (illustrative claims and feedback, not clinical knowledge)"
+federated + suppression + DP,0.5,3,0.08503096634183985,0.019139198358660806,17.822222222222223,"SYNTHETIC (illustrative claims and feedback, not clinical knowledge)"
+federated + suppression + DP,1.0,3,0.05117322675579927,0.01156479426106072,17.977777777777778,"SYNTHETIC (illustrative claims and feedback, not clinical knowledge)"
+federated + suppression + DP,2.0,3,0.029913212856269092,0.007055239275938242,17.77777777777778,"SYNTHETIC (illustrative claims and feedback, not clinical knowledge)"
+federated + suppression + DP,5.0,3,0.018437903092083634,0.0040061524433980915,17.511111111111113,"SYNTHETIC (illustrative claims and feedback, not clinical knowledge)"

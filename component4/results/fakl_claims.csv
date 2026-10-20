@@ -1,0 +1,13 @@
+claim_id,statement,prior,centralised,federated,federated_suppression,federated_dp_eps1,data
+CL-001,Pallor (Pandutva) indicates Pandu Roga,0.7,0.7727,0.7727,0.7619,0.8011,"SYNTHETIC (illustrative claims and feedback, not clinical knowledge)"
+CL-002,Weakness (Daurbalya) indicates Pandu Roga,0.6,0.6957,0.6957,0.6957,0.6242,"SYNTHETIC (illustrative claims and feedback, not clinical knowledge)"
+CL-003,Breathlessness (Shwasa) indicates Pandu Roga,0.5,0.6111,0.6111,0.5714,0.6033,"SYNTHETIC (illustrative claims and feedback, not clinical knowledge)"
+CL-004,Dizziness (Bhrama) indicates Pandu Roga,0.55,0.3269,0.3269,0.3269,0.3827,"SYNTHETIC (illustrative claims and feedback, not clinical knowledge)"
+CL-005,Pandu Roga is associated with Pitta,0.75,0.8333,0.8333,0.8333,0.7252,"SYNTHETIC (illustrative claims and feedback, not clinical knowledge)"
+CL-006,Pandu Roga is associated with Vata,0.5,0.4231,0.4231,0.4,0.5426,"SYNTHETIC (illustrative claims and feedback, not clinical knowledge)"
+CL-007,Pandu Roga is associated with Kapha,0.5,0.4,0.4,0.375,0.4261,"SYNTHETIC (illustrative claims and feedback, not clinical knowledge)"
+CL-008,Pandu Roga affects Rakta Dhatu,0.8,0.88,0.88,0.8696,0.8947,"SYNTHETIC (illustrative claims and feedback, not clinical knowledge)"
+CL-009,Pandu Roga affects Rasa Dhatu,0.6,0.625,0.625,0.6364,0.6347,"SYNTHETIC (illustrative claims and feedback, not clinical knowledge)"
+CL-010,Pandu Roga suggests blood-nourishing therapy,0.65,0.7679,0.7679,0.7679,0.7811,"SYNTHETIC (illustrative claims and feedback, not clinical knowledge)"
+CL-011,Pandu Roga suggests fasting therapy (Langhana),0.5,0.3929,0.3929,0.3929,0.2361,"SYNTHETIC (illustrative claims and feedback, not clinical knowledge)"
+CL-012,Blood-nourishing therapy recommends an iron-rich diet,0.7,0.7586,0.7586,0.7407,0.72,"SYNTHETIC (illustrative claims and feedback, not clinical knowledge)"
