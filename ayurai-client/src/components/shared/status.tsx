@@ -139,6 +139,51 @@ export function dispositionSpec(value: string): StatusSpec {
   return dispositionSpecs[value] ?? { label: value, tone: "neutral", icon: CircleHelp }
 }
 
+export const decisionSpecs: Record<string, StatusSpec> = {
+  recommend_for_review: {
+    label: "Recommend for review",
+    tone: "positive",
+    icon: CheckCircle2,
+    description: "Evidence policy met and no upstream risk rule triggered. A practitioner must still review.",
+  },
+  caution: {
+    label: "Caution",
+    tone: "caution",
+    icon: AlertTriangle,
+    description: "Shown with caution: conflicting or unverified evidence, or an upstream risk rule (high tier, missing or low C1 confidence).",
+  },
+  abstain: {
+    label: "Abstain",
+    tone: "critical",
+    icon: CircleSlash,
+    description: "Component 2 declined to recommend because its evidence policy was not met.",
+  },
+}
+
+export function decisionSpec(decision: string | undefined): StatusSpec {
+  return (decision && decisionSpecs[decision]) || { label: decision ?? "Unknown decision", tone: "neutral", icon: CircleHelp }
+}
+
+/** Provisional research records: never shown without this label. */
+export const provisionalSpec: StatusSpec = {
+  label: "Unverified — practitioner review pending",
+  tone: "caution",
+  icon: CircleDashed,
+  description:
+    "AI-assisted draft quoted from the cited source. Not approved knowledge, not clinical evidence of efficacy, and never sufficient for a recommendation.",
+}
+
+export const evidenceRoleSpecs: Record<string, StatusSpec> = {
+  claim_support: { label: "Primary text", tone: "neutral", icon: CircleDashed, description: "Quoted from the original-language source." },
+  translation_support: { label: "Translation", tone: "neutral", icon: CircleDashed, description: "Quoted from a published translation of the source." },
+  modern_reference: {
+    label: "Modern reference (qualifies)",
+    tone: "info",
+    icon: CircleHelp,
+    description: "Modern literature that qualifies the traditional claim. It is kept separate and does not support it.",
+  },
+}
+
 export const abstentionSpec: StatusSpec = {
   label: "Abstained — no recommendation",
   tone: "caution",

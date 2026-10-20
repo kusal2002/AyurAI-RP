@@ -174,21 +174,21 @@ function GraphCanvas({
           const colors = nodeColors(node)
           const selected = selection?.kind === "node" && selection.id === node.id
           const dimmed = related && !related.nodes.has(node.id)
-          const typeLabel = node.type ? conceptTypeLabels[node.type] ?? node.type : "Type not supplied"
+          const typeLabel = node.type ? conceptTypeLabels[node.type] ?? node.type : ""
           return (
             <g
               key={node.id}
               transform={`translate(${x}, ${y})`}
               role="button"
               tabIndex={0}
-              aria-label={`${node.name ?? node.id}, ${typeLabel}`}
+              aria-label={typeLabel ? `${node.name ?? node.id}, ${typeLabel}` : node.name ?? node.id}
               aria-pressed={selected}
               onClick={() => onSelect({ kind: "node", id: node.id })}
               onKeyDown={(event) => handleKey(event, { kind: "node", id: node.id })}
               className="cursor-pointer outline-none [&:focus-visible>rect]:stroke-[3]"
               opacity={dimmed ? 0.3 : 1}
             >
-              <title>{`${node.name ?? node.id} (${typeLabel})`}</title>
+              <title>{typeLabel ? `${node.name ?? node.id} (${typeLabel})` : node.name ?? node.id}</title>
               <rect
                 width={NODE_W}
                 height={NODE_H}
@@ -275,7 +275,7 @@ function Inspector({
     <div className="space-y-4">
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
-          <h3 className="text-base font-semibold text-slate-900">{node.name ?? "Name not supplied"}</h3>
+          <h3 className="text-base font-semibold text-slate-900">{node.name ?? node.id}</h3>
           <IdChip>{node.id}</IdChip>
         </div>
         <Button variant="ghost" size="icon-sm" aria-label="Clear selection" onClick={onClear}><X /></Button>
