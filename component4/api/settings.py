@@ -25,6 +25,13 @@ SERVICE_API_KEY = os.getenv("C4_SERVICE_API_KEY", "")
 
 RESULTS_DIR = COMPONENT_DIR / "results"
 
+# ---------- Component 2's knowledge graph (Neo4j AuraDB), for FAKL ----------
+# Full-access credentials owned by Component 2: Component 4 only ever READS.
+C2_NEO4J_URI = os.getenv("C2_NEO4J_URI", "")
+C2_NEO4J_USERNAME = os.getenv("C2_NEO4J_USERNAME", "")
+C2_NEO4J_PASSWORD = os.getenv("C2_NEO4J_PASSWORD", "")
+C2_NEO4J_DATABASE = os.getenv("C2_NEO4J_DATABASE", "") or None   # None = server default
+
 # ---------- Blockchain anchoring (Ethereum Sepolia testnet) ----------
 # All optional: without them the API runs normally and anchoring returns 503.
 SEPOLIA_RPC_URL = os.getenv("SEPOLIA_RPC_URL", "")          # contains the Alchemy key: never log it

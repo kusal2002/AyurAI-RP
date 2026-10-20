@@ -8,7 +8,7 @@ import uvicorn
 from fastapi import FastAPI
 
 from database import Base, engine
-from routers import audit_routes, auth_routes, decision_routes, federation_routes
+from routers import audit_routes, auth_routes, decision_routes, fakl_routes, federation_routes
 
 # Create the tables if they do not exist yet (fine for a prototype;
 # a production system would use migrations instead)
@@ -22,6 +22,7 @@ app.include_router(auth_routes.router)
 app.include_router(decision_routes.router)
 app.include_router(audit_routes.router)
 app.include_router(federation_routes.router)
+app.include_router(fakl_routes.router)
 
 
 @app.get("/health")

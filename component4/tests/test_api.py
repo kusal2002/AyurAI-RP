@@ -19,6 +19,7 @@ _tmp = tempfile.TemporaryDirectory(ignore_cleanup_errors=True)
 os.environ["DATABASE_URL"] = f"sqlite:///{Path(_tmp.name) / 'test.sqlite3'}"
 os.environ["JWT_SECRET"] = "test-secret-" + "x" * 52
 os.environ["C4_SERVICE_API_KEY"] = "test-service-key"
+os.environ["C2_NEO4J_URI"] = ""   # tests never contact Component 2's real graph
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "api"))
 
@@ -130,6 +131,14 @@ class ApiTests(unittest.TestCase):
         result = self.client.get("/api/v1/c4/audit/verify", headers=sup).json()
         self.assertFalse(result["valid"])
         self.assertEqual(result["first_invalid_id"], tampered_id)   # points at exactly the edited row
+
+    # ---------- FAKL readiness check (read-only, counts only) ----------
+    def test_fakl_status_requires_login_and_reports_configuration(self):
+        self.assertEqual(self.client.get("/api/v1/c4/fakl/status").status_code, 401)
+        status = self.client.get("/api/v1/c4/fakl/status", headers=self.auth("researcher")).json()
+        self.assertFalse(status["configured"])          # no graph configured in tests
+        self.assertFalse(status["connected"])
+        self.assertIsNone(status["counts"])
 
     def test_timestamps_are_utc(self):
         sup = self.auth("supervisor")
