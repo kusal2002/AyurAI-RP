@@ -1,0 +1,1725 @@
+{
+  "dataset_id": "pandu-provisional-v1",
+  "dataset_version": "1",
+  "drafted_on": "2026-10-20",
+  "extraction_method": "ai_assisted_draft",
+  "review_status": "pending_practitioner_review",
+  "notice": "PROVISIONAL RESEARCH DRAFTS. Each claim was drafted with AI assistance from the cited passages and has NOT been verified by a practitioner. verification_status is 'unverified' for every claim. Quotes must match the extracted source text exactly; the ingestion pipeline rejects any quote it cannot locate. Traditional textual claims are not clinical efficacy claims. Translations quoted from the 1890 Kaviratna edition render Pandu as 'chlorosis' and Kamala as 'anaemia'; these are the translator's choices, not equivalences.",
+  "concepts": [
+    {
+      "type": "Roga",
+      "id": "R-PANDU",
+      "name": "Pandu",
+      "aliases": [
+        "pandu",
+        "pāṇḍu",
+        "pandu roga",
+        "pāṇḍuroga",
+        "पाण्डु",
+        "पाण्डुरोग",
+        "පාණ්ඩු",
+        "chlorosis (1890 translation)"
+      ]
+    },
+    {
+      "type": "Dosha",
+      "id": "DO-PITTA",
+      "name": "Pitta",
+      "aliases": [
+        "pitta",
+        "पित्त",
+        "bile (1890 translation)"
+      ]
+    },
+    {
+      "type": "Dosha",
+      "id": "DO-VATA",
+      "name": "Vata",
+      "aliases": [
+        "vata",
+        "vāta",
+        "anila",
+        "वात",
+        "wind (1890 translation)"
+      ]
+    },
+    {
+      "type": "Dosha",
+      "id": "DO-KAPHA",
+      "name": "Kapha",
+      "aliases": [
+        "kapha",
+        "śleṣman",
+        "कफ",
+        "phlegm (1890 translation)"
+      ]
+    },
+    {
+      "type": "Dhatu",
+      "id": "DH-RAKTA",
+      "name": "Rakta dhatu",
+      "aliases": [
+        "rakta",
+        "rakta dhatu",
+        "रक्त",
+        "blood"
+      ]
+    },
+    {
+      "type": "Dhatu",
+      "id": "DH-MEDAS",
+      "name": "Medas dhatu",
+      "aliases": [
+        "medas",
+        "meda",
+        "मेदस्"
+      ]
+    },
+    {
+      "type": "Symptom",
+      "id": "S-PALLOR",
+      "name": "pallor",
+      "aliases": [
+        "paleness",
+        "pale skin",
+        "pāṇḍutā",
+        "pāṇḍubhāva"
+      ]
+    },
+    {
+      "type": "Symptom",
+      "id": "S-FATIGUE",
+      "name": "fatigue",
+      "aliases": [
+        "tiredness",
+        "śrama",
+        "exhaustion without exertion"
+      ]
+    },
+    {
+      "type": "Symptom",
+      "id": "S-WEAKNESS",
+      "name": "general weakness",
+      "aliases": [
+        "weakness",
+        "debility",
+        "daurbalya",
+        "durbala"
+      ]
+    },
+    {
+      "type": "Symptom",
+      "id": "S-BREATHLESSNESS",
+      "name": "breathlessness",
+      "aliases": [
+        "shortness of breath",
+        "dyspnoea",
+        "dyspnea",
+        "śvāsa"
+      ]
+    },
+    {
+      "type": "Symptom",
+      "id": "S-DIZZINESS",
+      "name": "dizziness",
+      "aliases": [
+        "giddiness",
+        "vertigo",
+        "bhrama"
+      ]
+    },
+    {
+      "type": "Symptom",
+      "id": "S-PALPITATION",
+      "name": "palpitations",
+      "aliases": [
+        "palpitation",
+        "hṛdayaspandana",
+        "hṛdrava"
+      ]
+    },
+    {
+      "type": "Symptom",
+      "id": "S-TINNITUS",
+      "name": "tinnitus",
+      "aliases": [
+        "ringing in the ears",
+        "karṇakṣveḍa"
+      ]
+    },
+    {
+      "type": "Symptom",
+      "id": "S-ANOREXIA",
+      "name": "loss of appetite",
+      "aliases": [
+        "aversion to food",
+        "anorexia",
+        "annadveṣa",
+        "aruci"
+      ]
+    },
+    {
+      "type": "Symptom",
+      "id": "S-PERIORBITAL-SWELLING",
+      "name": "periorbital swelling",
+      "aliases": [
+        "swelling around the eyes",
+        "śūnākṣikūṭa"
+      ]
+    },
+    {
+      "type": "Symptom",
+      "id": "S-FEVER",
+      "name": "fever",
+      "aliases": [
+        "jvara"
+      ]
+    },
+    {
+      "type": "Symptom",
+      "id": "S-BODY-ACHE",
+      "name": "body ache",
+      "aliases": [
+        "pain in the limbs",
+        "gātraśūla"
+      ]
+    },
+    {
+      "type": "Symptom",
+      "id": "S-DRY-SKIN",
+      "name": "dryness of the skin",
+      "aliases": [
+        "dry skin",
+        "raukṣya"
+      ]
+    },
+    {
+      "type": "Symptom",
+      "id": "S-ABSENT-SWEATING",
+      "name": "absence of sweating",
+      "aliases": [
+        "lack of perspiration",
+        "svedābhāva"
+      ]
+    },
+    {
+      "type": "TherapeuticPrinciple",
+      "id": "TP-PANDU-SNEHANA",
+      "name": "Oleation with medicated ghee (snehana) in Pandu",
+      "aliases": [
+        "snehana"
+      ]
+    },
+    {
+      "type": "TherapeuticPrinciple",
+      "id": "TP-PANDU-SAMSHODHANA",
+      "name": "Purification (saṃśodhana) with sharp emetic and purgative drugs after oleation, in Pandu",
+      "aliases": [
+        "saṃśodhana",
+        "śodhana"
+      ]
+    },
+    {
+      "type": "TherapeuticPrinciple",
+      "id": "TP-PANDU-PATHYA",
+      "name": "Wholesome diet (pathya) after purification, in Pandu",
+      "aliases": [
+        "pathya"
+      ]
+    },
+    {
+      "type": "TherapeuticPrinciple",
+      "id": "TP-PANDU-YATHADOSHA",
+      "name": "Medication chosen according to the predominant dosha, in Pandu",
+      "aliases": [
+        "yathādoṣa bhaiṣajya",
+        "śamana"
+      ]
+    },
+    {
+      "type": "Diet",
+      "id": "D-OLD-GRAINS-WITH-SOUP",
+      "name": "Old śāli rice, barley and wheat with soups",
+      "aliases": [
+        "purāṇa śāli",
+        "yava",
+        "godhūma"
+      ]
+    },
+    {
+      "type": "Diet",
+      "id": "D-PULSE-SOUPS",
+      "name": "Soups of mung bean, pigeon pea and lentil",
+      "aliases": [
+        "mudga yūṣa",
+        "āḍhakī",
+        "masūra"
+      ]
+    },
+    {
+      "type": "Diet",
+      "id": "D-JANGALA-MEAT-SOUP",
+      "name": "Meat soups of dry-land (jāṅgala) animals",
+      "aliases": [
+        "jāṅgala māṃsa rasa"
+      ]
+    },
+    {
+      "type": "Diet",
+      "id": "D-STHIRADI-WATER",
+      "name": "Water boiled with the sthirādi group of drugs, for drinking and cooking",
+      "aliases": [
+        "sthirādi śṛta toya"
+      ]
+    },
+    {
+      "type": "Formulation",
+      "id": "F-KALYANAKA-GHRITA",
+      "name": "Kalyāṇaka ghṛta",
+      "aliases": [
+        "kalyanaka ghrita"
+      ]
+    },
+    {
+      "type": "Formulation",
+      "id": "F-PANCHAGAVYA-GHRITA",
+      "name": "Pañcagavya ghṛta",
+      "aliases": [
+        "panchagavya ghrita"
+      ]
+    },
+    {
+      "type": "Formulation",
+      "id": "F-MAHATIKTA-GHRITA",
+      "name": "Mahātikta ghṛta",
+      "aliases": [
+        "mahatikta ghrita"
+      ]
+    },
+    {
+      "type": "Formulation",
+      "id": "F-DADIMADYA-GHRITA",
+      "name": "Dāḍimādya ghṛta",
+      "aliases": [
+        "dadimadya ghrita"
+      ]
+    },
+    {
+      "type": "Formulation",
+      "id": "F-NAVAYASA-CHURNA",
+      "name": "Navāyasa cūrṇa",
+      "aliases": [
+        "navayasa churna",
+        "navāyasa"
+      ]
+    },
+    {
+      "type": "Formulation",
+      "id": "F-MANDURA-VATAKA",
+      "name": "Maṇḍūra vaṭaka",
+      "aliases": [
+        "mandura vataka",
+        "maṇḍūravaṭaka"
+      ]
+    },
+    {
+      "type": "Formulation",
+      "id": "F-YOGARAJA",
+      "name": "Yogarāja",
+      "aliases": [
+        "yogaraja"
+      ]
+    },
+    {
+      "type": "Formulation",
+      "id": "F-SHILAJATU-VATAKA",
+      "name": "Śilājatu vaṭaka",
+      "aliases": [
+        "shilajatu vataka"
+      ]
+    },
+    {
+      "type": "Formulation",
+      "id": "F-PUNARNAVA-MANDURA",
+      "name": "Punarnavā maṇḍūra",
+      "aliases": [
+        "punarnava mandura",
+        "punarnavadi mandura"
+      ]
+    },
+    {
+      "type": "Formulation",
+      "id": "F-DHATRI-AVALEHA",
+      "name": "Dhātrī avaleha",
+      "aliases": [
+        "dhatri avaleha",
+        "dhātryavaleha"
+      ]
+    },
+    {
+      "type": "Formulation",
+      "id": "F-DHATRI-ARISHTA",
+      "name": "Dhātrī ariṣṭa",
+      "aliases": [
+        "dhatri arishta"
+      ]
+    },
+    {
+      "type": "Formulation",
+      "id": "F-BIJAKA-ARISHTA",
+      "name": "Bījaka ariṣṭa",
+      "aliases": [
+        "bijaka arishta"
+      ]
+    },
+    {
+      "type": "Formulation",
+      "id": "F-AYORAJAS-GOMUTRA",
+      "name": "Iron powder macerated in cow's urine, given with milk (ayorajas)",
+      "aliases": [
+        "ayorajas",
+        "lauha"
+      ]
+    },
+    {
+      "type": "Herb",
+      "id": "H-TRIVRIT",
+      "name": "Trivṛt",
+      "aliases": [
+        "trivrit",
+        "trivṛt"
+      ],
+      "botanical_name_as_stated": "Convolvulus turpethum",
+      "botanical_name_source": "kaviratna-charaka-1890"
+    },
+    {
+      "type": "Herb",
+      "id": "H-HARITAKI",
+      "name": "Harītakī",
+      "aliases": [
+        "haritaki",
+        "pathyā",
+        "abhayā",
+        "chebulic myrobalan"
+      ],
+      "botanical_name_as_stated": null,
+      "botanical_name_source": null
+    },
+    {
+      "type": "Herb",
+      "id": "H-PUNARNAVA",
+      "name": "Punarnavā",
+      "aliases": [
+        "punarnava",
+        "पुनर्नवा"
+      ],
+      "botanical_name_as_stated": "Boerhavia diffusa",
+      "botanical_name_source": "kaviratna-charaka-1890"
+    },
+    {
+      "type": "Herb",
+      "id": "H-MUSTA",
+      "name": "Musta",
+      "aliases": [
+        "musta",
+        "mustaka"
+      ],
+      "botanical_name_as_stated": "Cyperus rotundus",
+      "botanical_name_source": "kaviratna-charaka-1890"
+    },
+    {
+      "type": "Herb",
+      "id": "H-VIDANGA",
+      "name": "Viḍaṅga",
+      "aliases": [
+        "vidanga"
+      ],
+      "botanical_name_as_stated": "Embelia ribes",
+      "botanical_name_source": "kaviratna-charaka-1890"
+    },
+    {
+      "type": "Herb",
+      "id": "H-CHITRAKA",
+      "name": "Citraka",
+      "aliases": [
+        "chitraka",
+        "citraka"
+      ],
+      "botanical_name_as_stated": "Plumbago zeylanica",
+      "botanical_name_source": "kaviratna-charaka-1890"
+    },
+    {
+      "type": "Herb",
+      "id": "H-HARIDRA",
+      "name": "Haridrā",
+      "aliases": [
+        "haridra",
+        "हरिद्रा",
+        "turmeric"
+      ],
+      "botanical_name_as_stated": "Curcuma longa",
+      "botanical_name_source": "kaviratna-charaka-1890"
+    }
+  ],
+  "claims": [
+    {
+      "key": "pallor-indicates-pandu",
+      "category": "symptom_indication",
+      "subject": "S-PALLOR",
+      "predicate": "INDICATES",
+      "object": "R-PANDU",
+      "statement": "The classical texts name Pandu after the pallor (pāṇḍu colour) that predominates among the skin discolourations it produces.",
+      "evidence": [
+        {
+          "source_id": "sarit-astangahrdaya",
+          "element_id": "Ah.3.13.003a",
+          "quote": "pāṇḍu-hāridra-haritān pāṇḍu-tvaṃ teṣu cādhikam"
+        },
+        {
+          "source_id": "sarit-susrutasamhita",
+          "element_id": "Su.6.44.4",
+          "quote": "sarveṣu caiteṣviha pāṇḍubhāvo yato+adhiko+ataḥ khalu pāṇḍurogaḥ"
+        },
+        {
+          "source_id": "sarit-carakasamhita",
+          "element_id": "Ca.6.16.11",
+          "quote": "pāṇḍuhāridraharitān varṇān bahuvidhāṃstvaci"
+        }
+      ],
+      "uncertainty": [
+        "Discolouration may be pale, yellowish or greenish; pallor is the predominant one."
+      ]
+    },
+    {
+      "key": "palpitation-indicates-pandu",
+      "category": "symptom_indication",
+      "subject": "S-PALPITATION",
+      "predicate": "INDICATES",
+      "object": "R-PANDU",
+      "statement": "Palpitation is listed among the premonitory signs (pūrvarūpa) of Pandu.",
+      "evidence": [
+        {
+          "source_id": "sarit-carakasamhita",
+          "element_id": "Ca.6.16.12",
+          "quote": "hṛdayaspandanaṃ raukṣyaṃ svedābhāvaḥ śramastathā"
+        },
+        {
+          "source_id": "sarit-astangahrdaya",
+          "element_id": "Ah.3.13.008a",
+          "quote": "prāg-rūpam asya hṛdaya-spandanaṃ"
+        },
+        {
+          "source_id": "kaviratna-charaka-1890",
+          "quote": "Palpitation of the heart, dryness of the system, the absence of perspiration, and a sense of fatigue",
+          "role": "translation"
+        }
+      ],
+      "uncertainty": [
+        "Premonitory (prodromal) sign rather than a sign of the established disease."
+      ]
+    },
+    {
+      "key": "dry-skin-indicates-pandu",
+      "category": "symptom_indication",
+      "subject": "S-DRY-SKIN",
+      "predicate": "INDICATES",
+      "object": "R-PANDU",
+      "statement": "Dryness is listed among the premonitory signs of Pandu.",
+      "evidence": [
+        {
+          "source_id": "sarit-carakasamhita",
+          "element_id": "Ca.6.16.12",
+          "quote": "hṛdayaspandanaṃ raukṣyaṃ svedābhāvaḥ śramastathā"
+        },
+        {
+          "source_id": "sarit-astangahrdaya",
+          "element_id": "Ah.3.13.008a",
+          "quote": "rūkṣa-tā tvaci"
+        }
+      ],
+      "uncertainty": [
+        "Premonitory sign; the 1890 translation renders it as 'dryness of the system'."
+      ]
+    },
+    {
+      "key": "absent-sweating-indicates-pandu",
+      "category": "symptom_indication",
+      "subject": "S-ABSENT-SWEATING",
+      "predicate": "INDICATES",
+      "object": "R-PANDU",
+      "statement": "Absence of sweating is listed among the premonitory signs of Pandu.",
+      "evidence": [
+        {
+          "source_id": "sarit-carakasamhita",
+          "element_id": "Ca.6.16.12",
+          "quote": "hṛdayaspandanaṃ raukṣyaṃ svedābhāvaḥ śramastathā"
+        },
+        {
+          "source_id": "sarit-astangahrdaya",
+          "element_id": "Ah.3.13.008a",
+          "quote": "svedā-bhāvo 'lpa-vahni-tā"
+        }
+      ],
+      "uncertainty": [
+        "Premonitory sign."
+      ]
+    },
+    {
+      "key": "fatigue-indicates-pandu",
+      "category": "symptom_indication",
+      "subject": "S-FATIGUE",
+      "predicate": "INDICATES",
+      "object": "R-PANDU",
+      "statement": "Fatigue (śrama) is listed both as a premonitory sign and as a sign of manifest Pandu.",
+      "evidence": [
+        {
+          "source_id": "sarit-carakasamhita",
+          "element_id": "Ca.6.16.13",
+          "quote": "durbalaḥ sadano 'annadviṭ śramabhramanipīḍitaḥ"
+        },
+        {
+          "source_id": "sarit-astangahrdaya",
+          "element_id": "Ah.3.13.007a",
+          "quote": "karṇa-kṣveḍī bhramī śramī"
+        },
+        {
+          "source_id": "kaviratna-charaka-1890",
+          "quote": "and a sense of fatigue (without having undergone any exertion)",
+          "role": "translation"
+        }
+      ],
+      "uncertainty": []
+    },
+    {
+      "key": "weakness-indicates-pandu",
+      "category": "symptom_indication",
+      "subject": "S-WEAKNESS",
+      "predicate": "INDICATES",
+      "object": "R-PANDU",
+      "statement": "General weakness (daurbalya) is listed among the signs of manifest Pandu.",
+      "evidence": [
+        {
+          "source_id": "sarit-carakasamhita",
+          "element_id": "Ca.6.16.13",
+          "quote": "durbalaḥ sadano 'annadviṭ śramabhramanipīḍitaḥ"
+        },
+        {
+          "source_id": "kaviratna-charaka-1890",
+          "quote": "general weakness of the body",
+          "role": "translation"
+        }
+      ],
+      "uncertainty": []
+    },
+    {
+      "key": "dizziness-indicates-pandu",
+      "category": "symptom_indication",
+      "subject": "S-DIZZINESS",
+      "predicate": "INDICATES",
+      "object": "R-PANDU",
+      "statement": "Giddiness (bhrama) is listed among the signs of manifest Pandu.",
+      "evidence": [
+        {
+          "source_id": "sarit-carakasamhita",
+          "element_id": "Ca.6.16.13",
+          "quote": "durbalaḥ sadano 'annadviṭ śramabhramanipīḍitaḥ"
+        },
+        {
+          "source_id": "sarit-astangahrdaya",
+          "element_id": "Ah.3.13.007a",
+          "quote": "karṇa-kṣveḍī bhramī śramī"
+        }
+      ],
+      "uncertainty": [
+        "Bhrama is translated as giddiness or vertigo; mapping to the modern symptom 'dizziness' needs practitioner confirmation."
+      ]
+    },
+    {
+      "key": "tinnitus-indicates-pandu",
+      "category": "symptom_indication",
+      "subject": "S-TINNITUS",
+      "predicate": "INDICATES",
+      "object": "R-PANDU",
+      "statement": "Ringing in the ears (karṇakṣveḍa) is listed among the signs of manifest Pandu.",
+      "evidence": [
+        {
+          "source_id": "sarit-carakasamhita",
+          "element_id": "Ca.6.16.13",
+          "quote": "saṃbhūte 'asmin bhavet sarvaḥ karṇakṣveḍī hatānalaḥ"
+        },
+        {
+          "source_id": "sarit-astangahrdaya",
+          "element_id": "Ah.3.13.007a",
+          "quote": "karṇa-kṣveḍī bhramī śramī"
+        },
+        {
+          "source_id": "kaviratna-charaka-1890",
+          "quote": "the appearance of a rumbling noise in his ears",
+          "role": "translation"
+        }
+      ],
+      "uncertainty": []
+    },
+    {
+      "key": "anorexia-indicates-pandu",
+      "category": "symptom_indication",
+      "subject": "S-ANOREXIA",
+      "predicate": "INDICATES",
+      "object": "R-PANDU",
+      "statement": "Aversion to food is listed among the signs of manifest Pandu.",
+      "evidence": [
+        {
+          "source_id": "sarit-carakasamhita",
+          "element_id": "Ca.6.16.13",
+          "quote": "durbalaḥ sadano 'annadviṭ śramabhramanipīḍitaḥ"
+        },
+        {
+          "source_id": "sarit-astangahrdaya",
+          "element_id": "Ah.3.13.006a",
+          "quote": "anna-dviṭ śiśira-dveṣī śīrṇa-romā hatānalaḥ"
+        },
+        {
+          "source_id": "kaviratna-charaka-1890",
+          "quote": "of the body, disrelish for food, a sense of the body being pressed down",
+          "role": "translation"
+        }
+      ],
+      "uncertainty": []
+    },
+    {
+      "key": "breathlessness-indicates-pandu",
+      "category": "symptom_indication",
+      "subject": "S-BREATHLESSNESS",
+      "predicate": "INDICATES",
+      "object": "R-PANDU",
+      "statement": "Breathlessness (śvāsa) is listed among the signs of manifest Pandu.",
+      "evidence": [
+        {
+          "source_id": "sarit-carakasamhita",
+          "element_id": "Ca.6.16.14",
+          "quote": "gātraśūlajvaraśvāsagauravārucimānnaraḥ"
+        },
+        {
+          "source_id": "sarit-astangahrdaya",
+          "element_id": "Ah.3.13.007a",
+          "quote": "sanna-saktho jvarī śvāsī"
+        },
+        {
+          "source_id": "kaviratna-charaka-1890",
+          "quote": "fever, asthmatic breathing",
+          "role": "translation"
+        }
+      ],
+      "uncertainty": [
+        "The 1890 translation renders śvāsa as 'asthmatic breathing'."
+      ]
+    },
+    {
+      "key": "fever-indicates-pandu",
+      "category": "symptom_indication",
+      "subject": "S-FEVER",
+      "predicate": "INDICATES",
+      "object": "R-PANDU",
+      "statement": "Fever is listed among the signs of manifest Pandu.",
+      "evidence": [
+        {
+          "source_id": "sarit-carakasamhita",
+          "element_id": "Ca.6.16.14",
+          "quote": "gātraśūlajvaraśvāsagauravārucimānnaraḥ"
+        },
+        {
+          "source_id": "sarit-astangahrdaya",
+          "element_id": "Ah.3.13.007a",
+          "quote": "sanna-saktho jvarī śvāsī"
+        }
+      ],
+      "uncertainty": []
+    },
+    {
+      "key": "body-ache-indicates-pandu",
+      "category": "symptom_indication",
+      "subject": "S-BODY-ACHE",
+      "predicate": "INDICATES",
+      "object": "R-PANDU",
+      "statement": "Pain in the limbs (gātraśūla) is listed among the signs of manifest Pandu.",
+      "evidence": [
+        {
+          "source_id": "sarit-carakasamhita",
+          "element_id": "Ca.6.16.14",
+          "quote": "gātraśūlajvaraśvāsagauravārucimānnaraḥ"
+        },
+        {
+          "source_id": "kaviratna-charaka-1890",
+          "quote": "pains in all the limbs",
+          "role": "translation"
+        }
+      ],
+      "uncertainty": []
+    },
+    {
+      "key": "periorbital-swelling-indicates-pandu",
+      "category": "symptom_indication",
+      "subject": "S-PERIORBITAL-SWELLING",
+      "predicate": "INDICATES",
+      "object": "R-PANDU",
+      "statement": "Swelling around the eyes (śūnākṣikūṭa) is listed among the signs of manifest Pandu.",
+      "evidence": [
+        {
+          "source_id": "sarit-carakasamhita",
+          "element_id": "Ca.6.16.15",
+          "quote": "śūnākṣikūṭo haritaḥ śīrṇalomā hataprabhaḥ"
+        },
+        {
+          "source_id": "sarit-astangahrdaya",
+          "element_id": "Ah.3.13.006a",
+          "quote": "śūnākṣi-kūṭaḥ sadanaḥ"
+        },
+        {
+          "source_id": "kaviratna-charaka-1890",
+          "quote": "Swollen eye-balls, greenness of complexion",
+          "role": "translation"
+        }
+      ],
+      "uncertainty": [
+        "Akṣikūṭa denotes the orbital region; the 1890 translation renders it as 'eye-balls'."
+      ]
+    },
+    {
+      "key": "pandu-pitta",
+      "category": "dosha_association",
+      "subject": "R-PANDU",
+      "predicate": "ASSOCIATED_WITH_DOSHA",
+      "object": "DO-PITTA",
+      "statement": "In Pandu the vitiated doshas are described as pitta-predominant.",
+      "evidence": [
+        {
+          "source_id": "sarit-carakasamhita",
+          "element_id": "Ca.6.16.4",
+          "quote": "doṣāḥ pittapradhānāstu yasya kupyanti dhātuṣu"
+        },
+        {
+          "source_id": "sarit-astangahrdaya",
+          "element_id": "Ah.3.13.001a",
+          "quote": "pitta-pradhānāḥ kupitā yathoktaiḥ kopanair malāḥ"
+        }
+      ],
+      "uncertainty": [
+        "Pitta predominance applies to Pandu in general; vātaja and kaphaja types are also described."
+      ]
+    },
+    {
+      "key": "pandu-vata",
+      "category": "dosha_association",
+      "subject": "R-PANDU",
+      "predicate": "ASSOCIATED_WITH_DOSHA",
+      "object": "DO-VATA",
+      "statement": "A vātaja type is one of the five types of Pandu.",
+      "evidence": [
+        {
+          "source_id": "sarit-carakasamhita",
+          "element_id": "Ca.6.16.3",
+          "quote": "pāṇḍurogāḥ smṛtāḥ pañca vātapittakaphaistrayaḥ"
+        },
+        {
+          "source_id": "sarit-carakasamhita",
+          "element_id": "Ca.6.16.17",
+          "quote": "āhārairupacāraiśca vātalaiḥ kupito 'anilaḥ"
+        },
+        {
+          "source_id": "kaviratna-charaka-1890",
+          "quote": "Through indulgence in food and practices that are capable of exciting the wind, the latter, becoming provoked, generates the disease called",
+          "role": "translation"
+        }
+      ],
+      "uncertainty": [
+        "Association by type classification (one of five types), not predominance."
+      ]
+    },
+    {
+      "key": "pandu-kapha",
+      "category": "dosha_association",
+      "subject": "R-PANDU",
+      "predicate": "ASSOCIATED_WITH_DOSHA",
+      "object": "DO-KAPHA",
+      "statement": "A kaphaja type is one of the five types of Pandu.",
+      "evidence": [
+        {
+          "source_id": "sarit-carakasamhita",
+          "element_id": "Ca.6.16.3",
+          "quote": "pāṇḍurogāḥ smṛtāḥ pañca vātapittakaphaistrayaḥ"
+        },
+        {
+          "source_id": "sarit-carakasamhita",
+          "element_id": "Ca.6.16.23",
+          "quote": "vivṛddhaḥ śleṣmalaiḥ śleṣmā pāṇḍurogaṃ sa pūrvavat"
+        },
+        {
+          "source_id": "kaviratna-charaka-1890",
+          "quote": "Phlegm, provoked by food and drink that excite it, causes, after the same manner",
+          "role": "translation"
+        }
+      ],
+      "uncertainty": [
+        "Association by type classification (one of five types), not predominance."
+      ]
+    },
+    {
+      "key": "pandu-rakta",
+      "category": "dhatu_effect",
+      "subject": "R-PANDU",
+      "predicate": "AFFECTS_DHATU",
+      "object": "DH-RAKTA",
+      "statement": "The person with Pandu is described as having little blood (alpa-rakta); the doshas vitiate the blood.",
+      "evidence": [
+        {
+          "source_id": "sarit-carakasamhita",
+          "element_id": "Ca.6.16.6",
+          "quote": "so 'alparakto 'alpamedasko niḥsāraḥ śithilendriyaḥ"
+        },
+        {
+          "source_id": "sarit-astangahrdaya",
+          "element_id": "Ah.3.13.005a",
+          "quote": "tato 'lpa-rakta-medasko niḥ-sāraḥ"
+        },
+        {
+          "source_id": "sarit-susrutasamhita",
+          "element_id": "Su.6.44.3",
+          "quote": "vidūṣya raktaṃ kurvanti doṣāstvaci pāṇḍubhāvam"
+        },
+        {
+          "source_id": "kaviratna-charaka-1890",
+          "quote": "vitiates the blood and the other",
+          "role": "translation"
+        }
+      ],
+      "uncertainty": [
+        "'Little blood' is a classical description; it is not equivalent to a measured haemoglobin threshold."
+      ]
+    },
+    {
+      "key": "pandu-medas",
+      "category": "dhatu_effect",
+      "subject": "R-PANDU",
+      "predicate": "AFFECTS_DHATU",
+      "object": "DH-MEDAS",
+      "statement": "The person with Pandu is described as having little medas (alpa-medaska).",
+      "evidence": [
+        {
+          "source_id": "sarit-carakasamhita",
+          "element_id": "Ca.6.16.6",
+          "quote": "so 'alparakto 'alpamedasko niḥsāraḥ śithilendriyaḥ"
+        },
+        {
+          "source_id": "sarit-astangahrdaya",
+          "element_id": "Ah.3.13.005a",
+          "quote": "tato 'lpa-rakta-medasko niḥ-sāraḥ"
+        }
+      ],
+      "uncertainty": []
+    },
+    {
+      "key": "pandu-suggests-snehana",
+      "category": "treatment_principle",
+      "subject": "R-PANDU",
+      "predicate": "SUGGESTS_PRINCIPLE",
+      "object": "TP-PANDU-SNEHANA",
+      "statement": "Medicated ghee is given for oleation to persons with Pandu and Kamala.",
+      "evidence": [
+        {
+          "source_id": "sarit-carakasamhita",
+          "element_id": "Ca.6.16.43",
+          "quote": "snehanārthaṃ ghṛtaṃ dadyāt kāmalāpāṇḍurogiṇe"
+        },
+        {
+          "source_id": "kaviratna-charaka-1890",
+          "quote": "should be administered for oilifying them",
+          "role": "translation"
+        }
+      ],
+      "uncertainty": []
+    },
+    {
+      "key": "pandu-suggests-samshodhana",
+      "category": "treatment_principle",
+      "subject": "R-PANDU",
+      "predicate": "SUGGESTS_PRINCIPLE",
+      "object": "TP-PANDU-SAMSHODHANA",
+      "statement": "A person with Pandu, after oleation, is to be purified with sharp drugs acting upwards and downwards (emesis and purgation).",
+      "evidence": [
+        {
+          "source_id": "sarit-carakasamhita",
+          "element_id": "Ca.6.16.40",
+          "quote": "tatra pāṇḍvāmayī snigdhastīkṣṇairūrdhvānulomikaiḥ/ saṃśodhyo"
+        },
+        {
+          "source_id": "sarit-susrutasamhita",
+          "element_id": "Su.6.44.14",
+          "quote": "snigdhaṃ ghṛtenordhvamadhaśca śuddham"
+        },
+        {
+          "source_id": "kaviratna-charaka-1890",
+          "quote": "with such drugs as are oily and keen",
+          "role": "translation"
+        }
+      ],
+      "uncertainty": [
+        "Purification procedures (emesis, purgation) require clinical supervision; this is a classical principle, not a self-care instruction."
+      ]
+    },
+    {
+      "key": "pandu-suggests-pathya",
+      "category": "treatment_principle",
+      "subject": "R-PANDU",
+      "predicate": "SUGGESTS_PRINCIPLE",
+      "object": "TP-PANDU-PATHYA",
+      "statement": "After purification, wholesome foods are to be given.",
+      "evidence": [
+        {
+          "source_id": "sarit-carakasamhita",
+          "element_id": "Ca.6.16.41",
+          "quote": "tābhyāṃ saṃśuddhakoṣṭhābhyāṃ pathyānyannāni dāpayet"
+        }
+      ],
+      "uncertainty": []
+    },
+    {
+      "key": "pandu-suggests-yathadosha",
+      "category": "treatment_principle",
+      "subject": "R-PANDU",
+      "predicate": "SUGGESTS_PRINCIPLE",
+      "object": "TP-PANDU-YATHADOSHA",
+      "statement": "Specific medicines are to be given according to the dosha involved.",
+      "evidence": [
+        {
+          "source_id": "sarit-carakasamhita",
+          "element_id": "Ca.6.16.42",
+          "quote": "yathādoṣaṃ viśiṣṭaṃ ca tayorbhaiṣajyamācaret"
+        },
+        {
+          "source_id": "sarit-carakasamhita",
+          "element_id": "Ca.6.16.123",
+          "quote": "yathādoṣaṃ prakurvīta bhaiṣajyaṃ pāṇḍurogiṇām"
+        },
+        {
+          "source_id": "kaviratna-charaka-1890",
+          "quote": "Especial medicines also should be administered",
+          "role": "translation"
+        }
+      ],
+      "uncertainty": []
+    },
+    {
+      "key": "pathya-old-grains",
+      "category": "diet",
+      "subject": "TP-PANDU-PATHYA",
+      "predicate": "RECOMMENDS_DIET",
+      "object": "D-OLD-GRAINS-WITH-SOUP",
+      "statement": "The wholesome diet consists of old śāli rice, barley and wheat taken with soups.",
+      "evidence": [
+        {
+          "source_id": "sarit-carakasamhita",
+          "element_id": "Ca.6.16.41",
+          "quote": "śālīn sayavagodhūmān purāṇān yūṣasaṃhitān"
+        },
+        {
+          "source_id": "kaviratna-charaka-1890",
+          "quote": "with (old) barley and wheat (flour)",
+          "role": "translation"
+        }
+      ],
+      "uncertainty": [
+        "Traditional dietary concept; not individual dietary advice."
+      ]
+    },
+    {
+      "key": "pathya-pulse-soups",
+      "category": "diet",
+      "subject": "TP-PANDU-PATHYA",
+      "predicate": "RECOMMENDS_DIET",
+      "object": "D-PULSE-SOUPS",
+      "statement": "Soups of mung bean, pigeon pea and lentil are part of the wholesome diet.",
+      "evidence": [
+        {
+          "source_id": "sarit-carakasamhita",
+          "element_id": "Ca.6.16.42",
+          "quote": "mudgāḍhakīmasūraiśca jāṅgalaiśca rasairhitaiḥ"
+        },
+        {
+          "source_id": "kaviratna-charaka-1890",
+          "quote": "mixed with the soup of the seeds of Mudga",
+          "role": "translation"
+        }
+      ],
+      "uncertainty": [
+        "Traditional dietary concept; not individual dietary advice."
+      ]
+    },
+    {
+      "key": "pathya-jangala-meat",
+      "category": "diet",
+      "subject": "TP-PANDU-PATHYA",
+      "predicate": "RECOMMENDS_DIET",
+      "object": "D-JANGALA-MEAT-SOUP",
+      "statement": "Meat soups of dry-land animals are described as beneficial in the wholesome diet.",
+      "evidence": [
+        {
+          "source_id": "sarit-carakasamhita",
+          "element_id": "Ca.6.16.42",
+          "quote": "mudgāḍhakīmasūraiśca jāṅgalaiśca rasairhitaiḥ"
+        },
+        {
+          "source_id": "kaviratna-charaka-1890",
+          "quote": "as also with the meat-juice of wild animals",
+          "role": "translation"
+        }
+      ],
+      "uncertainty": [
+        "Traditional dietary concept; not individual dietary advice."
+      ]
+    },
+    {
+      "key": "pathya-sthiradi-water",
+      "category": "diet",
+      "subject": "TP-PANDU-PATHYA",
+      "predicate": "RECOMMENDS_DIET",
+      "object": "D-STHIRADI-WATER",
+      "statement": "Water boiled with the sthirādi drugs is praised for drinking and food for persons with Pandu (grape and āmalakī juice is given for Kamala in the same verse).",
+      "evidence": [
+        {
+          "source_id": "sarit-carakasamhita",
+          "element_id": "Ca.6.16.114",
+          "quote": "sthirādibhiḥ śṛtaṃ toyaṃ pānāhāre praśasyate"
+        }
+      ],
+      "uncertainty": [
+        "The verse continues into 16.115 ('pāṇḍūnāṃ, kāmalārtānāṃ ...'); the reading that sthirādi water is for Pandu and grape/āmalakī juice for Kamala needs practitioner confirmation."
+      ]
+    },
+    {
+      "key": "snehana-kalyanaka",
+      "category": "formulation_use",
+      "subject": "TP-PANDU-SNEHANA",
+      "predicate": "USES_FORMULATION",
+      "object": "F-KALYANAKA-GHRITA",
+      "statement": "Kalyāṇaka ghṛta is one of the ghees named for oleation in Pandu and Kamala.",
+      "evidence": [
+        {
+          "source_id": "sarit-carakasamhita",
+          "element_id": "Ca.6.16.43",
+          "quote": "pañcagavyaṃ mahātiktaṃ kalyāṇakamathāpi vā"
+        },
+        {
+          "source_id": "kaviratna-charaka-1890",
+          "quote": "th z ghee called ‘Kalyanaka,’ or ‘Panchagavya,’ or ‘Mah&tikta,’ should be administered for oilifying them",
+          "role": "translation"
+        }
+      ],
+      "uncertainty": []
+    },
+    {
+      "key": "snehana-panchagavya",
+      "category": "formulation_use",
+      "subject": "TP-PANDU-SNEHANA",
+      "predicate": "USES_FORMULATION",
+      "object": "F-PANCHAGAVYA-GHRITA",
+      "statement": "Pañcagavya ghṛta is one of the ghees named for oleation in Pandu and Kamala.",
+      "evidence": [
+        {
+          "source_id": "sarit-carakasamhita",
+          "element_id": "Ca.6.16.43",
+          "quote": "pañcagavyaṃ mahātiktaṃ kalyāṇakamathāpi vā"
+        }
+      ],
+      "uncertainty": []
+    },
+    {
+      "key": "snehana-mahatikta",
+      "category": "formulation_use",
+      "subject": "TP-PANDU-SNEHANA",
+      "predicate": "USES_FORMULATION",
+      "object": "F-MAHATIKTA-GHRITA",
+      "statement": "Mahātikta ghṛta is one of the ghees named for oleation in Pandu and Kamala.",
+      "evidence": [
+        {
+          "source_id": "sarit-carakasamhita",
+          "element_id": "Ca.6.16.43",
+          "quote": "pañcagavyaṃ mahātiktaṃ kalyāṇakamathāpi vā"
+        }
+      ],
+      "uncertainty": []
+    },
+    {
+      "key": "snehana-dadimadya",
+      "category": "formulation_use",
+      "subject": "TP-PANDU-SNEHANA",
+      "predicate": "USES_FORMULATION",
+      "object": "F-DADIMADYA-GHRITA",
+      "statement": "Dāḍimādya ghṛta is described as alleviating heart disease, Pandu, gulma, piles and spleen disorders.",
+      "evidence": [
+        {
+          "source_id": "sarit-carakasamhita",
+          "element_id": "Ca.6.16.45",
+          "quote": "siddhaṃ hṛtpāṇḍugulmārśaḥplīhavātakaphārtinut"
+        },
+        {
+          "source_id": "kaviratna-charaka-1890",
+          "quote": "is curative of chest-disease, chlorosis, abdominal tumours",
+          "role": "translation"
+        }
+      ],
+      "uncertainty": [
+        "Traditional use statement; not evidence of clinical efficacy."
+      ]
+    },
+    {
+      "key": "samshodhana-trivrit",
+      "category": "herb_use",
+      "subject": "TP-PANDU-SAMSHODHANA",
+      "predicate": "USES_HERB",
+      "object": "H-TRIVRIT",
+      "statement": "Trivṛt powder with sugar is given as a purgative in pittaja Pandu.",
+      "evidence": [
+        {
+          "source_id": "sarit-carakasamhita",
+          "element_id": "Ca.6.16.57",
+          "quote": "dviśarkaraṃ trivṛccūrṇaṃ palārdhaṃ paittikaḥ pibet"
+        },
+        {
+          "source_id": "kaviratna-charaka-1890",
+          "quote": "One afflicted with chlorosis born of (excited) bile, should drink half a pala",
+          "role": "translation"
+        }
+      ],
+      "uncertainty": [
+        "Specific to the pittaja type.",
+        "dosage_in_source_text_not_a_recommendation"
+      ]
+    },
+    {
+      "key": "samshodhana-haritaki",
+      "category": "herb_use",
+      "subject": "TP-PANDU-SAMSHODHANA",
+      "predicate": "USES_HERB",
+      "object": "H-HARITAKI",
+      "statement": "Harītakī soaked in cow's urine is given as a purgative in kaphaja Pandu.",
+      "evidence": [
+        {
+          "source_id": "sarit-carakasamhita",
+          "element_id": "Ca.6.16.58",
+          "quote": "gomūtraklinnayuktāṃ harītakīm"
+        },
+        {
+          "source_id": "kaviratna-charaka-1890",
+          "quote": "One afflicted with chlorosis characterised by predominance of phlegm, should take (as a purgative' Chebulic myrobalans soaked (in cow’s urine', with cow’s urine",
+          "role": "translation"
+        }
+      ],
+      "uncertainty": [
+        "Specific to the kaphaja type."
+      ]
+    },
+    {
+      "key": "yathadosha-navayasa",
+      "category": "formulation_use",
+      "subject": "TP-PANDU-YATHADOSHA",
+      "predicate": "USES_FORMULATION",
+      "object": "F-NAVAYASA-CHURNA",
+      "statement": "Navāyasa cūrṇa is described as removing Pandu, heart disease, skin disease, piles and Kamala.",
+      "evidence": [
+        {
+          "source_id": "sarit-carakasamhita",
+          "element_id": "Ca.6.16.71",
+          "quote": "bhakṣayet pāṇḍuhṛdrogakuṣṭhārśaḥkāmalāpaham"
+        },
+        {
+          "source_id": "kaviratna-charaka-1890",
+          "quote": "This medicine cures chlorosis, diseases of the chest, leucoderma, piles, and anaemia.",
+          "role": "translation"
+        }
+      ],
+      "uncertainty": [
+        "Contains iron (ayorajas); iron-containing preparations need safety assessment (Component 3).",
+        "Traditional use statement; not evidence of clinical efficacy."
+      ]
+    },
+    {
+      "key": "yathadosha-mandura-vataka",
+      "category": "formulation_use",
+      "subject": "TP-PANDU-YATHADOSHA",
+      "predicate": "USES_FORMULATION",
+      "object": "F-MANDURA-VATAKA",
+      "statement": "Maṇḍūra vaṭaka are described as life-giving for persons with Pandu.",
+      "evidence": [
+        {
+          "source_id": "sarit-carakasamhita",
+          "element_id": "Ca.6.16.76",
+          "quote": "maṇḍūravaṭakā hyete prāṇadāḥ pāṇḍurogiṇām"
+        },
+        {
+          "source_id": "kaviratna-charaka-1890",
+          "quote": "Unto those afflicted with chlorosis, these are givers of life.",
+          "role": "translation"
+        }
+      ],
+      "uncertainty": [
+        "Contains maṇḍūra (iron oxide preparation); needs safety assessment (Component 3).",
+        "Traditional use statement; not evidence of clinical efficacy."
+      ]
+    },
+    {
+      "key": "yathadosha-yogaraja",
+      "category": "formulation_use",
+      "subject": "TP-PANDU-YATHADOSHA",
+      "predicate": "USES_FORMULATION",
+      "object": "F-YOGARAJA",
+      "statement": "Yogarāja is described as removing Pandu among many other disorders.",
+      "evidence": [
+        {
+          "source_id": "sarit-carakasamhita",
+          "element_id": "Ca.6.16.86",
+          "quote": "pāṇḍurogaṃ viṣaṃ kāsaṃ yakṣmāṇaṃ viṣamajvaram"
+        }
+      ],
+      "uncertainty": [
+        "Contains mineral ingredients (śilājatu, silver dross, mākṣika, iron); needs safety assessment (Component 3).",
+        "Traditional use statement; not evidence of clinical efficacy."
+      ]
+    },
+    {
+      "key": "yathadosha-shilajatu",
+      "category": "formulation_use",
+      "subject": "TP-PANDU-YATHADOSHA",
+      "predicate": "USES_FORMULATION",
+      "object": "F-SHILAJATU-VATAKA",
+      "statement": "Śilājatu vaṭaka are described as removing Pandu, skin disease, fever and spleen disorders.",
+      "evidence": [
+        {
+          "source_id": "sarit-carakasamhita",
+          "element_id": "Ca.6.16.91",
+          "quote": "pāṇḍukuṣṭhajvaraplīhatamakārśobhagandarān"
+        }
+      ],
+      "uncertainty": [
+        "Traditional use statement; not evidence of clinical efficacy."
+      ]
+    },
+    {
+      "key": "yathadosha-punarnava-mandura",
+      "category": "formulation_use",
+      "subject": "TP-PANDU-YATHADOSHA",
+      "predicate": "USES_FORMULATION",
+      "object": "F-PUNARNAVA-MANDURA",
+      "statement": "Punarnavā maṇḍūra pills are described as removing Pandu, spleen disorders, piles and intermittent fever.",
+      "evidence": [
+        {
+          "source_id": "sarit-carakasamhita",
+          "element_id": "Ca.6.16.96",
+          "quote": "tāḥ pāṇḍurogān plīhānamarśāṃsi viṣamajvaram"
+        },
+        {
+          "source_id": "kaviratna-charaka-1890",
+          "quote": "These boluses cure chlorosis, enlarged spleen, piles",
+          "role": "translation"
+        }
+      ],
+      "uncertainty": [
+        "Contains maṇḍūra (iron); needs safety assessment (Component 3).",
+        "Traditional use statement; not evidence of clinical efficacy."
+      ]
+    },
+    {
+      "key": "yathadosha-dhatri-avaleha",
+      "category": "formulation_use",
+      "subject": "TP-PANDU-YATHADOSHA",
+      "predicate": "USES_FORMULATION",
+      "object": "F-DHATRI-AVALEHA",
+      "statement": "Dhātrī avaleha is described as removing Kamala, Pandu, cough and halīmaka.",
+      "evidence": [
+        {
+          "source_id": "sarit-carakasamhita",
+          "element_id": "Ca.6.16.102",
+          "quote": "hanyeṣa kāmalāṃ pittaṃ pāṇḍuṃ kāsaṃ halīmakam"
+        },
+        {
+          "source_id": "kaviratna-charaka-1890",
+          "quote": "This linctus cures malignant jaundice, chlorosis, and anaemia.",
+          "role": "translation"
+        }
+      ],
+      "uncertainty": [
+        "Traditional use statement; not evidence of clinical efficacy."
+      ]
+    },
+    {
+      "key": "yathadosha-dhatri-arishta",
+      "category": "formulation_use",
+      "subject": "TP-PANDU-YATHADOSHA",
+      "predicate": "USES_FORMULATION",
+      "object": "F-DHATRI-ARISHTA",
+      "statement": "Dhātrī ariṣṭa is described as removing Kamala, Pandu and heart disease.",
+      "evidence": [
+        {
+          "source_id": "sarit-carakasamhita",
+          "element_id": "Ca.6.16.113",
+          "quote": "kāmalāpāṇḍuhṛdrogavātāsṛgviṣamajvarān"
+        }
+      ],
+      "uncertainty": [
+        "Fermented (alcohol-containing) preparation; needs safety assessment (Component 3).",
+        "Traditional use statement; not evidence of clinical efficacy."
+      ]
+    },
+    {
+      "key": "yathadosha-bijaka-arishta",
+      "category": "formulation_use",
+      "subject": "TP-PANDU-YATHADOSHA",
+      "predicate": "USES_FORMULATION",
+      "object": "F-BIJAKA-ARISHTA",
+      "statement": "Bījaka ariṣṭa is described as removing grahaṇī, Pandu, piles, swelling and gulma.",
+      "evidence": [
+        {
+          "source_id": "sarit-carakasamhita",
+          "element_id": "Ca.6.16.110",
+          "quote": "pibettadgrahaṇīpāṇḍurogārśaḥśothagulmanut"
+        }
+      ],
+      "uncertainty": [
+        "Fermented (alcohol-containing) preparation; needs safety assessment (Component 3).",
+        "Traditional use statement; not evidence of clinical efficacy."
+      ]
+    },
+    {
+      "key": "yathadosha-ayorajas",
+      "category": "formulation_use",
+      "subject": "TP-PANDU-YATHADOSHA",
+      "predicate": "USES_FORMULATION",
+      "object": "F-AYORAJAS-GOMUTRA",
+      "statement": "Iron powder macerated for seven nights in cow's urine is given with milk for the alleviation of Pandu.",
+      "evidence": [
+        {
+          "source_id": "sarit-carakasamhita",
+          "element_id": "Ca.6.16.69",
+          "quote": "saptarātraṃ gavāṃ mūtre bhāvitaṃ vā 'apyayorajaḥ"
+        },
+        {
+          "source_id": "kaviratna-charaka-1890",
+          "quote": "drink the pulv of iron macerated for seven nights",
+          "role": "translation"
+        }
+      ],
+      "qualified_by_reference": [
+        "modern-iron-inhibitors"
+      ],
+      "uncertainty": [
+        "Modern evidence lists milk and calcium among inhibitors of non-heme iron absorption; this traditional vehicle has not been evaluated. Kept as a qualification, not resolved.",
+        "Iron preparation; needs safety assessment (Component 3)."
+      ]
+    },
+    {
+      "key": "navayasa-contains-musta",
+      "category": "formulation_ingredient",
+      "subject": "F-NAVAYASA-CHURNA",
+      "predicate": "CONTAINS_INGREDIENT",
+      "object": "H-MUSTA",
+      "statement": "Navāyasa cūrṇa contains musta (with the three pungents, triphalā, viḍaṅga, citraka and iron powder).",
+      "evidence": [
+        {
+          "source_id": "sarit-carakasamhita",
+          "element_id": "Ca.6.16.70",
+          "quote": "tryūṣaṇatriphalāmustaviḍaṅgacitrakāḥ samāḥ"
+        },
+        {
+          "source_id": "kaviratna-charaka-1890",
+          "quote": "Musta (the tubers of Cyperus rotundus), Vidanga (Embelia Ribes",
+          "role": "translation"
+        }
+      ],
+      "uncertainty": []
+    },
+    {
+      "key": "navayasa-contains-vidanga",
+      "category": "formulation_ingredient",
+      "subject": "F-NAVAYASA-CHURNA",
+      "predicate": "CONTAINS_INGREDIENT",
+      "object": "H-VIDANGA",
+      "statement": "Navāyasa cūrṇa contains viḍaṅga.",
+      "evidence": [
+        {
+          "source_id": "sarit-carakasamhita",
+          "element_id": "Ca.6.16.70",
+          "quote": "tryūṣaṇatriphalāmustaviḍaṅgacitrakāḥ samāḥ"
+        }
+      ],
+      "uncertainty": []
+    },
+    {
+      "key": "navayasa-contains-chitraka",
+      "category": "formulation_ingredient",
+      "subject": "F-NAVAYASA-CHURNA",
+      "predicate": "CONTAINS_INGREDIENT",
+      "object": "H-CHITRAKA",
+      "statement": "Navāyasa cūrṇa contains citraka.",
+      "evidence": [
+        {
+          "source_id": "sarit-carakasamhita",
+          "element_id": "Ca.6.16.70",
+          "quote": "tryūṣaṇatriphalāmustaviḍaṅgacitrakāḥ samāḥ"
+        }
+      ],
+      "uncertainty": []
+    },
+    {
+      "key": "punarnava-mandura-contains-punarnava",
+      "category": "formulation_ingredient",
+      "subject": "F-PUNARNAVA-MANDURA",
+      "predicate": "CONTAINS_INGREDIENT",
+      "object": "H-PUNARNAVA",
+      "statement": "Punarnavā maṇḍūra contains punarnavā.",
+      "evidence": [
+        {
+          "source_id": "sarit-carakasamhita",
+          "element_id": "Ca.6.16.93",
+          "quote": "punarnavā trivṛdvyoṣaviḍaṅgaṃ dāru citrakam"
+        },
+        {
+          "source_id": "kaviratna-charaka-1890",
+          "quote": "Punarnava [Boerhavia diffusa)",
+          "role": "translation"
+        }
+      ],
+      "uncertainty": []
+    },
+    {
+      "key": "punarnava-mandura-contains-trivrit",
+      "category": "formulation_ingredient",
+      "subject": "F-PUNARNAVA-MANDURA",
+      "predicate": "CONTAINS_INGREDIENT",
+      "object": "H-TRIVRIT",
+      "statement": "Punarnavā maṇḍūra contains trivṛt.",
+      "evidence": [
+        {
+          "source_id": "sarit-carakasamhita",
+          "element_id": "Ca.6.16.93",
+          "quote": "punarnavā trivṛdvyoṣaviḍaṅgaṃ dāru citrakam"
+        }
+      ],
+      "uncertainty": []
+    },
+    {
+      "key": "punarnava-mandura-contains-vidanga",
+      "category": "formulation_ingredient",
+      "subject": "F-PUNARNAVA-MANDURA",
+      "predicate": "CONTAINS_INGREDIENT",
+      "object": "H-VIDANGA",
+      "statement": "Punarnavā maṇḍūra contains viḍaṅga.",
+      "evidence": [
+        {
+          "source_id": "sarit-carakasamhita",
+          "element_id": "Ca.6.16.93",
+          "quote": "punarnavā trivṛdvyoṣaviḍaṅgaṃ dāru citrakam"
+        }
+      ],
+      "uncertainty": []
+    },
+    {
+      "key": "punarnava-mandura-contains-chitraka",
+      "category": "formulation_ingredient",
+      "subject": "F-PUNARNAVA-MANDURA",
+      "predicate": "CONTAINS_INGREDIENT",
+      "object": "H-CHITRAKA",
+      "statement": "Punarnavā maṇḍūra contains citraka.",
+      "evidence": [
+        {
+          "source_id": "sarit-carakasamhita",
+          "element_id": "Ca.6.16.93",
+          "quote": "punarnavā trivṛdvyoṣaviḍaṅgaṃ dāru citrakam"
+        }
+      ],
+      "uncertainty": []
+    },
+    {
+      "key": "punarnava-mandura-contains-haridra",
+      "category": "formulation_ingredient",
+      "subject": "F-PUNARNAVA-MANDURA",
+      "predicate": "CONTAINS_INGREDIENT",
+      "object": "H-HARIDRA",
+      "statement": "Punarnavā maṇḍūra contains the two haridrās.",
+      "evidence": [
+        {
+          "source_id": "sarit-carakasamhita",
+          "element_id": "Ca.6.16.94",
+          "quote": "kuṣṭhaṃ haridre triphalā dantī cavyaṃ kaliṅgakāḥ"
+        }
+      ],
+      "uncertainty": [
+        "'The two haridrās' are haridrā and dāruharidrā; only haridrā is modelled here."
+      ]
+    },
+    {
+      "key": "punarnava-mandura-contains-musta",
+      "category": "formulation_ingredient",
+      "subject": "F-PUNARNAVA-MANDURA",
+      "predicate": "CONTAINS_INGREDIENT",
+      "object": "H-MUSTA",
+      "statement": "Punarnavā maṇḍūra contains musta.",
+      "evidence": [
+        {
+          "source_id": "sarit-carakasamhita",
+          "element_id": "Ca.6.16.94",
+          "quote": "pippalī pippalīmūlaṃ mustaṃ ceti palonmitam"
+        }
+      ],
+      "uncertainty": []
+    }
+  ],
+  "reference_evidence": [
+    {
+      "key": "modern-iron-promoters",
+      "category": "modern_diet",
+      "topics": [
+        "dietary_iron",
+        "iron_absorption",
+        "vitamin_c",
+        "heme_iron"
+      ],
+      "source_id": "epmc-pmc7509542",
+      "quote": "The most important promoters of iron absorption in foods are ascorbic acid, lactic acid (produced by fermentation), meat factors in animal meat, the presence of heme iron, and alcohol which stimulate iron uptake by inhibition of hepcidin expression.",
+      "uncertainty": [
+        "Mechanistic review statement; alcohol is listed as a promoter of absorption, not as advice."
+      ]
+    },
+    {
+      "key": "modern-iron-inhibitors",
+      "category": "modern_diet",
+      "topics": [
+        "dietary_iron",
+        "iron_absorption",
+        "phytate",
+        "polyphenols",
+        "milk",
+        "calcium"
+      ],
+      "source_id": "epmc-pmc7509542",
+      "quote": "The most important inhibitors of iron uptake are phytic acid/phytates, polyphenols/tannins, proteins from soya beans, milk, eggs, and calcium.",
+      "uncertainty": []
+    },
+    {
+      "key": "modern-heme-bioavailability",
+      "category": "modern_diet",
+      "topics": [
+        "dietary_iron",
+        "heme_iron"
+      ],
+      "source_id": "epmc-pmc7509542",
+      "quote": "Heme iron, which is ferrous iron present in haemoglobin in the red blood cells and myoglobin in the myocytes, is absorbed within the intact protoporphyrin molecule threefold to fourfold more efficiently than inorganic ferric iron.",
+      "uncertainty": []
+    },
+    {
+      "key": "modern-vitamin-c-efsa",
+      "category": "modern_diet",
+      "topics": [
+        "vitamin_c",
+        "iron_absorption"
+      ],
+      "source_id": "epmc-pmc7509542",
+      "quote": "concluded that “vitamin C contributes to increasing nonheme iron absorption”",
+      "uncertainty": [
+        "The review notes the effect is less pronounced in complete diets than in single-meal studies."
+      ]
+    },
+    {
+      "key": "modern-vitamin-c-whole-diet",
+      "category": "modern_diet",
+      "topics": [
+        "vitamin_c",
+        "iron_absorption"
+      ],
+      "source_id": "epmc-pmc7509542",
+      "quote": "The facilitating effect of ascorbic acid on iron absorption from a complete diet is less pronounced than that from single-test-meal studies",
+      "uncertainty": []
+    },
+    {
+      "key": "modern-ida-causes",
+      "category": "modern_clinical",
+      "topics": [
+        "iron_deficiency_anaemia",
+        "causes"
+      ],
+      "source_id": "epmc-pmc9029079",
+      "quote": "It can be caused by a reduced dietary intake of iron or increased need, acute or chronic blood loss, and intestinal malabsorption of iron",
+      "uncertainty": [
+        "From a paediatric review."
+      ]
+    },
+    {
+      "key": "modern-milk-children",
+      "category": "modern_diet",
+      "topics": [
+        "children",
+        "milk",
+        "dietary_iron"
+      ],
+      "source_id": "epmc-pmc9029079",
+      "quote": "a great intake of milk inhibits the inclusion of iron-rich foods in the diet",
+      "uncertainty": [
+        "Applies to infants and toddlers."
+      ]
+    },
+    {
+      "key": "modern-oral-iron-gi-effects",
+      "category": "modern_safety",
+      "topics": [
+        "oral_iron",
+        "adverse_effects"
+      ],
+      "source_id": "epmc-pmc9029079",
+      "quote": "gastrointestinal adverse effects, such as abdominal pain, dyspepsia, nausea, vomiting, diarrhea, or constipation, are a major concern of oral ferrous salts, affecting up to 32% of patients",
+      "uncertainty": []
+    },
+    {
+      "key": "modern-ida-lab-findings",
+      "category": "modern_clinical",
+      "topics": [
+        "iron_deficiency_anaemia",
+        "diagnosis"
+      ],
+      "source_id": "epmc-pmc5558393",
+      "quote": "The classic laboratory findings of iron deficiency anemia include a decrease in the hemoglobin (Hb) level, serum iron concentration, serum transferrin saturation, and serum ferritin level, and an increase in total iron-binding capacity.",
+      "uncertainty": []
+    },
+    {
+      "key": "modern-oral-iron-first-line",
+      "category": "modern_clinical",
+      "topics": [
+        "iron_deficiency_anaemia",
+        "treatment",
+        "pregnancy"
+      ],
+      "source_id": "epmc-pmc5558393",
+      "quote": "Oral iron therapy is given as the first-line treatment for IDA.",
+      "uncertainty": [
+        "Review focused on pregnancy and the postpartum period."
+      ]
+    },
+    {
+      "key": "modern-oral-iron-problems",
+      "category": "modern_safety",
+      "topics": [
+        "oral_iron",
+        "adherence",
+        "adverse_effects"
+      ],
+      "source_id": "epmc-pmc5558393",
+      "quote": "oral preparations are associated with problems such as intolerability, poor patient compliance, insufficient response to treatment, and prolonged treatment",
+      "uncertainty": []
+    }
+  ],
+  "known_gaps": [
+    "No explicit lifestyle recommendation was found in the Pandu chapters read (Caraka Ci.16, Aṣṭāṅgahṛdaya Ni.13, Suśruta Utt.44). The causes listed in Ca.6.16.8 (day sleep, exercise and sexual activity during indigestion, suppression of urges) are not converted into lifestyle recommendations, because that would be an inference.",
+    "Dietary avoidances (e.g. Ca.6.16.84: avoid kulattha, kākamācī, kapota with Yogarāja) cannot be expressed: the ontology has no avoidance or contraindication predicate. Contraindications belong to Component 3.",
+    "No Sinhala-language source; Sinhala terms are not included.",
+    "Botanical names are recorded only as stated by the 1890 translation and are not taxonomically verified.",
+    "Halīmaka and Kāmalā (related conditions) are not modelled as separate Roga claims in this version.",
+    "Modern reference evidence concerns iron-deficiency anaemia; it is not equivalent to Pandu and is not linked to Pandu claims except as an explicit qualification."
+  ]
+}

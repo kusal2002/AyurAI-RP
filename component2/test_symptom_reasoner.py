@@ -152,3 +152,4 @@ def test_reason_about_symptoms_handles_missing_and_duplicate_ids():
 def test_reason_about_symptoms_rejects_invalid_input(symptom_ids):
     with pytest.raises(ValueError):
         reason_about_symptoms(symptom_ids)
+

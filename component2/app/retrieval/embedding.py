@@ -114,3 +114,25 @@ class SentenceTransformerEncoder:
             ) from exc
 
         return normalize_rows(vectors)
+
+
+def model_cached_locally(model_id: str, cache_folder: str | None = None) -> bool | None:
+    """Whether model files are available without a download.
+
+    A local directory counts as cached. For a Hub ID the local cache is
+    checked for the model's config file; nothing is fetched. Returns None
+    when huggingface_hub is not installed and the answer is unknown.
+    """
+    from pathlib import Path
+
+    if Path(model_id).is_dir():
+        return True
+    try:
+        from huggingface_hub import try_to_load_from_cache
+    except ImportError:
+        return None
+    for filename in ("modules.json", "config.json"):
+        found = try_to_load_from_cache(model_id, filename, cache_dir=cache_folder)
+        if isinstance(found, str):
+            return True
+    return False

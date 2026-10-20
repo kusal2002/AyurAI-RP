@@ -1,6 +1,8 @@
 ﻿import logging
 
 from fastapi import APIRouter, Depends, HTTPException
+
+from app.api.c2 import KNOWLEDGE_SCOPE_QUERY, KnowledgeScopeParam, get_research_service
 from neo4j import Driver
 from neo4j.exceptions import Neo4jError, ServiceUnavailable
 
@@ -23,6 +25,8 @@ router = APIRouter(
 @router.post("/reasoning")
 def reason_from_screening(
     data: C1ScreeningPayload,
+    knowledge_scope: KnowledgeScopeParam = KNOWLEDGE_SCOPE_QUERY,
+    research_service: EvidenceRetrievalService = Depends(get_research_service),
     driver: Driver = Depends(get_driver),
     retrieval_service: EvidenceRetrievalService = Depends(
         get_retrieval_service
@@ -62,6 +66,8 @@ def reason_from_screening(
         mapped["request"],
         driver,
         retrieval_service,
+        knowledge_scope,
+        research_service,
     )
 
     return {

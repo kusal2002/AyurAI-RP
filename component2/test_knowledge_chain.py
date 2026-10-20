@@ -202,21 +202,24 @@ def test_respects_max_depth():
 
 def test_preserves_conflicting_evidence_summary():
     claim_ab = make_claim("C-AB", "A", "INDICATES", "B")
+    # The concept query returns each claim's evidence with it, so no
+    # separate per-claim evidence lookup is made.
+    record = {
+        **make_record(claim_ab),
+        "supporting_evidence": [{"evidence_id": "E-S", "title": "t"}],
+        "contradicting_evidence": [{"evidence_id": "E-C", "title": "t"}],
+    }
 
     with (
         patch(
             "app.reasoning.knowledge_chain.get_connected_knowledge",
             side_effect=lambda concept_id, driver=None: (
-                [make_record(claim_ab)] if concept_id == "A" else []
+                [record] if concept_id == "A" else []
             ),
         ),
         patch(
             "app.reasoning.knowledge_chain.evaluate_claim",
-            return_value=make_evaluation(
-                claim_ab,
-                supporting_count=1,
-                contradicting_count=1,
-            ),
+            side_effect=AssertionError("per-claim evidence query must not run"),
         ),
     ):
         result = trace_knowledge_chains("A")
@@ -309,3 +312,23 @@ def test_rejects_invalid_max_depth(max_depth):
 def test_rejects_invalid_max_chains(max_chains):
     with pytest.raises(ValueError, match="max_chains"):
         trace_knowledge_chains("A", max_chains=max_chains)
+
+def test_each_concept_is_queried_once_per_trace():
+    """A -> B, A -> C, B -> D, C -> D: D is reached twice, queried once."""
+    claims = {
+        "A": [make_claim("C-AB", "A", "INDICATES", "B"), make_claim("C-AC", "A", "INDICATES", "C")],
+        "B": [make_claim("C-BD", "B", "SUGGESTS_PRINCIPLE", "D")],
+        "C": [make_claim("C-CD", "C", "SUGGESTS_PRINCIPLE", "D")],
+    }
+    calls = []
+
+    def connected(concept_id, driver=None):
+        calls.append(concept_id)
+        return [make_record(c) for c in claims.get(concept_id, [])]
+
+    with patch("app.reasoning.knowledge_chain.get_connected_knowledge", side_effect=connected):
+        result = trace_knowledge_chains("A")
+
+    assert len(result["chains"]) == 2
+    assert sorted(calls) == ["A", "B", "C", "D"]
+    assert result["graph_queries"] == 4

@@ -203,3 +203,14 @@ def explain_abstention(reasons: list[str]) -> ExplanationStatement:
             + ". Practitioner review of the evidence base is required."
         ),
     )
+
+
+def explain_caution(reasons: list[str], escalation: list[str]) -> ExplanationStatement:
+    """Caution statement: why the decision is not a plain recommendation."""
+    text = (
+        "Decision: caution. Candidates are presented for practitioner review "
+        "with caution because of: " + ", ".join(reasons) + "."
+    )
+    if escalation:
+        text += " " + " ".join(escalation)
+    return ExplanationStatement(kind="caution", text=text)

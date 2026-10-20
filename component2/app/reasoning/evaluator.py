@@ -6,6 +6,7 @@ from app.db.repository import get_evidence_for_claim
 def evaluate_claim(
     claim_id: str,
     driver: Any = None,
+    graph: Any = None,
 ) -> dict[str, Any] | None:
     """
     Evaluate the evidence associated with a knowledge graph claim.
@@ -16,13 +17,27 @@ def evaluate_claim(
     if not claim_id or not claim_id.strip():
         raise ValueError("claim_id must not be empty.")
 
-    result = get_evidence_for_claim(claim_id, driver)
+    fetch = graph.get_evidence_for_claim if graph is not None else get_evidence_for_claim
+    result = fetch(claim_id, driver)
 
     if result is None:
         return None
 
-    claim = result["claim"]
-    evidence_records = result["evidence"]
+    return summarize_claim_evidence(result["claim"], result["evidence"])
+
+
+def summarize_claim_evidence(
+    claim: dict[str, Any],
+    evidence_records: list[dict[str, Any]],
+) -> dict[str, Any]:
+    """Summarize already-fetched evidence for a claim (no database access).
+
+    evidence_records are {"evidence": properties, "relationship":
+    "SUPPORTS" | "CONTRADICTS"} items, as returned by
+    get_evidence_for_claim. Used by chain traversal, whose concept query
+    already returns each claim's evidence, to avoid one extra query per
+    claim.
+    """
 
     supporting_evidence = []
     contradicting_evidence = []
@@ -40,6 +55,12 @@ def evaluate_claim(
             "page": evidence.get("page"),
             "citation": evidence.get("citation"),
             "source_url": evidence.get("source_url"),
+            # Provenance links of evidence promoted from the source corpus.
+            "source_id": evidence.get("source_id"),
+            "chunk_id": evidence.get("chunk_id"),
+            # Research scope: approved vs provisional, and the evidence role.
+            "knowledge_status": evidence.get("knowledge_status"),
+            "evidence_role": evidence.get("evidence_role"),
             "practitioner_verified": evidence.get(
                 "practitioner_verified", False
             ),
