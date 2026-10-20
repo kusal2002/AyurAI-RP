@@ -6,7 +6,7 @@ from pathlib import Path
 import flwr as fl
 from flwr.server.strategy import FedAvg, FedProx
 
-from config import NUM_CLINICS, NUM_ROUNDS, PROXIMAL_MU
+from config import NUM_CLINICS, NUM_ROUNDS, PROXIMAL_MU, SCALE_TEST
 
 # Folder where per-round metrics are saved: component4/results/
 # (this file lives in component4/federated/, so go up one level)
@@ -63,7 +63,8 @@ def save_history_to_csv(history, strategy, epsilon, run):
     """
     RESULTS_DIR.mkdir(parents=True, exist_ok=True)
     label = "nodp" if epsilon is None else f"eps{epsilon}"
-    csv_path = RESULTS_DIR / f"{strategy}_{label}_run{run}.csv"
+    prefix = f"n{NUM_CLINICS}_" if SCALE_TEST else ""   # keep scalability runs separate
+    csv_path = RESULTS_DIR / f"{prefix}{strategy}_{label}_run{run}.csv"
 
     # history.losses_distributed          -> [(round, loss), ...]
     # history.metrics_distributed         -> {"accuracy": [(round, acc), ...], "macro_f1": [...]}

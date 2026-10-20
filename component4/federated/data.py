@@ -15,7 +15,7 @@ import numpy as np
 import torch
 from torch.utils.data import TensorDataset
 
-from config import CLINIC_PROFILES, FEATURES_FILE, TEST_FRACTION
+from config import CLINIC_PROFILES, FEATURES_FILE, NUM_CLINICS, SCALE_TEST, TEST_FRACTION
 from features import FEATURE_NAMES
 
 USE_REAL_DATA = FEATURES_FILE is not None and FEATURES_FILE.exists()
@@ -28,15 +28,22 @@ DATA_SOURCE = (
 
 def _real_clinic_rows(clinic_id):
     """Features and tier labels of the patients assigned to this clinic."""
+    def belongs(row):
+        if SCALE_TEST:   # scalability test: spread patients evenly by patient id
+            return int(row["group_id"]) % NUM_CLINICS + 1 == clinic_id
+        return int(row["clinic_id"]) == clinic_id   # normal non-IID split from prepare_data.py
+
     with open(FEATURES_FILE, newline="") as f:
-        rows = [row for row in csv.DictReader(f) if int(row["clinic_id"]) == clinic_id]
+        rows = [row for row in csv.DictReader(f) if belongs(row)]
     features = np.array([[float(row[name]) for name in FEATURE_NAMES] for row in rows])
     labels = np.array([int(row["tier"]) for row in rows])
     return features, labels
 
 
 def _placeholder_clinic_rows(clinic_id, rng, num_features=10):
-    low, moderate, high = CLINIC_PROFILES[clinic_id]["label_counts"]
+    # Clinics beyond the 3 profiles (scalability test) reuse the profiles in turn
+    profile = CLINIC_PROFILES[(clinic_id - 1) % len(CLINIC_PROFILES) + 1]
+    low, moderate, high = profile["label_counts"]
     labels = np.array([0] * low + [1] * moderate + [2] * high)
     return rng.random((len(labels), num_features)), labels   # random noise features
 
@@ -65,7 +72,7 @@ def _federated_scaling():
     would share. Prototype limitation: these aggregates are not DP-protected.
     """
     count, total, total_sq = 0, 0.0, 0.0
-    for clinic_id in CLINIC_PROFILES:
+    for clinic_id in range(1, NUM_CLINICS + 1):
         train_x, _, _, _ = _split_clinic(clinic_id)
         count += len(train_x)
         total = total + train_x.sum(axis=0)

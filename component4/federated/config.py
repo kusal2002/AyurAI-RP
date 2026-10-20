@@ -19,7 +19,9 @@ except ImportError:
 # Where clients find the server. Local runs use the default; in Docker,
 # docker-compose.yml sets SERVER_ADDRESS=server:8080 (the server container).
 SERVER_ADDRESS = os.getenv("SERVER_ADDRESS", "127.0.0.1:8080")
-NUM_CLINICS = 3          # simulated clinic nodes (proposal SO1)
+# Simulated clinic nodes (proposal SO1: 3). Set C4_NUM_CLINICS=10 to run the
+# scalability test (NFR: at least 10 nodes without architectural changes).
+NUM_CLINICS = int(os.getenv("C4_NUM_CLINICS", "3"))
 NUM_ROUNDS = 10          # federated rounds per run
 LOCAL_EPOCHS = 5         # local training epochs per round
 BATCH_SIZE = 16
@@ -61,3 +63,8 @@ CLINIC_PROFILES = {
     2: {"name": "Urban peripheral clinic", "label_counts": (30, 15, 5), "tier_shares": (0.50, 0.15, 0.10)},
     3: {"name": "Mixed rural clinic", "label_counts": (17, 17, 16), "tier_shares": (0.35, 0.40, 0.30)},
 }
+
+# Scalability test: any clinic count other than the 3 profiles above. Patients are
+# then spread evenly over the clinics by patient id (no severity skew), and result
+# files get an "n<clinics>_" prefix so they never overwrite the main results.
+SCALE_TEST = NUM_CLINICS != len(CLINIC_PROFILES)
