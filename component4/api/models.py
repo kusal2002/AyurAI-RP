@@ -42,7 +42,9 @@ class AuditLog(Base):
     """Append-only, hash-chained audit trail.
 
     entry_hash = SHA-256(previous entry's hash + this entry's content), so
-    editing or deleting any row breaks every hash after it.
+    editing or deleting a row breaks every hash after it. (Deleting the newest
+    rows leaves a shorter, still-valid chain; blockchain anchors cover that case
+    for every entry up to the latest anchor.)
     """
     __tablename__ = "audit_logs"
 

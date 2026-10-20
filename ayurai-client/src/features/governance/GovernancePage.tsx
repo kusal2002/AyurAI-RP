@@ -34,7 +34,7 @@ const capabilities: { area: string; status: StatusSpec; detail: string }[] = [
     area: "Tamper-evident audit log (Component 4)",
     status: implemented,
     detail:
-      "Sign-ins (including failures), decisions and verifications are appended to a hash-chained log: each entry stores the SHA-256 of the previous entry, so any edit or deletion is detected by chain verification. Entries hold identifiers only, never free text.",
+      "Sign-ins (including failures), decisions, verifications and anchoring are appended to a hash-chained log: each entry stores the SHA-256 of the previous entry, so editing or removing any entry breaks the chain. Limitation: deleting the newest entries leaves a shorter chain that still verifies locally; this is only detected for entries covered by a blockchain anchor. Component 4's own entries hold identifiers, not free text (failed sign-ins record the username typed; Component 2 / 3 event details are stored as sent).",
   },
   {
     area: "Practitioner feedback trail",
@@ -63,13 +63,13 @@ const capabilities: { area: string; status: StatusSpec; detail: string }[] = [
     area: "Federated learning with differential privacy",
     status: partial,
     detail:
-      "FedAvg and FedProx (μ = 0.1) train across three simulated clinic nodes with Opacus DP at five ε values; the ε spent is tracked per round. Training still uses placeholder data until the Component 1 dataset is connected.",
+      "FedAvg and FedProx (μ = 0.1) train across three simulated clinic nodes with Opacus DP at five ε values; the ε spent stays within target in every setting. Training uses Component 1's CP-AnemiC dataset (251 patients, lab-measured Hb) through simple colour features of the conjunctiva, compared against centralised and no-DP baselines. Partial because it is not yet the image model itself, the dataset is small, and the clinics are simulated.",
   },
   {
     area: "Blockchain anchoring (Ethereum Sepolia)",
     status: implemented,
     detail:
-      "A supervisor can write the audit chain's newest hash to the AuditAnchor contract on the Sepolia test network; only the 32-byte hash goes on-chain. Verification compares every anchored hash with the database, which also detects a full rewrite of the log that the local hash check alone would miss. Anchoring is manual (not scheduled) and uses a testnet, not a production network.",
+      "A supervisor can write the audit chain's newest hash to the AuditAnchor contract on the Sepolia test network; only the 32-byte hash goes on-chain. Verification compares every anchored hash with the database, which also detects a full rewrite of the log (with recomputed hashes) that the local hash check alone would miss, for all entries up to the latest anchor. Entries added after the last anchor are protected only by the local hash chain. Anchoring is manual (not scheduled) and uses a testnet, not a production network.",
   },
   {
     area: "Federated knowledge-graph learning (FAKL)",
