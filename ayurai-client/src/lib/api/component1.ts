@@ -25,6 +25,7 @@ import type {
   Component1Report,
   Component1SessionsResponse,
 } from "@/lib/api/types"
+import { getAuthToken } from "@/lib/api/component4"
 import { env } from "@/lib/env"
 
 /** Component 1 local research API. */
@@ -47,6 +48,12 @@ function c1Message(status: number, body: unknown): string {
   return `${SERVICE} returned HTTP ${status}.`
 }
 
+/** Adds the Component 4 sign-in token; Component 1 checks it on patient-data and report routes. */
+function withAuth(headers: Record<string, string>): Record<string, string> {
+  const token = getAuthToken()
+  return token ? { ...headers, Authorization: `Bearer ${token}` } : headers
+}
+
 /** Intake requests: JSON or multipart, longer timeout (PPG recording and model inference take seconds). */
 async function intake<T>(
   path: string,
@@ -59,7 +66,7 @@ async function intake<T>(
   try {
     response = await fetch(`${env.c1BaseUrl}${path}`, {
       method,
-      headers: init.json !== undefined ? { Accept: "application/json", "Content-Type": "application/json" } : { Accept: "application/json" },
+      headers: withAuth(init.json !== undefined ? { Accept: "application/json", "Content-Type": "application/json" } : { Accept: "application/json" }),
       body: method === "GET" ? undefined : init.form ?? JSON.stringify(init.json ?? {}),
       signal: controller.signal,
     })
@@ -181,7 +188,7 @@ export const component1Api = {
     let response: Response
     try {
       response = await fetch(`${env.c1BaseUrl}/api/c1/doctor/sessions/${encodeSessionId(sessionId)}/report.pdf`, {
-        headers: { Accept: "application/pdf" },
+        headers: withAuth({ Accept: "application/pdf" }),
       })
     } catch {
       throw new ApiError("network", `${SERVICE} could not be reached.`)

@@ -37,6 +37,11 @@ services:
       #   trained_model_artifacts/  model weights (copy from the Component 1 owner)
       #   live_sessions/, screening_sessions.sqlite3  created by the API
       - ${C1_DATASETS_DIR:-../datasets}:/datasets
+    environment:
+      # Patient name/phone registration and PDF reports: each request must carry a
+      # Component 4 sign-in token, which Component 1 checks with Component 4.
+      C1_PATIENT_DATA_ACCESS: ${C1_PATIENT_DATA_ACCESS:-component4}
+      C1_C4_AUTH_ME_URL: http://c4-api:8004/api/v1/c4/auth/me
     expose: [ "8001" ]
 
   # ---------- Component 2: KG reasoning ----------

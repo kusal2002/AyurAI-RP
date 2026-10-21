@@ -5,17 +5,22 @@ import { Notice, fieldClass } from "@/components/shared/page"
 import { Button } from "@/components/ui/button"
 import { ApiError } from "@/lib/api/client"
 import { component1Api } from "@/lib/api/component1"
+import { getAuthToken } from "@/lib/api/component4"
 import type { C1Patient, C1PatientDataStatus } from "@/lib/api/types"
 
 /**
  * Patient registration (name + phone) for Component 1. Personal details are only sent to the protected
  * Component 1 routes; they never appear in URLs, session IDs or file names.
  *
- * The browser can only use these routes in the local laptop mode for now: in Component 4 mode it would have to send
- * the user's sign-in token, which needs a shared change (a token getter exported from lib/api/component4.ts).
+ * Modes: local_dev (laptop demo, no sign-in) and component4 (deployed site: requests carry the Component 4 JWT,
+ * and Component 1 allows the practitioner and supervisor roles).
  */
-export function patientFeaturesAvailable(status: C1PatientDataStatus | null): boolean {
-  return status?.enabled === true && status.access_mode === "local_dev"
+export const PATIENT_DATA_ROLES = ["practitioner", "supervisor"]
+
+export function patientFeaturesAvailable(status: C1PatientDataStatus | null, role?: string | null): boolean {
+  if (status?.enabled !== true) return false
+  if (status.access_mode === "local_dev") return true
+  return status.access_mode === "component4" && getAuthToken() !== null && PATIENT_DATA_ROLES.includes(role ?? "")
 }
 
 // Same rules as component1/api/patient_records.py (normalise_name / normalise_phone).
@@ -199,8 +204,8 @@ export function RegistrationUnavailable({ status }: { status: C1PatientDataStatu
   return (
     <Notice tone="neutral" title="Patient name and phone registration is not available here">
       {status.access_mode === "component4"
-        ? "This server requires Component 4 sign-in for patient details, which this page cannot send yet. "
-        : "Patient details are switched off on this server until Component 4 sign-in is integrated. "}
+        ? "Patient details can only be entered by a signed-in practitioner or supervisor. "
+        : "Patient details are switched off on this server (C1_PATIENT_DATA_ACCESS=off). "}
       A coded session (no name or phone) is created instead.
     </Notice>
   )

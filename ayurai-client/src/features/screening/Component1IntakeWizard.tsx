@@ -15,6 +15,7 @@ import {
 
 import { IdChip, KeyValueList, LoadingState, Notice, Panel, fieldClass } from "@/components/shared/page"
 import { Button } from "@/components/ui/button"
+import { useAuth } from "@/context/auth"
 import { ApiError } from "@/lib/api/client"
 import { component1Api } from "@/lib/api/component1"
 import type {
@@ -750,7 +751,8 @@ export function Component1IntakeWizard() {
   const [patientStatus, setPatientStatus] = React.useState<C1PatientDataStatus | null>(null)
   const [patient, setPatient] = React.useState<C1Patient | null>(null)
   const registrationId = React.useRef(newRequestId()) // one per registration form: a retry never creates a second session
-  const patientFeatures = patientFeaturesAvailable(patientStatus)
+  const { user } = useAuth()
+  const patientFeatures = patientFeaturesAvailable(patientStatus, user?.role)
 
   React.useEffect(() => {
     const controller = new AbortController()

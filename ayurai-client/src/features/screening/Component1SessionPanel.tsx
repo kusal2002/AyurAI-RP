@@ -15,6 +15,7 @@ import {
 import { ErrorState, KeyValueList, LoadingState, Notice, Panel } from "@/components/shared/page"
 import { StatusBadge, type StatusSpec } from "@/components/shared/status"
 import { Button } from "@/components/ui/button"
+import { useAuth } from "@/context/auth"
 import { ApiError } from "@/lib/api/client"
 import { component1Api } from "@/lib/api/component1"
 import type { C1EvidenceItem, C1PatientDataStatus, Component1Json, Component1Report, Component1Session } from "@/lib/api/types"
@@ -588,6 +589,7 @@ export function Component1SessionPanel() {
   const [actionError, setActionError] = React.useState<string | null>(null)
   const [busy, setBusy] = React.useState(false)
   const [patientStatus, setPatientStatus] = React.useState<C1PatientDataStatus | null>(null)
+  const { user } = useAuth()
   React.useEffect(() => {
     const controller = new AbortController()
     component1Api.patientDataStatus(controller.signal).then(setPatientStatus).catch(() => undefined)
@@ -775,7 +777,7 @@ export function Component1SessionPanel() {
               <Button variant="outline" size="sm" disabled={report.data.analysis_outdated} onClick={() => void download("c2-payload")}>
                 <Download /> Component 2 payload
               </Button>
-              {patientFeaturesAvailable(patientStatus) && (
+              {patientFeaturesAvailable(patientStatus, user?.role) && (
                 <PdfReportButton sessionId={selectedId} disabled={report.data.analysis_outdated} />
               )}
             </div>

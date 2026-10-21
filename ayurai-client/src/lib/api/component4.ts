@@ -175,6 +175,10 @@ let authToken: string | null = null
 export function setAuthToken(token: string | null) {
   authToken = token
 }
+/** The signed-in user's JWT, for other components' APIs that verify it with Component 4 (e.g. Component 1 patient data). */
+export function getAuthToken(): string | null {
+  return authToken
+}
 
 export const component4Client = createApiClient(
   "Component 4 governance service",
