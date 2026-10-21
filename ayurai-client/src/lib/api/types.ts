@@ -27,6 +27,8 @@ export type Component1Session = Component1Json & {
   ppg_available?: boolean
   record_saved?: boolean
   risk_level?: string | null
+  workflow_state?: C1WorkflowState
+  analysis_outdated?: boolean
 }
 /** GET /api/c1/sessions wraps the list in an object. */
 export type Component1SessionsResponse = { sessions?: Component1Session[] }
@@ -82,18 +84,111 @@ export type C1SerialPorts = {
   configured_port: string
   configured_baud: number
   ports: { device: string; description: string }[]
+  /** Windows lists the port. Says nothing about whether valid samples arrive. */
+  port_listed: boolean
 }
 
-export type C1PpgSummary = {
-  port: string
+export type C1RecordingResult = {
+  session_id: string
+  recording_id: number
+  recording_file: string
   sample_count: number
-  quality_status: string | null
+  quality_status: string
+  quality_passed: boolean
+  quality_reasons: string[]
   observed_receive_rate_hz: number | null
   metrics_count: number
+  finger_present_fraction: number | null
   median_experimental_hr_bpm: number | null
   median_experimental_spo2_percent: number | null
   median_temperature_c: number | null
   hb_model_applied: boolean
+}
+
+export type C1PpgJobState =
+  | "idle"
+  | "opening"
+  | "port_open"
+  | "receiving"
+  | "processing"
+  | "saved"
+  | "failed"
+  | "cancelled"
+  | "probe_ok"
+
+export type C1PpgJob = {
+  job_id?: string
+  kind?: "recording" | "probe"
+  state: C1PpgJobState
+  session_id?: string
+  seconds?: number
+  port?: string
+  samples?: number
+  metrics?: number
+  elapsed_s?: number
+  finger_present?: boolean | null
+  last_hr_bpm?: number | null
+  last_spo2_percent?: number | null
+  error_kind?: string
+  error?: string
+  result?: C1RecordingResult | { valid_rows: number; rows_per_second: number; metrics: number; saved: false }
+}
+
+export type C1PpgJobStatus = C1SerialPorts & { job: C1PpgJob }
+
+export type C1SavedRecording = {
+  recording_id: number
+  recording_file: string
+  sample_count: number
+  quality_status: string
+  observed_receive_rate_hz: number | null
+  saved_utc: string
+}
+
+export type C1WorkflowState =
+  | "created"
+  | "safety_referral"
+  | "images_in_progress"
+  | "ppg_in_progress"
+  | "ready_for_analysis"
+  | "completed"
+
+/** One active webcam image; image_id is a file name, never a filesystem path. */
+export type C1SavedImage = {
+  image_id: string
+  modality: keyof C1CaptureCounts
+  captured_utc: string | null
+  available: boolean
+}
+
+export type C1ImageChange = {
+  images: C1SavedImage[]
+  captures: C1CaptureCounts
+}
+
+export type C1IntakeState = {
+  session_id: string
+  created_utc: string | null
+  workflow_state: C1WorkflowState
+  questionnaire: null | {
+    profile: { age_months?: number; sex_reported_for_demo?: string; sex?: string; pregnancy_status?: string }
+    answers: Record<string, unknown>
+    status: C1CaptureStatus
+    completion_status: string
+  }
+  captures: C1CaptureCounts
+  images?: C1SavedImage[]
+  ppg_recordings: C1SavedRecording[]
+  record_saved: boolean
+}
+
+export type C1ReferralBody = {
+  profile: C1Profile
+  consent: boolean
+  consent_ppg: boolean
+  consent_images: boolean
+  guardian_permission: boolean
+  answers: C1Answers
 }
 
 /** Read-only view of GET /api/c1/sessions/{id}/report. All fields optional: render defensively. */
@@ -144,15 +239,32 @@ export type C1Region = {
   technical_passes?: number
   technical_pass_ratio?: number
   cross_model_disagreement?: boolean
+  model_votes?: unknown[]
+  experimental_hb_estimates_g_dl?: unknown[]
 }
 
 export type Component1Report = {
   schema_version?: string
   session_id?: string
+  /** "screening" (normal) or "safety_referral" (urgent safety answer: referral-only, no risk tier). */
+  outcome?: "screening" | "safety_referral"
+  workflow_state?: C1WorkflowState
   generated_utc?: string
   patient?: { age_months?: number | null; sex?: string | null; pregnancy_status?: string | null; fictional_demo?: boolean }
   workflow?: { key: string; label: string; status: string }[]
-  questionnaire?: { available?: boolean; completion_status?: string | null }
+  questionnaire?: {
+    available?: boolean
+    completion_status?: string | null
+    responses?: { question_id: string; question: string; section: string; answer: unknown }[]
+  }
+  referral?: {
+    urgent_response_ids: string[]
+    unresolved_safety_ids: string[]
+    /** Safety questions still unanswered when the clinician referred. */
+    not_asked_safety_ids?: string[]
+    referred_utc: string | null
+    reason: string
+  }
   modalities?: {
     images?: { image_count?: number; regions?: Record<string, C1Region> }
     ppg?: {
@@ -174,12 +286,15 @@ export type Component1Report = {
   }
   fusion?: C1FusionBlock
   missing_inputs?: string[]
+  /** Images were added, removed or replaced after the last fusion: results below are outdated. */
+  analysis_outdated?: boolean
   storage?: {
     folder: string
     record_saved: boolean
     record_saved_utc: string | null
     files: string[]
     image_files: number
+    saved_images?: C1CaptureCounts
     ppg_recordings: number
   }
   doctor_report?: {

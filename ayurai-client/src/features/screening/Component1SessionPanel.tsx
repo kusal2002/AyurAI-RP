@@ -47,6 +47,8 @@ function errorMessage(error: unknown) {
   return error instanceof ApiError ? error.message : "Component 1 returned an unexpected error."
 }
 
+const SESSION_MISMATCH = "The API returned a report for a different session, so it is not shown. Load the session again."
+
 function sessionIdOf(session: Component1Session) {
   return typeof session.session_id === "string" ? session.session_id : null
 }
@@ -58,7 +60,14 @@ function sessionLabel(session: Component1Session, id: string) {
   parts.push(session.questionnaire_available ? "Q ✓" : "no questionnaire")
   parts.push(`${session.image_count ?? 0} images`)
   parts.push(session.ppg_available ? "PPG ✓" : "no PPG")
-  parts.push(session.risk_level ? tierSpec(session.risk_level).label.replace(" (experimental)", "") : "not analysed")
+  if (session.analysis_outdated) parts.push("images changed: re-run analysis")
+  parts.push(
+    session.workflow_state === "safety_referral"
+      ? "SAFETY REFERRAL"
+      : session.risk_level
+        ? tierSpec(session.risk_level).label.replace(" (experimental)", "")
+        : "not analysed",
+  )
   return parts.join(" · ")
 }
 
@@ -192,7 +201,7 @@ function RiskOutputCard({ report }: { report: Component1Report }) {
     <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm" aria-labelledby="c1-risk-output">
       <div className="border-b border-slate-100 bg-linear-to-r from-teal-50 to-emerald-50 px-5 py-4">
         <h3 id="c1-risk-output" className="text-lg font-bold text-teal-800">Risk output</h3>
-        <p className="text-xs text-slate-600">Experimental anaemia screening tier — unvalidated; for clinician review, not a diagnosis.</p>
+        <p className="text-xs text-slate-600">Experimental anaemia screening tier · Not clinically validated — clinician review required.</p>
       </div>
       <div className="grid gap-6 p-5 md:grid-cols-2">
         <div className="flex items-center gap-5">
@@ -252,7 +261,160 @@ function RiskOutputCard({ report }: { report: Component1Report }) {
   )
 }
 
+/** Urgent safety answer: referral-only record. Deliberately shows no risk tier, gauge or fusion. */
+function ReferralView({ report }: { report: Component1Report }) {
+  const referral = report.referral
+  const responses = report.questionnaire?.responses ?? []
+  const flagged = new Set([...(referral?.urgent_response_ids ?? []), ...(referral?.unresolved_safety_ids ?? [])])
+  return (
+    <div className="space-y-5">
+      <Notice tone="critical" title="Safety referral — routine screening stopped">
+        <p>{report.doctor_report?.summary}</p>
+        <p className="mt-1">This is a referral-only record. It is NOT an anaemia-risk classification; no images, PPG, models or fusion were used.</p>
+      </Notice>
+      <KeyValueList
+        items={[
+          { label: "Session", value: report.session_id ?? "—" },
+          { label: "Reason", value: referral?.reason ?? "—" },
+          { label: "Urgent safety answers", value: referral?.urgent_response_ids.join(", ") || "none" },
+          { label: "Unresolved safety answers (not sure / prefer not to answer)", value: referral?.unresolved_safety_ids.join(", ") || "none" },
+          { label: "Safety questions not asked before referral", value: referral?.not_asked_safety_ids?.join(", ") || "none" },
+          { label: "Referred", value: referral?.referred_utc ? formatDateTime(referral.referred_utc) : "—" },
+        ]}
+      />
+      <Section title="Answers recorded before referral">
+        <div className="overflow-x-auto rounded-xl border border-slate-200">
+          <table className="w-full min-w-120 text-left text-xs">
+            <tbody className="divide-y divide-slate-100">
+              {responses.map((response) => (
+                <tr key={response.question_id} className={flagged.has(response.question_id) ? "bg-rose-50 font-semibold text-rose-900" : ""}>
+                  <td className="px-3 py-1.5 font-mono">{response.question_id}</td>
+                  <td className="px-3 py-1.5">{response.question}</td>
+                  <td className="px-3 py-1.5">{typeof response.answer === "string" ? humanize(response.answer) : JSON.stringify(response.answer)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </Section>
+      <Section title="Recommendations">
+        <List items={report.doctor_report?.recommendations} empty="—" />
+      </Section>
+      {report.storage && (
+        <Section title="Saved referral record">
+          <KeyValueList
+            items={[
+              { label: "Folder", value: <code className="text-xs break-all">{report.storage.folder}</code> },
+              { label: "Files", value: report.storage.files.join(", ") || "—" },
+            ]}
+          />
+        </Section>
+      )}
+    </div>
+  )
+}
+
+const CHECKLIST_MODALITIES = [
+  { key: "conjunctiva", label: "Conjunctiva images" },
+  { key: "nails", label: "Nail-bed images" },
+  { key: "tongue", label: "Tongue images" },
+] as const
+
+/** What evidence this session actually has, what reached fusion, and what is missing. */
+function EvidenceChecklist({ report }: { report: Component1Report }) {
+  const regions = report.modalities?.images?.regions ?? {}
+  const items = report.fusion?.evidence_items ?? []
+  const ppg = report.modalities?.ppg
+  const questionnaire = report.fusion?.questionnaire_evidence
+  const usage = (modality: string) => {
+    const mine = items.filter((item) => item.modality === modality)
+    const used = mine.filter((item) => item.reliability_weight > 0).map((item) => item.source)
+    const excluded = mine.filter((item) => item.reliability_weight <= 0).map((item) => `${item.source}: ${item.note ?? item.weight_basis}`)
+    return { used, excluded }
+  }
+  type Row = { label: string; saved: string; quality: string; models: string; fusion: string; excluded: string[] }
+  const rows: Row[] = CHECKLIST_MODALITIES.map(({ key, label }) => {
+    const saved = report.storage?.saved_images?.[key] ?? 0
+    const region = regions[key]
+    const outputs = (region?.model_votes?.length ?? 0) + (region?.experimental_hb_estimates_g_dl?.length ?? 0)
+    const { used, excluded } = usage(key)
+    return {
+      label,
+      saved: String(saved),
+      quality: region ? `${region.technical_passes ?? 0}/${region.captures ?? 0} passed` : saved ? "not analysed yet" : "—",
+      models: region ? (outputs ? `${outputs} output(s)` : "none (no image passed quality)") : saved ? "not run yet" : "—",
+      fusion: saved === 0 ? "MISSING — not treated as normal" : used.length ? `used: ${used.join(", ")}` : "not used",
+      excluded,
+    }
+  })
+  const ppgUsage = usage("ppg")
+  rows.push({
+    label: "PPG (MAX30102)",
+    saved: ppg?.available ? `${ppg.sample_count ?? 0} samples` : "0",
+    quality: ppg?.available ? `${humanize(ppg.quality_status)} (${ppg.quality_windows_passed ?? 0}/${ppg.quality_windows_checked ?? 0} windows)` : "—",
+    models: ppg?.available ? "HR/SpO2 from device; Hb model not applied" : "—",
+    fusion: ppg?.available ? "not used as anaemia evidence (live PPG Hb not validated)" : "MISSING — not treated as normal",
+    excluded: ppgUsage.excluded,
+  })
+  rows.push({
+    label: "Questionnaire symptoms",
+    saved: report.questionnaire?.available ? "saved" : "missing",
+    quality: questionnaire ? `${questionnaire.answered_items} symptom items answered yes/no` : "—",
+    models: "rule-based (not a trained model)",
+    fusion: questionnaire?.usable ? "used (weight 0.10)" : "not used (fewer than 3 symptom answers)",
+    excluded: [],
+  })
+  const missing = report.missing_inputs ?? []
+  return (
+    <Section title="Evidence checklist for this session">
+      <div className="overflow-x-auto rounded-xl border border-slate-200">
+        <table className="w-full min-w-160 text-left text-xs">
+          <thead className="bg-slate-50 text-slate-500">
+            <tr>
+              <th className="px-3 py-2">Evidence</th>
+              <th className="px-3 py-2">Saved</th>
+              <th className="px-3 py-2">Technical quality</th>
+              <th className="px-3 py-2">Models</th>
+              <th className="px-3 py-2">In fusion</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-slate-100">
+            {rows.map((row) => (
+              <tr key={row.label} className={row.fusion.startsWith("MISSING") ? "bg-amber-50/60" : ""}>
+                <td className="px-3 py-2 font-medium text-slate-800">{row.label}</td>
+                <td className="px-3 py-2">{row.saved}</td>
+                <td className="px-3 py-2">{row.quality}</td>
+                <td className="px-3 py-2">{row.models}</td>
+                <td className="px-3 py-2">
+                  {row.fusion}
+                  {row.excluded.length > 0 && (
+                    <ul className="mt-1 list-disc pl-4 text-slate-500">
+                      {row.excluded.map((reason) => (
+                        <li key={reason}>excluded {reason}</li>
+                      ))}
+                    </ul>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p className="text-xs text-slate-500">
+        Missing evidence: {missing.length ? missing.join(", ") : "none"}. Reliability score = sum of the weights of the sources
+        used (image technical-quality pass rate × held-out model performance; questionnaire 0.10), capped at 1. It is a research
+        heuristic, not a calibrated probability.
+      </p>
+    </Section>
+  )
+}
+
 export function ReportView({ report }: { report: Component1Report }) {
+  if (report.outcome === "safety_referral") return <ReferralView report={report} />
+  return <ScreeningReportView report={report} />
+}
+
+function ScreeningReportView({ report }: { report: Component1Report }) {
   const fusion = report.fusion ?? {}
   const reliability = fusion.reliability_aware_fusion
   const conventional = fusion.conventional_fusion
@@ -260,9 +422,16 @@ export function ReportView({ report }: { report: Component1Report }) {
   const regions = report.modalities?.images?.regions ?? {}
   const questionnaire = fusion.questionnaire_evidence
   const doctor = report.doctor_report ?? {}
+  const outdated = Boolean(report.analysis_outdated)
 
   return (
-    <div className="space-y-6">
+    <div className={cn("space-y-6", outdated && "[&>*:not(:first-child)]:opacity-50")}>
+      {outdated && (
+        <Notice tone="critical" title="Images changed — re-run analysis">
+          Images were added, removed or replaced after this analysis. The results below are OUTDATED and must not be used as
+          current. Choose “Re-run fusion” or analyse the session again.
+        </Notice>
+      )}
       {(fusion.safety_flags?.length ?? 0) > 0 && (
         <Notice tone="critical" title="Safety flags">
           <List items={fusion.safety_flags} empty="" />
@@ -300,10 +469,12 @@ export function ReportView({ report }: { report: Component1Report }) {
         </div>
       </div>
 
-      <Notice tone="caution" title="Experimental, unvalidated">
+      <Notice tone="caution" title="Not clinically validated — clinician review required">
         Tiers come from pre-specified rules weighted by technical quality and held-out model performance. No dataset
         pairs all modalities, so the fused tier has no measured accuracy. {doctor.clinical_action}
       </Notice>
+
+      <EvidenceChecklist report={report} />
 
       <Section title="Model and rule evidence">
         {fusion.evidence_items?.length ? (
@@ -415,6 +586,26 @@ export function Component1SessionPanel() {
   const [report, setReport] = React.useState<LoadState<Component1Report>>({ status: "idle" })
   const [actionError, setActionError] = React.useState<string | null>(null)
   const [busy, setBusy] = React.useState(false)
+  // Request identity: a report response is applied only if it is the latest request and its session is still selected.
+  const selectedRef = React.useRef("")
+  const requestRef = React.useRef(0)
+
+  /** Change the selected session; any report request still in flight becomes stale. */
+  const selectSession = (id: string) => {
+    selectedRef.current = id
+    requestRef.current += 1
+    setSelectedId(id)
+    setReport({ status: "idle" })
+    setActionError(null)
+  }
+
+  /** Start a request for one session; the returned guard runs `apply` only while that request is still current. */
+  const track = (id: string) => {
+    const request = ++requestRef.current
+    return (apply: () => void) => {
+      if (request === requestRef.current && selectedRef.current === id) apply()
+    }
+  }
 
   const connect = async () => {
     setHealth({ status: "loading" })
@@ -427,7 +618,8 @@ export function Component1SessionPanel() {
       const list = Array.isArray(sessionResponse.sessions) ? sessionResponse.sessions : []
       setHealth({ status: "success", data: healthResponse })
       setSessions({ status: "success", data: list })
-      setSelectedId((current) => current || (list[0] ? sessionIdOf(list[0]) : null) || "")
+      const first = list[0] ? sessionIdOf(list[0]) : null
+      if (!selectedRef.current && first) selectSession(first)
     } catch (error) {
       const message = errorMessage(error)
       setHealth({ status: "error", message })
@@ -436,24 +628,39 @@ export function Component1SessionPanel() {
   }
 
   const loadSession = async () => {
-    if (!selectedId) return
+    const id = selectedId
+    if (!id) return
+    const current = track(id)
     setReport({ status: "loading" })
     setActionError(null)
     try {
-      setReport({ status: "success", data: await component1Api.report(selectedId) })
+      const data = await component1Api.report(id)
+      current(() =>
+        setReport(data.session_id === id ? { status: "success", data } : { status: "error", message: SESSION_MISMATCH }),
+      )
     } catch (error) {
-      setReport({ status: "error", message: errorMessage(error) })
+      current(() => setReport({ status: "error", message: errorMessage(error) }))
     }
   }
 
   const rerunFusion = async () => {
-    if (!selectedId) return
+    const id = selectedId
+    if (!id) return
+    const current = track(id)
     setBusy(true)
     setActionError(null)
     try {
-      setReport({ status: "success", data: await component1Api.refresh(selectedId) })
+      const data = await component1Api.refresh(id)
+      current(() => (data.session_id === id ? setReport({ status: "success", data }) : setActionError(SESSION_MISMATCH)))
     } catch (error) {
-      setActionError(errorMessage(error))
+      const timedOut = error instanceof ApiError && error.kind === "timeout"
+      current(() =>
+        setActionError(
+          timedOut
+            ? `${errorMessage(error)} The re-run may still finish on the server; choose Load screening evidence shortly.`
+            : errorMessage(error),
+        ),
+      )
     } finally {
       setBusy(false)
     }
@@ -473,7 +680,9 @@ export function Component1SessionPanel() {
     }
   }
 
-  const loaded = report.status === "success"
+  // Never render a report under a different session's selection.
+  const loaded = report.status === "success" && report.data.session_id === selectedId
+  const reportLoading = report.status === "loading"
 
   return (
     <Panel
@@ -486,8 +695,9 @@ export function Component1SessionPanel() {
       }
     >
       <Notice tone="info" className="mb-4" title="Local Component 1 development connection">
-        Reads fictional demo sessions saved in <code>datasets/live_sessions</code> from <code>/api/c1</code> through the Vite proxy at
-        <code> http://127.0.0.1:8001</code>. New sessions are captured on the New screening page.
+        Reads fictional demo sessions saved in <code>datasets/live_sessions</code> from the local Component 1 API
+        (<code>http://127.0.0.1:8001</code>), reached through this app&apos;s development proxy. New sessions are captured on the
+        New screening page.
       </Notice>
 
       {health.status === "loading" || sessions.status === "loading" ? (
@@ -506,10 +716,8 @@ export function Component1SessionPanel() {
               <select
                 className="mt-1 block h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm"
                 value={selectedId}
-                onChange={(event) => {
-                  setSelectedId(event.target.value)
-                  setReport({ status: "idle" })
-                }}
+                disabled={busy}
+                onChange={(event) => selectSession(event.target.value)}
               >
                 <option value="">Choose a session…</option>
                 {sessions.data.map((session, index) => {
@@ -518,10 +726,10 @@ export function Component1SessionPanel() {
                 })}
               </select>
             </label>
-            <Button disabled={!selectedId || report.status === "loading"} onClick={() => void loadSession()}>
+            <Button disabled={!selectedId || busy || reportLoading} onClick={() => void loadSession()}>
               Load screening evidence
             </Button>
-            <Button variant="outline" disabled={!selectedId || busy} onClick={() => void rerunFusion()}>
+            <Button variant="outline" disabled={!selectedId || busy || reportLoading} onClick={() => void rerunFusion()}>
               <RotateCcw /> {busy ? "Re-running…" : "Re-run fusion"}
             </Button>
           </div>
@@ -554,10 +762,10 @@ export function Component1SessionPanel() {
               )}
             </p>
             <div className="flex flex-wrap gap-2">
-              <Button variant="outline" size="sm" onClick={() => void download("screening-result")}>
+              <Button variant="outline" size="sm" disabled={report.data.analysis_outdated} onClick={() => void download("screening-result")}>
                 <Download /> C1 screening JSON
               </Button>
-              <Button variant="outline" size="sm" onClick={() => void download("c2-payload")}>
+              <Button variant="outline" size="sm" disabled={report.data.analysis_outdated} onClick={() => void download("c2-payload")}>
                 <Download /> Component 2 payload
               </Button>
             </div>

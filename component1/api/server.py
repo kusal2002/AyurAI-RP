@@ -1,10 +1,13 @@
 """AyurAI Component 1: localhost-only PP1 session API.
 
 Run from repository root:
-    python -m uvicorn component1.api.server:app --host 127.0.0.1 --port 8001
+    component1\\.venv\\Scripts\\python.exe -m uvicorn component1.api.server:app --host 127.0.0.1 --port 8001
 
-The Vite development server proxies /api/c1 to this service, keeping the
-browser at http://localhost:5173. No Firebase, Groq, or Component 2 dependency.
+FastAPI routes are served under /api/c1/... (e.g. /api/c1/health). The browser stays
+at http://localhost:5173 and calls /c1-api/...; the Vite dev server proxy
+(ayurai-client/vite.config.ts) strips the /c1-api prefix and forwards to this
+service, so /c1-api/api/c1/health -> http://127.0.0.1:8001/api/c1/health.
+No Firebase, Groq, or Component 2 dependency.
 
 This PP1 prototype exposes FICTIONAL DEMO SESSIONS ONLY. Add authentication,
 access controls and approval before handling identifiable patient records.
@@ -13,6 +16,7 @@ access controls and approval before handling identifiable patient records.
 from __future__ import annotations
 
 import json
+from contextlib import closing
 import re
 import sqlite3
 from datetime import datetime, timezone
@@ -31,6 +35,10 @@ DEMO_SESSION = re.compile(r"demo_[A-Za-z0-9]{8}\Z")
 # Screening record files written into each session folder on analysis / re-run fusion.
 SAVED_OUTPUTS = ("screening_report.json", "screening_result.json", "c2_payload.json")
 SESSION_EVIDENCE_FILES = ("manifest.json", "quality_report.json", "image_model_results.json", "fusion_report.json")
+# Urgent safety answers end routine screening; the session keeps a referral-only record.
+REFERRAL_STATUS = "safety_referral"
+REFERRAL_FILE = "safety_referral.json"
+MODALITY_KEYS = ("conjunctiva", "nails", "tongue")
 
 app = FastAPI(title="AyurAI Component 1 API", version="0.1.0")
 
@@ -57,7 +65,7 @@ def _json(path: Path) -> dict[str, Any]:
 def _db_questionnaire(session_id: str) -> dict[str, Any] | None:
     if not DB_PATH.is_file():
         return None
-    with sqlite3.connect(DB_PATH) as conn:
+    with closing(sqlite3.connect(DB_PATH)) as conn, conn:
         conn.row_factory = sqlite3.Row
         exists = conn.execute(
             "SELECT 1 FROM sqlite_master WHERE type='table' AND name='questionnaire_responses'"
@@ -175,9 +183,117 @@ def _doctor_narrative(fusion: dict, questionnaire: dict | None) -> dict[str, Any
     }
 
 
+def _is_referral(questionnaire: dict | None) -> bool:
+    return bool(questionnaire) and questionnaire.get("completion_status") == REFERRAL_STATUS
+
+
+def _saved_images(session_dir: Path) -> dict[str, int]:
+    captures = _json(session_dir / "manifest.json").get("captures")
+    captures = captures if isinstance(captures, list) else []
+    return {m: sum(c.get("modality") == m for c in captures if isinstance(c, dict)) for m in MODALITY_KEYS}
+
+
+def workflow_state(session_dir: Path, questionnaire: dict | None) -> str:
+    """Derived from persisted evidence only (no separate state table)."""
+    if questionnaire is None:
+        return "created"
+    if _is_referral(questionnaire):
+        return REFERRAL_STATUS
+    record = session_dir / SAVED_OUTPUTS[0]
+    evidence = [session_dir / "manifest.json", *(session_dir / "ppg").glob("ppg_red_ir_*.csv")]
+    newest_evidence = max((p.stat().st_mtime for p in evidence if p.is_file()), default=0)
+    if record.is_file() and record.stat().st_mtime >= newest_evidence:
+        return "completed"
+    status = questionnaire.get("status", {})
+    answers = questionnaire.get("answers", {})
+    if status.get("image_acquisition_allowed") and sum(_saved_images(session_dir).values()) == 0:
+        return "images_in_progress"
+    ppg_saved = any((session_dir / "ppg").glob("ppg_red_ir_*.csv"))
+    ppg_possible = answers.get("REG06") == "yes" and (
+        status.get("ppg_pending_finger_comfort_check", True) or status.get("ppg_acquisition_allowed")
+    )
+    if ppg_possible and not ppg_saved:
+        return "ppg_in_progress"
+    return "ready_for_analysis"
+
+
+def _referral_report(session_id: str, session_dir: Path, questionnaire: dict) -> dict[str, Any]:
+    """Referral-only outcome: no images, PPG, models or fusion; no anaemia-risk tier."""
+    status = questionnaire.get("status", {})
+    referral = _json(session_dir / REFERRAL_FILE)
+    profile = questionnaire.get("profile", {})
+    urgent = status.get("urgent_response_ids", [])
+    unresolved = status.get("safety_unresolved", [])
+    summary = (
+        "SAFETY REFERRAL — routine screening stopped before image or PPG acquisition. "
+        "Immediate clinician assessment required. No AI anaemia-risk classification was produced."
+    )
+    return {
+        "schema_version": "c1.screening.v1",
+        "session_id": session_id,
+        "outcome": REFERRAL_STATUS,
+        "generated_utc": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        "patient": {
+            "reference": session_id,
+            "fictional_demo": True,
+            "age_months": profile.get("age_months"),
+            "sex": profile.get("sex") or profile.get("sex_reported_for_demo"),
+            "pregnancy_status": profile.get("pregnancy_status"),
+        },
+        "workflow_state": REFERRAL_STATUS,
+        "workflow": [
+            {"key": "registration", "label": "Create coded patient session", "status": "complete"},
+            {"key": "questionnaire", "label": "Consent and guided clinical interview", "status": "complete"},
+            {"key": "safety", "label": "Urgent safety answer: stop and refer", "status": "complete"},
+            {"key": "routine_screening", "label": "Routine image/PPG screening", "status": "not_performed"},
+        ],
+        "questionnaire": {
+            "available": True,
+            "completion_status": REFERRAL_STATUS,
+            "status": status,
+            "responses": _question_items(questionnaire.get("answers", {})),
+        },
+        "referral": {
+            "urgent_response_ids": urgent,
+            "unresolved_safety_ids": unresolved,
+            "not_asked_safety_ids": status.get("safety_not_asked", []),
+            "referred_utc": referral.get("referred_utc") or questionnaire.get("updated_at_utc"),
+            "reason": referral.get("reason") or "Urgent or unresolved safety answer.",
+        },
+        "modalities": {"images": {"image_count": 0}, "ppg": {"available": False}},
+        "screening_result": {
+            "risk_level": None,
+            "risk_level_validated": False,
+            "clinical_risk_category": None,
+            "decision_status": "urgent_clinician_review_required",
+            "reliability_score": None,
+            "reliability_score_is_probability": False,
+            "fusion_version": None,
+            "contributing_factors": [f"Urgent safety answer: {qid}" for qid in urgent]
+            + [f"Unresolved safety answer: {qid}" for qid in unresolved],
+            "experimental": True,
+        },
+        "fusion": {},
+        "missing_inputs": ["images", "ppg", "fusion (not performed: safety referral)"],
+        "doctor_report": {
+            "headline": "Component 1 — safety referral record",
+            "summary": summary,
+            "observations": [f"Guided interview: {len(questionnaire.get('answers', {}))} responses stored before referral."],
+            "recommendations": ["Immediate clinician assessment for the urgent safety answer(s).",
+                                "Do not continue routine AI screening for this session."],
+            "reliability_flags": [],
+            "limitations": ["Referral-only record: this is not an anaemia-risk classification."],
+            "clinical_action": "Clinician review is required now; this record is not a diagnosis.",
+        },
+        "storage": _storage(session_dir),
+    }
+
+
 def _build_report(session_id: str) -> dict[str, Any]:
     session_dir = _session_dir(session_id)
     questionnaire = _db_questionnaire(session_id)
+    if _is_referral(questionnaire):
+        return _referral_report(session_id, session_dir, questionnaire)
     fusion = _json(session_dir / "fusion_report.json")
     img = _json(session_dir / "image_model_results.json")
     profile = (questionnaire or {}).get("profile", {})
@@ -192,8 +308,10 @@ def _build_report(session_id: str) -> dict[str, Any]:
     return {
         "schema_version": "c1.screening.v1",
         "session_id": session_id,
+        "outcome": "screening",
         "generated_utc": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "patient": patient,
+        "workflow_state": workflow_state(session_dir, questionnaire),
         "workflow": _workflow(questionnaire, session_dir, fusion),
         "questionnaire": {
             "available": questionnaire is not None,
@@ -219,8 +337,34 @@ def _build_report(session_id: str) -> dict[str, Any]:
         "fusion": screening,
         "missing_inputs": fusion.get("missing_inputs", []),
         "doctor_report": _doctor_narrative(fusion, questionnaire),
+        "analysis_outdated": analysis_outdated(session_dir),
         "storage": _storage(session_dir),
     }
+
+
+def analysis_outdated(session_dir: Path) -> bool:
+    """True when images were added, removed or replaced after the last fusion run."""
+    # Sub-second comparison: generated_utc has one-second resolution, so use the report file's mtime.
+    changed = _json(session_dir / "manifest.json").get("evidence_changed_utc")
+    fusion = session_dir / "fusion_report.json"
+    if not changed or not fusion.is_file():
+        return False
+    try:
+        return datetime.fromisoformat(changed).timestamp() > fusion.stat().st_mtime
+    except ValueError:
+        return False
+
+
+def image_results_outdated(session_dir: Path) -> bool:
+    """True when per-image model results predate an image change (they may include removed photos)."""
+    changed = _json(session_dir / "manifest.json").get("evidence_changed_utc")
+    results = session_dir / "image_model_results.json"
+    if not changed:
+        return False
+    try:
+        return not results.is_file() or datetime.fromisoformat(changed).timestamp() > results.stat().st_mtime
+    except ValueError:
+        return False
 
 
 def _storage(session_dir: Path) -> dict[str, Any]:
@@ -233,8 +377,13 @@ def _storage(session_dir: Path) -> dict[str, Any]:
             datetime.fromtimestamp(record.stat().st_mtime, timezone.utc).isoformat(timespec="seconds")
             if record.is_file() else None
         ),
-        "files": [name for name in (*SESSION_EVIDENCE_FILES, *SAVED_OUTPUTS) if (session_dir / name).is_file()],
-        "image_files": sum(1 for _ in (session_dir / "images").rglob("*.png")) if (session_dir / "images").is_dir() else 0,
+        "files": [
+            name for name in (*SESSION_EVIDENCE_FILES, *SAVED_OUTPUTS, REFERRAL_FILE) if (session_dir / name).is_file()
+        ],
+        "image_files": sum(
+            1 for p in (session_dir / "images").rglob("*.png") if "_removed" not in p.parts
+        ) if (session_dir / "images").is_dir() else 0,
+        "saved_images": _saved_images(session_dir),
         "ppg_recordings": sum(1 for _ in (session_dir / "ppg").glob("ppg_red_ir_*.csv")) if (session_dir / "ppg").is_dir() else 0,
     }
 
@@ -371,16 +520,20 @@ def sessions():
         except HTTPException:
             continue
         captures = manifest.get("captures")
+        referral = _is_referral(q)
         result.append({
             "session_id": directory.name,
             "created_utc": manifest.get("created_utc"),
+            "workflow_state": workflow_state(directory, q),
+            "analysis_outdated": analysis_outdated(directory),
             "questionnaire_available": q is not None,
             "image_count": len(captures) if isinstance(captures, list) else 0,
             "ppg_available": any((directory / "ppg").glob("ppg_red_ir_*.csv")),
             "record_saved": (directory / SAVED_OUTPUTS[0]).is_file(),
-            "risk_level": fusion.get("experimental_risk_tier"),
+            "risk_level": None if referral else fusion.get("experimental_risk_tier"),
             "risk_level_validated": False,
-            "decision_status": fusion.get("decision_status", "not_generated"),
+            "decision_status": "urgent_clinician_review_required" if referral
+            else fusion.get("decision_status", "not_generated"),
             "generated_utc": fusion.get("generated_utc"),
         })
     result.sort(key=lambda s: s["created_utc"] or "", reverse=True)
@@ -408,10 +561,17 @@ def _screening_result(report: dict[str, Any]) -> dict[str, Any]:
 
 
 def save_session_outputs(session_id: str) -> dict[str, Any]:
-    """Write the screening record files into the session folder; return the report with storage info."""
+    """Write the screening record files into the session folder; return the report with storage info.
+
+    Referral sessions get the report and screening result only: no Component 2 payload,
+    because no anaemia screening was performed.
+    """
     session_dir = _session_dir(session_id)
     report = _build_report(session_id)
-    outputs = dict(zip(SAVED_OUTPUTS, (report, _screening_result(report), _c2_payload(report))))
+    if report.get("outcome") == REFERRAL_STATUS:
+        outputs = dict(zip(SAVED_OUTPUTS[:2], (report, _screening_result(report))))
+    else:
+        outputs = dict(zip(SAVED_OUTPUTS, (report, _screening_result(report), _c2_payload(report))))
     for name, content in outputs.items():
         tmp = session_dir / f"{name}.tmp"
         tmp.write_text(json.dumps(content, indent=2), encoding="utf-8")
@@ -427,13 +587,23 @@ def component2_json(session_id: str):
 @app.get("/api/c1/sessions/{session_id}/c2-payload")
 def component2_payload(session_id: str):
     """Component 1 output shaped for Component 2's provisional C1ScreeningPayload."""
-    return JSONResponse(_c2_payload(_build_report(session_id)), headers={"Cache-Control": "no-store"})
+    report = _build_report(session_id)
+    if report.get("outcome") == REFERRAL_STATUS:
+        raise HTTPException(409, "Safety-referral session: no anaemia screening to hand over to Component 2")
+    return JSONResponse(_c2_payload(report), headers={"Cache-Control": "no-store"})
 
 
 @app.post("/api/c1/sessions/{session_id}/refresh")
 def refresh_session(session_id: str):
-    _session_dir(session_id)
-    _db_questionnaire(session_id)  # Refuse to process non-demo rows.
+    session_dir = _session_dir(session_id)
+    if _is_referral(_db_questionnaire(session_id)):  # Also refuses non-demo rows.
+        return save_session_outputs(session_id)  # Referral record only; never routine fusion.
+    if image_results_outdated(session_dir):
+        # Images changed since the image models ran: re-run quality checks and models before fusion,
+        # so removed or replaced photos cannot reach the fused result.
+        from component1.api.intake import analyze
+
+        return analyze(session_id)
     from component1.fusion.fuse_screening_session import fuse_session
     try:
         fuse_session(session_id)
