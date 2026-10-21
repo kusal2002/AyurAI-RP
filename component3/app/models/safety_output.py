@@ -22,6 +22,8 @@ class EvidenceProvenance(BaseModel):
     citation_type: str = Field(..., description="e.g. 'AYUSH Monograph', 'PubMed', 'WHO VigiBase'")
     pmid_or_ref: Optional[str] = None
     grade: EvidenceGrade = EvidenceGrade.PROBABLE
+    source_url: Optional[str] = None
+    excerpt: Optional[str] = None
 
 
 class InteractionFinding(BaseModel):
@@ -33,6 +35,7 @@ class InteractionFinding(BaseModel):
     evidence_strength: EvidenceGrade = EvidenceGrade.PROBABLE
     prediction_confidence: float = Field(..., ge=0.0, le=1.0)
     source_refs: List[EvidenceProvenance] = Field(default_factory=list)
+    clinical_action: Optional[str] = None
 
 
 class TitrationGuidance(BaseModel):

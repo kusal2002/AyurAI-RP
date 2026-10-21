@@ -115,29 +115,26 @@ function evidenceRefsFor(output: Component2Output, relationship: EvidenceReferen
       relationship === "SUPPORTS" ? concept.supporting_evidence_ids : concept.contradicting_evidence_ids,
     ),
   )
+  // Only evidence whose details are in the response is listed; bare IDs are
+  // counted instead of being shown as empty rows.
   const refs: EvidenceReference[] = []
+  let withoutDetails = 0
   for (const id of ids) {
     const entry = index.get(id)
-    refs.push(
-      entry
-        ? { ...entry.reference, relationship }
-        : {
-            evidence_id: id,
-            relationship,
-            title: null,
-            source_name: null,
-            evidence_type: null,
-            section: null,
-            page: null,
-            citation: null,
-            source_url: null,
-            practitioner_verified: false,
-            provenance_complete: false,
-            missing_provenance: ["metadata_not_in_response"],
-          },
-    )
+    if (entry) refs.push({ ...entry.reference, relationship })
+    else withoutDetails += 1
   }
-  return refs
+  return { refs, withoutDetails }
+}
+
+function EvidenceOmittedNote({ count }: { count: number }) {
+  if (count === 0) return null
+  return (
+    <p className="mt-2 text-xs text-slate-500">
+      {count} further evidence record{count === 1 ? " is" : "s are"} linked by ID only and not listed, because the
+      response does not include {count === 1 ? "its" : "their"} details. See the Evidence explorer.
+    </p>
+  )
 }
 
 function SafetyStatus({ record }: { record: CaseRecord }) {
@@ -219,7 +216,7 @@ function C1MappingList({ mapping }: { mapping: C1SymptomMapping }) {
 }
 
 function ReasoningDetail({ output, record }: { output: Component2Output; record: CaseRecord }) {
-  const { runReasoning } = useWorkspace()
+  const { runReasoning, setKnowledgeScope } = useWorkspace()
   const names = React.useMemo(() => conceptNames(output), [output])
   const supporting = React.useMemo(() => evidenceRefsFor(output, "SUPPORTS"), [output])
   const contradicting = React.useMemo(() => evidenceRefsFor(output, "CONTRADICTS"), [output])
@@ -322,15 +319,18 @@ function ReasoningDetail({ output, record }: { output: Component2Output; record:
           </>
         }
       >
-        {supporting.length === 0 ? (
-          <p className="text-sm text-slate-500">No supporting evidence is linked to the interpretation.</p>
+        {supporting.refs.length === 0 ? (
+          <p className="text-sm text-slate-500">
+            {supporting.withoutDetails ? "No evidence details are available in this response." : "No supporting evidence is linked to the interpretation."}
+          </p>
         ) : (
           <ul className="space-y-2">
-            {supporting.map((reference) => (
+            {supporting.refs.map((reference) => (
               <EvidenceReferenceRow key={reference.evidence_id} reference={reference} />
             ))}
           </ul>
         )}
+        <EvidenceOmittedNote count={supporting.withoutDetails} />
         <p className="mt-3 text-xs text-slate-500">
           The reasoning response carries evidence metadata, not source passages. Full source text is not
           available from the current API.
@@ -341,15 +341,16 @@ function ReasoningDetail({ output, record }: { output: Component2Output; record:
         <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
           <div>
             <h3 className="mb-2 text-xs font-semibold tracking-wide text-slate-500 uppercase">Contradicting evidence (interpretation)</h3>
-            {contradicting.length === 0 ? (
+            {contradicting.refs.length === 0 ? (
               <p className="text-sm text-slate-500">None linked to the interpreted concepts.</p>
             ) : (
               <ul className="space-y-2">
-                {contradicting.map((reference) => (
+                {contradicting.refs.map((reference) => (
                   <EvidenceReferenceRow key={reference.evidence_id} reference={reference} />
                 ))}
               </ul>
             )}
+            <EvidenceOmittedNote count={contradicting.withoutDetails} />
             <h3 className="mt-5 mb-2 text-xs font-semibold tracking-wide text-slate-500 uppercase">Evidence gaps</h3>
             <FlagList flags={output.evidence_gaps} />
           </div>
@@ -407,7 +408,29 @@ function ReasoningDetail({ output, record }: { output: Component2Output; record:
         }
       >
         {output.candidates.length === 0 ? (
-          <EmptyState icon={CircleSlash} title="No candidates generated" description="Component 2 returned no valid candidate path." />
+          <div className="space-y-3">
+            <EmptyState icon={CircleSlash} title="No candidates generated" description="Component 2 returned no valid candidate path under approved clinical scope." />
+            {output.knowledge_scope !== "approved_and_provisional" && (
+              <div className="rounded-xl border border-emerald-200 bg-emerald-50/60 p-4 text-center space-y-2">
+                <p className="text-xs font-semibold text-emerald-950">
+                  Switch to Research Scope (Approved + Provisional Knowledge)
+                </p>
+                <p className="text-xs text-emerald-800 max-w-lg mx-auto">
+                  The active Neo4j knowledge graph stores classical Ayurvedic claims in provisional status. Running in research scope enables these paths and extracts 19 candidate formulations for Pandu Roga.
+                </p>
+                <Button
+                  size="sm"
+                  onClick={() => {
+                    setKnowledgeScope("approved_and_provisional")
+                    void runReasoning(record.id)
+                  }}
+                  className="bg-emerald-700 hover:bg-emerald-800 text-white text-xs"
+                >
+                  <RefreshCw className="size-3.5 mr-1.5" /> Enable Research Scope & Generate Candidates
+                </Button>
+              </div>
+            )}
+          </div>
         ) : (
           <ol className="space-y-2">
             {output.candidates.map((candidate) => (

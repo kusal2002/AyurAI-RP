@@ -52,6 +52,7 @@ export const navGroups: { title: string; items: NavItem[] }[] = [
     title: "Safety & review",
     items: [
       { label: "Safety assessment", to: "/safety", icon: ShieldCheck, component: "C3" },
+      { label: "Safety knowledge graph", to: "/safety-graph", icon: Network, component: "C3" },
       { label: "Practitioner review", to: "/review", icon: ClipboardCheck, component: "C4" },
     ],
   },

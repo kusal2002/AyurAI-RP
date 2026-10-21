@@ -169,8 +169,8 @@ export type SummaryRow = {
   data_source: string
 }
 
-// The JWT lives only in memory (never localStorage), matching this app's
-// no-browser-storage policy. The AuthProvider sets it after sign-in.
+// The JWT used for requests. The AuthProvider sets it after sign-in and when it
+// restores a sign-in from this tab's sessionStorage (never localStorage).
 let authToken: string | null = null
 export function setAuthToken(token: string | null) {
   authToken = token
