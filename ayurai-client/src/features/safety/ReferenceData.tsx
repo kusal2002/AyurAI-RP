@@ -98,17 +98,7 @@ function ReferenceTab<T>({
 const includes = (values: (string | null | undefined)[], query: string) =>
   values.some((value) => value?.toLowerCase().includes(query))
 
-export function ReferenceData({ enabled }: { enabled: boolean }) {
-  if (!enabled) {
-    return (
-      <Panel title="Component 3 reference data">
-        <EmptyState
-          title="Available in live mode"
-          description="Herbs, drugs, known interactions and CYP pathway profiles are loaded from the Component 3 service. Demo mode does not call any service."
-        />
-      </Panel>
-    )
-  }
+export function ReferenceData() {
   return (
     <Panel
       title="Component 3 reference data"

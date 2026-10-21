@@ -267,11 +267,9 @@ function ReasoningDetail({ output, record }: { output: Component2Output; record:
                 {
                   label: "Summary origin",
                   value:
-                    record.c1?.origin === "demo_fixture"
-                      ? "Demo fixture"
-                      : record.c1?.origin === "c1_payload"
-                        ? `Imported Component 1 payload (${record.c1.payloadSource ?? "unknown source"})`
-                        : "Manual entry of approved C1 result",
+                    record.c1?.origin === "c1_payload"
+                      ? `Imported Component 1 payload (${record.c1.payloadSource ?? "unknown source"})`
+                      : "Manual entry of approved C1 result",
                 },
                 { label: "Symptoms mapped", value: `${mapped} of ${output.symptom_mappings.length}` },
               ]}
@@ -479,8 +477,8 @@ function ReasoningDetail({ output, record }: { output: Component2Output; record:
                 : `${record.feedback.length} feedback submission(s) in this session; ${feedbackRecorded} recorded by the Component 2 service.`}
             </p>
             <p className="mt-1 text-xs text-slate-500">
-              Final approval is recorded by Component 4 on the Practitioner review page (signed-in practitioners,
-              live mode). Nothing is approved on this page.
+              Final approval is recorded by Component 4 on the Practitioner review page (signed-in practitioners).
+              Nothing is approved on this page.
             </p>
           </div>
           <Button className="bg-emerald-700 hover:bg-emerald-800" size="sm" render={<Link to="/review" />} nativeButton={false}>

@@ -82,11 +82,10 @@ const steps = [
 
 export function NewScreeningPage() {
   const navigate = useNavigate()
-  const { mode, createCase, runReasoning, validateIntake, knowledgeScope, setKnowledgeScope } = useWorkspace()
-  const isDemo = mode === "demo"
+  const { createCase, runReasoning, validateIntake, knowledgeScope, setKnowledgeScope } = useWorkspace()
 
   const [step, setStep] = React.useState(1)
-  const [caseRef, setCaseRef] = React.useState(isDemo ? "DEMO-CASE-002" : "")
+  const [caseRef, setCaseRef] = React.useState("")
   const [ageGroup, setAgeGroup] = React.useState("")
   const [sexAtBirth, setSexAtBirth] = React.useState("not-provided")
   const [files, setFiles] = React.useState<Partial<Record<ModalityKey, File>>>({})
@@ -155,7 +154,7 @@ export function NewScreeningPage() {
         symptom_ids: symptomIds,
       },
     })
-    if (validateFirst && !isDemo) void validateIntake(id)
+    if (validateFirst) void validateIntake(id)
     void runReasoning(id)
     navigate("/analysis")
   }
@@ -175,11 +174,9 @@ export function NewScreeningPage() {
         are entered manually in step 3. Use synthetic or de-identified data only.
       </Notice>
 
-      {mode === "live" && (
-        <div className="mb-5">
-          <KnowledgeScopeToggle value={knowledgeScope} onChange={setKnowledgeScope} />
-        </div>
-      )}
+      <div className="mb-5">
+        <KnowledgeScopeToggle value={knowledgeScope} onChange={setKnowledgeScope} />
+      </div>
 
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-[240px_minmax(0,1fr)]">
         <nav aria-label="Screening steps">
@@ -445,12 +442,7 @@ export function NewScreeningPage() {
 
               <div className="mt-4 rounded-xl border border-slate-200 p-4 text-sm">
                 <p className="font-semibold text-slate-800">What will be sent</p>
-                {isDemo ? (
-                  <p className="mt-1 text-slate-600">
-                    Nothing. Demo mode displays a fixed fictional Component 2 response; your inputs are not analysed.
-                  </p>
-                ) : (
-                  <>
+                <>
                     <p className="mt-1 text-slate-600">
                       Only <code className="text-xs">risk_tier</code>, <code className="text-xs">calibrated_confidence</code> and{" "}
                       <code className="text-xs">symptom_ids</code> go to <code className="text-xs">POST /api/v1/c2/reasoning</code>.
@@ -464,8 +456,7 @@ export function NewScreeningPage() {
                         echo only; sends the case reference, risk tier and confidence).
                       </span>
                     </label>
-                  </>
-                )}
+                </>
               </div>
             </div>
           )}
@@ -485,7 +476,7 @@ export function NewScreeningPage() {
               </Button>
             ) : (
               <Button className="bg-emerald-700 hover:bg-emerald-800" onClick={submit} disabled={submitting || !c1Valid || !caseRefValid}>
-                <Leaf /> {isDemo ? "Create demo case" : "Create case & run reasoning"}
+                <Leaf /> Create case & run reasoning
               </Button>
             )}
           </div>

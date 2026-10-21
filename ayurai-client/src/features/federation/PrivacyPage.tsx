@@ -16,7 +16,6 @@ import { EmptyState, ErrorState, LoadingState, Notice, PageHeader, Panel } from 
 import { StatusBadge, type StatusSpec } from "@/components/shared/status"
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/context/auth"
-import { useWorkspace } from "@/context/workspace"
 import type { BaselineRow, SummaryRow } from "@/lib/api/component4"
 import { C4SignInRequired, RealDataNotice, baselineLabels, strategyStyle, useFederationData } from "./shared"
 
@@ -103,7 +102,6 @@ function TradeoffChart({ rows, metric, baselines }: { rows: Record<string, numbe
 
 export function PrivacyPage() {
   const { user } = useAuth()
-  const { mode } = useWorkspace()
   const { state, reload } = useFederationData()
 
   const header = (
@@ -111,11 +109,11 @@ export function PrivacyPage() {
       eyebrow="Component 4 · Differential privacy"
       title="Privacy budget"
       description="Opacus clips every patient's gradient and adds Gaussian noise before a model update leaves a clinic. Smaller ε means stronger privacy and more noise. δ is fixed at 10⁻⁵."
-      actions={user && mode === "live" ? <Button variant="outline" size="sm" onClick={reload}><RefreshCw /> Refresh</Button> : undefined}
+      actions={user ? <Button variant="outline" size="sm" onClick={reload}><RefreshCw /> Refresh</Button> : undefined}
     />
   )
 
-  if (mode !== "live" || !user) return <>{header}<C4SignInRequired what="Privacy budget results" /></>
+  if (!user) return <>{header}<C4SignInRequired what="Privacy budget results" /></>
   if (state.status === "loading") return <>{header}<LoadingState label="Loading privacy results…" /></>
   if (state.status === "error") return <>{header}<ErrorState error={state.error} onRetry={reload} /></>
 
