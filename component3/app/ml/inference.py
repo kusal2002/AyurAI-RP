@@ -115,8 +115,11 @@ class GraphLinkPredictor:
                             source_title=f"In-Silico GAT Link Prediction ({candidate_name} - {med.name})",
                             citation_type="AyurAI Bio-Engine / GAT Link Prediction",
                             grade=grade,
+                            source_url=None,
+                            excerpt=f"Latent graph topology link detected between {candidate_name} and {med.name} with GAT probability {link_score:.2f}.",
                         )
                     ],
+                    clinical_action=f"Advise clinical caution and periodic monitoring when co-administering {candidate_name} with {med.name}.",
                 )
                 findings.append(finding)
 
