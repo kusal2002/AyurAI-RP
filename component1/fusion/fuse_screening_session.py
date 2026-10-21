@@ -2,7 +2,9 @@
 """AyurAI Component 1: session-level reliability-aware evidence fusion.
 
 Reads existing webcam JSON and local SQLite records.
-Does not produce an unvalidated clinical anaemia-risk category.
+Never produces a validated clinical category; the v2 block adds an
+EXPERIMENTAL, unvalidated risk tier from pre-specified rules
+(see reliability_fusion.py).
 """
 
 import argparse
@@ -12,6 +14,11 @@ import sqlite3
 from datetime import datetime, timezone
 from pathlib import Path
 from statistics import median
+
+try:
+    from component1.fusion.reliability_fusion import fuse as reliability_fuse
+except ImportError:  # Run directly as a script.
+    from reliability_fusion import fuse as reliability_fuse
 
 DATA_ROOT = Path(__file__).resolve().parents[2].parent / "datasets"
 DB_PATH = DATA_ROOT / "screening_sessions.sqlite3"
@@ -119,8 +126,8 @@ def summarize_images(session_dir):
 
     if "tongue" in regions:
         flags.append(
-            "Tongue image captured but no validated "
-            "tongue anaemia classifier is available"
+            "Tongue Hb regression underperformed its mean "
+            "baseline on held-out data; shown but not weighted"
         )
 
     missing_files = quality.get("missing_files", 0)
@@ -258,6 +265,24 @@ def load_database_evidence(conn, session):
     return questionnaire, ppg
 
 
+def load_questionnaire_inputs(conn, session):
+    """Profile, answers and status for rule evaluation; not copied into reports."""
+    if not table_exists(conn, "questionnaire_responses"):
+        return {}, {}, {}
+    row = conn.execute(
+        "SELECT profile_json, answers_json, status_json "
+        "FROM questionnaire_responses WHERE session_id = ?",
+        (session,),
+    ).fetchone()
+    if not row:
+        return {}, {}, {}
+    return (
+        decode_json(row["profile_json"]),
+        decode_json(row["answers_json"]),
+        decode_json(row["status_json"]),
+    )
+
+
 def fuse_session(session):
     """Assemble research evidence without manufacturing risk scores."""
     if not re.fullmatch(r"[A-Za-z0-9_-]{1,64}", session):
@@ -277,6 +302,9 @@ def fuse_session(session):
         conn.row_factory = sqlite3.Row
 
         questionnaire, ppg = load_database_evidence(
+            conn, session
+        )
+        profile, answers, status = load_questionnaire_inputs(
             conn, session
         )
 
@@ -318,6 +346,19 @@ def fuse_session(session):
         else:
             decision = "insufficient_validated_fusion_evidence"
 
+        screening = reliability_fuse(
+            images["regions"], ppg, profile, answers, status
+        )
+
+        # Urgent safety and missing consent keep precedence.
+        if decision == "insufficient_validated_fusion_evidence":
+            decision = (
+                "insufficient_evidence"
+                if screening["experimental_risk_tier"]
+                == "insufficient_evidence"
+                else "experimental_tier_for_clinician_review"
+            )
+
         report = {
             "session_id": session,
             "generated_utc": datetime.now(
@@ -325,21 +366,32 @@ def fuse_session(session):
             ).isoformat(timespec="seconds"),
             "research_prototype": True,
             "clinical_risk_category": None,
+            "experimental_risk_tier": screening[
+                "experimental_risk_tier"
+            ],
+            "reliability_score": screening[
+                "reliability_aware_fusion"
+            ]["reliability_score"],
             "decision_status": decision,
             "images": images,
             "ppg": ppg,
             "questionnaire": questionnaire,
             "missing_inputs": missing,
             "reliability_flags": flags,
+            "screening": screening,
             "limitations": [
                 "Image model scores are not calibrated.",
                 "Cross-dataset predictions have not been "
                 "validated as one multimodal model.",
                 "Technical PPG quality does not establish "
                 "Hb prediction accuracy.",
-                "No trained, validated questionnaire-to-Hb model.",
-                "Low/Moderate/High clinical risk is not "
-                "estimable from the current evidence.",
+                "No trained, validated questionnaire-to-Hb model; "
+                "symptom evidence is rule-based.",
+                "The experimental tier uses pre-specified, "
+                "unvalidated rules; no dataset pairs all "
+                "modalities, so its accuracy is unknown.",
+                "The reliability score is a heuristic, not a "
+                "calibrated probability.",
             ],
         }
 
@@ -383,6 +435,8 @@ def fuse_session(session):
     print("Questionnaire available:", questionnaire["available"])
     print("Missing inputs:", missing)
     print("Decision:", decision)
+    print("Experimental tier:", report["experimental_risk_tier"])
+    print("Reliability score:", report["reliability_score"])
     print("Clinical risk:", "NOT ESTIMATED")
     print("Report:", report_path)
     print("Database:", DB_PATH)

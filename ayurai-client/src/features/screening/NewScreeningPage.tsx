@@ -20,6 +20,10 @@ import { KnowledgeScopeToggle } from "@/components/shared/c2"
 import { useWorkspace, type ModalityKey } from "@/context/workspace"
 import type { RiskTier } from "@/lib/api/types"
 import { cn } from "@/lib/utils"
+import { Component1IntakeWizard } from "@/features/screening/Component1IntakeWizard"
+
+// Manual 4-step form hidden: the Component 1 clinical intake panel replaces it. Set true to restore.
+const SHOW_MANUAL_FORM = false
 
 const ID_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,63}$/
 const SYMPTOM_ID_PATTERN = /^[^\s,]{1,128}$/
@@ -167,9 +171,10 @@ export function NewScreeningPage() {
         description="Collect screening inputs, record the approved Component 1 summary and send it to Component 2 for Ayurvedic reasoning."
       />
 
-      <Notice tone="caution" title="What this form does and does not do" className="mb-5">
-        No Component 1 screening model service exists in this repository. Selected images and PPG
-        files stay in this browser: they are not uploaded and no model runs on them. The anemia risk
+      <Notice tone="caution" title="What the manual form below does and does not do" className="mb-5">
+        Use the Component 1 clinical intake panel for live capture, trained-model inference and the
+        clinician report. In the manual form below, selected images and PPG files stay in this
+        browser: they are not uploaded and no model runs on them. The anemia risk
         tier, calibrated confidence and symptom IDs must come from an approved Component 1 result and
         are entered manually in step 3. Use synthetic or de-identified data only.
       </Notice>
@@ -178,6 +183,11 @@ export function NewScreeningPage() {
         <KnowledgeScopeToggle value={knowledgeScope} onChange={setKnowledgeScope} />
       </div>
 
+      <div className="mb-6">
+        <Component1IntakeWizard />
+      </div>
+
+      {SHOW_MANUAL_FORM && (
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-[240px_minmax(0,1fr)]">
         <nav aria-label="Screening steps">
           <ol className="grid grid-cols-2 gap-2 sm:grid-cols-4 xl:grid-cols-1">
@@ -482,6 +492,7 @@ export function NewScreeningPage() {
           </div>
         </Panel>
       </div>
+      )}
     </>
   )
 }
