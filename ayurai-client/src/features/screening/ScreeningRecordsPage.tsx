@@ -7,6 +7,7 @@ import { StatusBadge, serviceStateSpecs } from "@/components/shared/status"
 import { Button } from "@/components/ui/button"
 import { useWorkspace, type ModalityKey } from "@/context/workspace"
 import { formatDateTime, formatScore } from "@/lib/labels"
+import { Component1SessionPanel } from "@/features/screening/Component1SessionPanel"
 
 const modalityLabels: Record<ModalityKey, string> = {
   conjunctiva: "Eye",
@@ -39,10 +40,13 @@ export function ScreeningRecordsPage() {
           </Button>
         }
       />
+      <div className="mb-6">
+        <Component1SessionPanel />
+      </div>
       <Notice tone="info" className="mb-5" title="Session-only records">
-        There is no screening persistence or Component 1 model service in the repository. Records live
-        in this browser tab's memory and are cleared on reload. Risk tiers shown here were entered
-        manually or imported from Component 1 payloads.
+        Component 1 sessions above are stored by the local Component 1 API. The records below are
+        separate: they live in this browser tab's memory and are cleared on reload, and their risk
+        tiers were entered manually or imported from Component 1 payloads.
       </Notice>
 
       <Panel

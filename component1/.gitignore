@@ -12,3 +12,4 @@ data/metadata/
 # Local configuration
 .env
 .env.*
+!.env.example

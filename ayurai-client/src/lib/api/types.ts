@@ -14,6 +14,184 @@
 
 export type RiskTier = "low" | "moderate" | "high"
 
+/** Component 1 API responses are preserved as raw JSON because the research
+ * report schema is owned by Component 1 and must not be reconstructed here. */
+export type Component1Json = Record<string, unknown>
+
+export type Component1HealthResponse = Component1Json
+export type Component1Session = Component1Json & {
+  session_id?: string
+  created_utc?: string | null
+  questionnaire_available?: boolean
+  image_count?: number
+  ppg_available?: boolean
+  record_saved?: boolean
+  risk_level?: string | null
+}
+/** GET /api/c1/sessions wraps the list in an object. */
+export type Component1SessionsResponse = { sessions?: Component1Session[] }
+
+/** Component 1 clinical intake (fictional demo sessions only). */
+export type C1Question = {
+  id: string
+  prompt: string
+  type: string
+  options: string[] | null
+  section: string
+}
+
+export type C1QuestionSet = {
+  version: string
+  approval_status?: string
+  common: C1Question[]
+  pregnancy_safety: C1Question
+  safety_ids: string[]
+  ppg_comfort: C1Question[]
+}
+
+export type C1Profile = { age_months: number; sex: string; pregnancy_status: string }
+
+export type C1Answers = Record<string, string | number>
+
+export type C1QuestionnaireBody = {
+  profile: C1Profile
+  consent: boolean
+  consent_ppg: boolean
+  consent_images: boolean
+  guardian_permission: boolean
+  answers: C1Answers
+  medications: string
+  herbals: string
+  allergies: string
+  no_medications: boolean
+  no_allergies: boolean
+}
+
+export type C1CaptureStatus = {
+  image_acquisition_allowed?: boolean
+  ppg_acquisition_allowed?: boolean
+  ppg_pending_finger_comfort_check?: boolean
+  ppg_comfort_blocking_ids?: string[]
+  ppg_optical_obstruction_reported?: boolean
+  urgent_clinician_review?: boolean
+}
+
+export type C1CaptureCounts = Record<"conjunctiva" | "nails" | "tongue", number>
+
+export type C1SerialPorts = {
+  configured_port: string
+  configured_baud: number
+  ports: { device: string; description: string }[]
+}
+
+export type C1PpgSummary = {
+  port: string
+  sample_count: number
+  quality_status: string | null
+  observed_receive_rate_hz: number | null
+  metrics_count: number
+  median_experimental_hr_bpm: number | null
+  median_experimental_spo2_percent: number | null
+  median_temperature_c: number | null
+  hb_model_applied: boolean
+}
+
+/** Read-only view of GET /api/c1/sessions/{id}/report. All fields optional: render defensively. */
+export type C1EvidenceItem = {
+  modality: string
+  source: string
+  task: string
+  outputs: number
+  mean_output: number | null
+  evidence: number | null
+  technical_pass_ratio: number | null
+  performance_weight: number
+  reliability_weight: number
+  weight_basis: string
+  note?: string
+}
+
+export type C1FusionBlock = {
+  fusion_version?: string
+  experimental_risk_tier?: string
+  hb_threshold_g_dl?: number | null
+  hb_threshold_basis?: string
+  questionnaire_evidence?: {
+    answered_items: number
+    present_symptoms: string[]
+    absent_symptoms: string[]
+    symptom_fraction: number | null
+    usable: boolean
+  } | null
+  evidence_items?: C1EvidenceItem[]
+  conventional_fusion?: { method: string; votes: number; anaemia_vote_fraction: number | null; tier: string }
+  reliability_aware_fusion?: {
+    weighted_evidence_score: number | null
+    reliability_score: number
+    conflict_ratio: number
+    usable_physiological_modalities: string[]
+    excluded_sources: string[]
+    insufficient_reasons: string[]
+    tier: string
+  }
+  rationale?: string[]
+  safety_flags?: string[]
+  doctor_review_recommendations?: string[]
+}
+
+export type C1Region = {
+  captures?: number
+  technical_passes?: number
+  technical_pass_ratio?: number
+  cross_model_disagreement?: boolean
+}
+
+export type Component1Report = {
+  schema_version?: string
+  session_id?: string
+  generated_utc?: string
+  patient?: { age_months?: number | null; sex?: string | null; pregnancy_status?: string | null; fictional_demo?: boolean }
+  workflow?: { key: string; label: string; status: string }[]
+  questionnaire?: { available?: boolean; completion_status?: string | null }
+  modalities?: {
+    images?: { image_count?: number; regions?: Record<string, C1Region> }
+    ppg?: {
+      available?: boolean
+      sample_count?: number
+      observed_receive_rate_hz?: number
+      quality_status?: string | null
+      quality_windows_passed?: number
+      quality_windows_checked?: number
+      median_experimental_hr_bpm?: number | null
+      median_experimental_spo2_percent?: number | null
+      hb_model_applied?: boolean
+    }
+  }
+  screening_result?: {
+    risk_level?: string | null
+    decision_status?: string
+    reliability_score?: number | null
+  }
+  fusion?: C1FusionBlock
+  missing_inputs?: string[]
+  storage?: {
+    folder: string
+    record_saved: boolean
+    record_saved_utc: string | null
+    files: string[]
+    image_files: number
+    ppg_recordings: number
+  }
+  doctor_report?: {
+    summary?: string
+    observations?: string[]
+    recommendations?: string[]
+    reliability_flags?: string[]
+    limitations?: string[]
+    clinical_action?: string
+  }
+}
+
 /** POST /api/v1/c1/screening-result (Component 2 service) - validation/echo only. */
 export type C1Input = {
   case_id: string
