@@ -110,7 +110,11 @@ function SafetyReportView({ report, record }: { report: SafetyAssessmentReport; 
 function SafetyWorkspace({ output, record }: { output: Component2Output; record: CaseRecord }) {
   const { runSafety } = useWorkspace()
   const forwarded = output.candidates.filter((candidate) => candidate.disposition === "forward_for_safety_assessment")
-  const [selected, setSelected] = React.useState<string[]>(() => forwarded.map((candidate) => candidate.candidate_id))
+  const [selected, setSelected] = React.useState<string[]>(() =>
+    forwarded.length > 0
+      ? forwarded.map((candidate) => candidate.candidate_id)
+      : output.candidates.filter((c) => c.name).slice(0, 5).map((candidate) => candidate.candidate_id)
+  )
   const [form, setForm] = React.useState<PatientFormState>(() => ({
     ...emptyPatientForm,
     patientId: record.caseRef ? `PT-${record.caseRef}` : `PT-001`,
