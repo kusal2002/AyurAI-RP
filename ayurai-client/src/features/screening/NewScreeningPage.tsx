@@ -17,6 +17,7 @@ import { Notice, PageHeader, Panel, fieldClass } from "@/components/shared/page"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { KnowledgeScopeToggle } from "@/components/shared/c2"
+import { useAccess } from "@/lib/access"
 import { useWorkspace, type ModalityKey } from "@/context/workspace"
 import type { RiskTier } from "@/lib/api/types"
 import { cn } from "@/lib/utils"
@@ -87,6 +88,7 @@ const steps = [
 export function NewScreeningPage() {
   const navigate = useNavigate()
   const { createCase, runReasoning, validateIntake, knowledgeScope, setKnowledgeScope } = useWorkspace()
+  const { canUseTechnicalView } = useAccess()
 
   const [step, setStep] = React.useState(1)
   const [caseRef, setCaseRef] = React.useState("")
@@ -182,9 +184,11 @@ export function NewScreeningPage() {
         </Notice>
       )}
 
-      <div className="mb-5">
-        <KnowledgeScopeToggle value={knowledgeScope} onChange={setKnowledgeScope} />
-      </div>
+      {canUseTechnicalView && (
+        <div className="mb-5">
+          <KnowledgeScopeToggle value={knowledgeScope} onChange={setKnowledgeScope} />
+        </div>
+      )}
 
       <div className="mb-6">
         <Component1IntakeWizard />
