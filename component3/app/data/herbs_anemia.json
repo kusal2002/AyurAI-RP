@@ -268,5 +268,14 @@
     "active_compounds": ["2-Hydroxy-4-methoxybenzaldehyde", "Lupeol", "Hemidesmin", "Resin acids"],
     "contraindications": ["None prominent at therapeutic doses; caution in marked bradycardia"],
     "traditional_uses": ["Pitta Pandu", "Daha Prashamana", "Rakta Prasadana", "Deepana"]
+  },
+  {
+    "id": "HERB-031",
+    "common_name": "Brahmi",
+    "sanskrit_name": "Brahmi",
+    "botanical_name": "Bacopa monnieri",
+    "active_compounds": ["Bacoside A", "Bacoside B", "Bacopasaponins", "Betulinic Acid"],
+    "contraindications": ["Marked bradycardia", "Gastrointestinal obstruction", "Active hyperthyroidism"],
+    "traditional_uses": ["Medhya Rasayana", "Pandu adjuvant", "Daurbalya", "Smriti Vardhana"]
   }
 ]

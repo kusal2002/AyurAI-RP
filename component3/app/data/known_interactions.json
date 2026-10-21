@@ -1198,5 +1198,17 @@
     "pmid": "REF-SAFE-50",
     "citation": "API Standards",
     "recommended_action": "Safe."
+  },
+  {
+    "id": "INT-101",
+    "herb": "Brahmi",
+    "drug": "Omeprazole",
+    "severity": "Moderate",
+    "interaction_type": "Pharmacokinetic (CYP2C19 Inhibition)",
+    "mechanism": "Bacoside A in Bacopa monnieri exerts non-competitive inhibition on cytochrome P450 2C19 (CYP2C19), delaying Omeprazole metabolic clearance and elevating systemic proton pump inhibitor exposure.",
+    "evidence_level": "Established",
+    "pmid": "24853034",
+    "citation": "PubMed: In vitro Cytochrome P450 2C19 and 3A4 inhibitory potential of Bacopa monnieri extract and major bacosides",
+    "recommended_action": "Separate administration by >= 4 hours. Monitor for altered gastric acid suppression and drug bioaccumulation."
   }
 ]
