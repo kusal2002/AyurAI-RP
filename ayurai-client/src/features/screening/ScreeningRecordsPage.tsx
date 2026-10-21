@@ -44,9 +44,9 @@ export function ScreeningRecordsPage() {
         <Component1SessionPanel />
       </div>
       <Notice tone="info" className="mb-5" title="Session-only records">
-        Component 1 sessions above are stored by the local Component 1 API. The records below are
-        separate: they live in this browser tab's memory and are cleared on reload, and their risk
-        tiers were entered manually or imported from Component 1 payloads.
+        Component 1 sessions above are stored by the Component 1 API. The records below are
+        separate: they live in this browser tab only (kept on refresh, cleared when the tab is
+        closed), and their risk tiers were entered manually or imported from Component 1 payloads.
       </Notice>
 
       <Panel

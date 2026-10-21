@@ -173,7 +173,7 @@ export function OverviewPage() {
         {cases.length === 0 ? (
           <EmptyState
             title="No cases yet"
-            description="Create a screening to start a case. Cases are held in memory and cleared on reload."
+            description="Create a screening to start a case. Cases are kept in this browser tab and cleared when it is closed."
           />
         ) : (
           <div className="overflow-x-auto">

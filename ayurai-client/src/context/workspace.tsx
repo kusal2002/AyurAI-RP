@@ -16,14 +16,15 @@ import type {
   SafetyAssessmentReport,
 } from "@/lib/api/types"
 import { c1View } from "@/lib/api/types"
+import { readSession, SESSION_KEYS, writeSession } from "@/lib/session-store"
 
 /**
  * Session workspace.
  *
  * Holds the cases created in this browser tab. There is no case-persistence
- * service in the repository, so nothing here is stored on a server, and it
- * is deliberately not written to localStorage/sessionStorage: reloading the
- * page clears it.
+ * service in the repository, so nothing here is stored on a server. The cases
+ * are kept in this tab's sessionStorage (never localStorage): a page refresh
+ * keeps them, closing the tab clears them, and other tabs cannot see them.
  */
 
 export type ErrorInfo = { kind: ApiError["kind"] | "unknown"; message: string; details: string[] }
@@ -121,11 +122,37 @@ function localId(prefix: string) {
   return `${prefix}-${random}`
 }
 
+type StoredWorkspace = { cases: CaseRecord[]; activeId: string | null }
+
+/** A request still running when the page was refreshed was cancelled: show it as not run. */
+function settle<T>(state: AsyncState<T>): AsyncState<T> {
+  return state.status === "loading" ? { status: "idle" } : state
+}
+
+/** Cases saved in this tab's sessionStorage, with interrupted requests reset. */
+function restoreWorkspace(): StoredWorkspace {
+  const stored = readSession<StoredWorkspace>(SESSION_KEYS.workspace)
+  if (!stored || !Array.isArray(stored.cases)) return { cases: [], activeId: null }
+  const cases = stored.cases.map((record) => ({
+    ...record,
+    c1: record.c1 ? { ...record.c1, intake: settle(record.c1.intake) } : record.c1,
+    c2: settle(record.c2),
+    c3: settle(record.c3),
+  }))
+  const activeId = cases.some((record) => record.id === stored.activeId) ? stored.activeId : null
+  return { cases, activeId }
+}
+
 export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
-  const [cases, setCases] = React.useState<CaseRecord[]>([])
-  const [activeId, setActiveId] = React.useState<string | null>(null)
-  const [knowledgeScope, setKnowledgeScope] = React.useState<KnowledgeScope>("approved_and_provisional")
-  const scopeRef = React.useRef<KnowledgeScope>("approved_and_provisional")
+  const [restored] = React.useState(restoreWorkspace)
+  const [cases, setCases] = React.useState<CaseRecord[]>(restored.cases)
+  const [activeId, setActiveId] = React.useState<string | null>(restored.activeId)
+  // Save after every change, so a refresh brings the cases back
+  React.useEffect(() => {
+    writeSession(SESSION_KEYS.workspace, { cases, activeId } satisfies StoredWorkspace)
+  }, [cases, activeId])
+  const [knowledgeScope, setKnowledgeScope] = React.useState<KnowledgeScope>("approved")
+  const scopeRef = React.useRef<KnowledgeScope>("approved")
   React.useEffect(() => {
     scopeRef.current = knowledgeScope
   }, [knowledgeScope])
