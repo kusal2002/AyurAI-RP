@@ -1,0 +1,14 @@
+{
+  "participants": 252,
+  "train_participants": 160,
+  "validation_participants": 41,
+  "test_participants": 51,
+  "selected_model": "Ridge",
+  "best_validation_MAE_g_dl": 1.2559194120897776,
+  "baseline_validation_MAE_g_dl": 1.2660670731707324,
+  "test_evaluated": false,
+  "wavelengths_nm": [
+    660,
+    940
+  ]
+}
