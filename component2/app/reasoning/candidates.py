@@ -92,6 +92,15 @@ def concept_name(
     return _text((entry.get("properties") or {}).get("name"))
 
 
+def concept_botanical_name(
+    concepts: dict[str, dict[str, Any]],
+    concept_id: str,
+) -> str | None:
+    """Botanical name as stated by a cited source (never inferred)."""
+    entry = concepts.get(concept_id) or {}
+    return _text((entry.get("properties") or {}).get("botanical_name_as_stated"))
+
+
 def build_claim_step(
     claim: dict[str, Any],
     concepts: dict[str, dict[str, Any]],

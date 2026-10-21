@@ -33,7 +33,7 @@ from app.models.c2_output import (
     SymptomMapping,
     UpstreamScreeningMetadata,
 )
-from app.reasoning.candidates import concept_name, extract_candidate_paths
+from app.reasoning.candidates import concept_botanical_name, concept_name, extract_candidate_paths
 from app.reasoning.explanation import (
     explain_abstention,
     explain_caution,
@@ -270,6 +270,7 @@ def run_component2_reasoning(
                 candidate_id=candidate_id,
                 category=category,
                 name=concept_name(concepts, candidate_id),
+                botanical_name=concept_botanical_name(concepts, candidate_id),
                 ranking=ranking,
                 disposition=disposition,
                 paths=paths,
@@ -337,7 +338,10 @@ def run_component2_reasoning(
     # Request-level decision (FR9): evidence status gated by upstream risk.
     # Ranking, candidate sufficiency and dispositions are already final.
     risk_context = evaluate_risk_context(
-        request.risk_tier, request.calibrated_confidence, risk_policy
+        request.risk_tier,
+        request.calibrated_confidence,
+        risk_policy,
+        urgent_clinician_review=request.urgent_clinician_review,
     )
     decision, decision_reasons = decide(status, risk_context, risk_policy)
     provisional_used = any(

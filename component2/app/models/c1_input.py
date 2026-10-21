@@ -103,6 +103,14 @@ class Component2ReasoningRequest(BaseModel):
         description="Approved canonical symptom concept identifiers",
     )
 
+    urgent_clinician_review: bool = Field(
+        default=False,
+        description=(
+            "Component 1 safety flag: urgent clinician review is required. "
+            "It gates the decision to caution; it never changes ranking."
+        ),
+    )
+
     @field_validator("request_id")
     @classmethod
     def validate_request_id(cls, value: str) -> str:
