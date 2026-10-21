@@ -102,8 +102,30 @@ def parse_metrics_line(line):
         return None
 
 
-def record(port, seconds, session, baud):
-    """Record RED/IR samples and experimental vital-sign estimates."""
+class RecordingCancelled(Exception):
+    """Raised when a caller cancels a recording; nothing is saved."""
+
+
+def record(port, seconds, session, baud, on_progress=None, stop_event=None):
+    """Record RED/IR samples and experimental vital-sign estimates.
+
+    Optional hooks for the local API (the CLI passes neither):
+    - on_progress(stage, samples, metrics, last_metric): stage is
+      "opening", "port_open" or "recording"; called at most every 0.25 s.
+    - stop_event: threading.Event; when set, raises RecordingCancelled
+      before anything is written.
+    Returns the saved RED/IR CSV path.
+    """
+
+    def progress(stage, rows, metrics_rows, force=False):
+        nonlocal last_progress
+        now = time.perf_counter()
+        if on_progress and (force or now - last_progress >= 0.25):
+            last_progress = now
+            on_progress(stage, len(rows), len(metrics_rows),
+                        metrics_rows[-1] if metrics_rows else None)
+
+    last_progress = 0.0
 
     if not SESSION_ID_PATTERN.fullmatch(session):
         raise ValueError("Invalid session ID")
@@ -140,12 +162,16 @@ def record(port, seconds, session, baud):
     metrics_rows = []
     bad_lines = 0
 
+    progress("opening", rows, metrics_rows, force=True)
+
     try:
         with serial.Serial(
             port,
             baud,
             timeout=0.5
         ) as ser:
+
+            progress("port_open", rows, metrics_rows, force=True)
 
             # Allow the ESP32 to initialize after USB connection.
             time.sleep(2.0)
@@ -156,6 +182,10 @@ def record(port, seconds, session, baud):
 
             try:
                 while time.perf_counter() - start < seconds:
+
+                    if stop_event is not None and stop_event.is_set():
+                        raise RecordingCancelled("Recording cancelled; nothing was saved.")
+                    progress("recording", rows, metrics_rows)
 
                     raw_line = ser.readline().decode(
                         "ascii",
@@ -373,6 +403,8 @@ def record(port, seconds, session, baud):
     print(
         "No Hb measurement or clinical risk prediction."
     )
+
+    return csv_path
 
 
 def main():

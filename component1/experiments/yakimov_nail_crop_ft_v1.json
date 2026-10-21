@@ -1,0 +1,44 @@
+{
+  "experiment": "yakimov_hb_2024/nail_crop_ft",
+  "description": "Experiment B (research only): fine-tune the Yakimov Hb EfficientNet-B0 on annotated nail crops; patient-level evaluation. Not a production inference pathway.",
+  "seed": 42,
+  "source_checkpoint": "yakimov_hb_2024/efficientnet_b0_best.pth",
+  "experiment_a_checkpoint": "trained_model_artifacts/experiments/yakimov_hb_2024/whole_frame_ft_v1/candidate_efficientnet_b0.pth",
+  "architecture": "efficientnet_b0",
+  "unfreeze_feature_blocks": [7, 8],
+  "keep_batchnorm_running_stats_frozen": true,
+  "optimizer": "AdamW",
+  "lr_backbone": 1e-05,
+  "lr_head": 0.0001,
+  "weight_decay": 0.0001,
+  "loss": "SmoothL1Loss on train-normalised Hb (same as production and Experiment A)",
+  "batch_size": 16,
+  "max_epochs": 12,
+  "early_stopping": {"monitor": "patient_val_mae_g_dl", "mode": "min", "patience": 3, "min_delta": 0.0},
+  "grad_clip_norm": 1.0,
+  "annotations": {
+    "file": "nailbeds/Yakimov_Hb_2024/metadata.csv",
+    "column": "NAIL_BOUNDING_BOXES",
+    "box_format": "[y1, x1, y2, x2] in pixels of the stored 800x600 image (verified visually and by bounds)",
+    "nails_per_patient": 3
+  },
+  "crop": {
+    "shape": "square, centred on the box; side = max(box width, box height) x (1 + 2 x margin)",
+    "margin_each_side": 0.15,
+    "outside_image": "square shifted to stay inside the photo (real pixels; no padding or background replacement)",
+    "resize": "224x224 bilinear (median 3.0x, max 5.0x upscale; square-to-square, no aspect distortion)",
+    "colour_preprocessing": "EXIF transpose -> RGB -> ToTensor -> ImageNet normalisation (identical to production)"
+  },
+  "augmentation": {
+    "applied_to": "training crops only",
+    "crop_centre_jitter_fraction": 0.05,
+    "crop_scale_jitter": 0.05,
+    "horizontal_flip_p": 0.5,
+    "rotation": "none (avoids synthetic fill pixels)",
+    "colour_changes": "none (nail-bed colour is the Hb evidence)"
+  },
+  "patient_aggregation": "mean of the 3 nail-crop Hb predictions (g/dL) per patient; all metrics and model selection at patient level",
+  "output_root": "trained_model_artifacts/experiments/yakimov_hb_2024",
+  "run_name_prefix": "nail_crop_ft_v",
+  "deployment_status": "research-only: the live webcam pipeline has no validated nail-region detector"
+}

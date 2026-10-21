@@ -171,13 +171,16 @@ export function NewScreeningPage() {
         description="Collect screening inputs, record the approved Component 1 summary and send it to Component 2 for Ayurvedic reasoning."
       />
 
-      <Notice tone="caution" title="What the manual form below does and does not do" className="mb-5">
-        Use the Component 1 clinical intake panel for live capture, trained-model inference and the
-        clinician report. In the manual form below, selected images and PPG files stay in this
-        browser: they are not uploaded and no model runs on them. The anemia risk
-        tier, calibrated confidence and symptom IDs must come from an approved Component 1 result and
-        are entered manually in step 3. Use synthetic or de-identified data only.
-      </Notice>
+      {/* Describes the manual form, so it is shown only when that form is shown. */}
+      {SHOW_MANUAL_FORM && (
+        <Notice tone="caution" title="What the manual form below does and does not do" className="mb-5">
+          Use the Component 1 clinical intake panel for live capture, trained-model inference and the
+          clinician report. In the manual form below, selected images and PPG files stay in this
+          browser: they are not uploaded and no model runs on them. The anemia risk
+          tier, calibrated confidence and symptom IDs must come from an approved Component 1 result and
+          are entered manually in step 3. Use synthetic or de-identified data only.
+        </Notice>
+      )}
 
       <div className="mb-5">
         <KnowledgeScopeToggle value={knowledgeScope} onChange={setKnowledgeScope} />

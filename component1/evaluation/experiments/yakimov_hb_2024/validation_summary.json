@@ -1,0 +1,88 @@
+{
+  "experiment": "AyurAI C1 \u00b7 Yakimov Hb 2024 nail-bed Hb regression \u00b7 Experiments A and B",
+  "generated_utc": "2026-10-21T08:22:50+00:00",
+  "evaluation_set": "validation (37 patients); also used for checkpoint selection, so results are optimistic",
+  "split_patients": {
+    "train": 175,
+    "validation": 37,
+    "test": 38
+  },
+  "test_set_evaluated": false,
+  "production_checkpoint_promoted": false,
+  "metrics_g_dl": {
+    "original_whole_frame": {
+      "patients": 37,
+      "mae_g_dl": 1.2839349437404322,
+      "rmse_g_dl": 1.612880514330441,
+      "r2": 0.2218812085407169,
+      "mean_signed_error_g_dl": 0.38342611467516063
+    },
+    "experiment_a_whole_frame_ft": {
+      "patients": 37,
+      "mae_g_dl": 1.2802734117250185,
+      "rmse_g_dl": 1.541666105882408,
+      "r2": 0.28907765928280604,
+      "mean_signed_error_g_dl": -0.06127825041075016
+    },
+    "experiment_b_nail_crop_ft": {
+      "patients": 37,
+      "mae_g_dl": 1.2293207409145592,
+      "rmse_g_dl": 1.5506179984167088,
+      "r2": 0.28079755586174915,
+      "mean_signed_error_g_dl": 0.1455984871666706
+    },
+    "train_mean_baseline": {
+      "patients": 37,
+      "mae_g_dl": 1.4787953667953673,
+      "rmse_g_dl": 1.8368287787633082,
+      "r2": -0.009203768714617588,
+      "mean_signed_error_g_dl": -0.17541312741313056
+    }
+  },
+  "paired_patient_level_comparisons": {
+    "method": "paired patient-level bootstrap of per-patient absolute-error differences, 5000 resamples, seed 42",
+    "status": "EXPLORATORY: validation patients were also used for model selection (selection bias); not a significance test",
+    "B_vs_original": {
+      "mae_difference_g_dl": -0.054614202825873155,
+      "exploratory_95ci_g_dl": [
+        -0.31601555708292395,
+        0.21146947976705113
+      ],
+      "ci_includes_zero": true,
+      "patients_model_better": 16,
+      "patients_model_worse": 21,
+      "patients_tied": 0,
+      "median_per_patient_difference_g_dl": 0.08102703094482422
+    },
+    "B_vs_A": {
+      "mae_difference_g_dl": -0.05095267081045893,
+      "exploratory_95ci_g_dl": [
+        -0.2926423279873962,
+        0.196372185097084
+      ],
+      "ci_includes_zero": true,
+      "patients_model_better": 22,
+      "patients_model_worse": 15,
+      "patients_tied": 0,
+      "median_per_patient_difference_g_dl": -0.12676111857096473
+    },
+    "A_vs_original": {
+      "mae_difference_g_dl": -0.0036615320154142258,
+      "exploratory_95ci_g_dl": [
+        -0.14407190645063253,
+        0.13837645156963388
+      ],
+      "ci_includes_zero": true,
+      "patients_model_better": 18,
+      "patients_model_worse": 19,
+      "patients_tied": 0,
+      "median_per_patient_difference_g_dl": 0.26630725860595383
+    }
+  },
+  "experiment_b_selected_epoch": 11,
+  "experiment_a_selected_epoch": 3,
+  "source_runs": {
+    "experiment_a": "whole_frame_ft_v1",
+    "experiment_b": "nail_crop_ft_v1"
+  }
+}
