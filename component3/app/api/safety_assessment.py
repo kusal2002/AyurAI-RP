@@ -61,6 +61,22 @@ def get_multi_hop_pathway(herb: str, drug: str):
     return service.find_multi_hop_path(herb, drug)
 
 
+@router.get("/subgraph")
+def get_safety_subgraph(
+    herb: str = None,
+    drug: str = None,
+    severity: str = None,
+    limit: int = 50
+):
+    """Returns a structured knowledge subgraph for interactive visual exploration.
+    Includes herbs, active compounds, CYP enzymes, drugs, and clinical contraindications.
+    """
+    from app.core.graph_service import GraphService
+    service = GraphService()
+    return service.get_subgraph(herb=herb, drug=drug, severity=severity, limit=limit)
+
+
+
 @router.get("/benchmarks")
 def get_ablation_benchmarks():
     """Returns empirical ablation study benchmarking results (M1 through M4 models)."""
