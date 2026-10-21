@@ -174,4 +174,4 @@ def test_c3_handoff_contract_is_unchanged():
 
 
 def test_output_schema_version_bumped():
-    assert _run(build_pandu_graph()).schema_version == "c2-output/0.3.0"
+    assert _run(build_pandu_graph()).schema_version == "c2-output/0.4.0"

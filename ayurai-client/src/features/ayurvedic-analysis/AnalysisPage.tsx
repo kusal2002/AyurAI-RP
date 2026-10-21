@@ -22,8 +22,11 @@ import {
   sufficiencySpec,
   verificationSpec,
 } from "@/components/shared/status"
+import { TechnicalViewSwitch } from "@/components/shared/technical-view"
 import { Button } from "@/components/ui/button"
 import { useWorkspace, type CaseRecord } from "@/context/workspace"
+import { AnalysisSummary } from "@/features/ayurvedic-analysis/AnalysisSummary"
+import { useTechnicalView } from "@/lib/access"
 import type { C1SymptomMapping, Component2Output, EvidenceReference } from "@/lib/api/types"
 import { conceptNames, indexEvidence } from "@/lib/c2-derive"
 import { conceptTypeLabels, describeFlag, formatDateTime, formatScore, humanizeCode } from "@/lib/labels"
@@ -514,15 +517,25 @@ function ReasoningDetail({ output, record }: { output: Component2Output; record:
 }
 
 export function AnalysisPage() {
+  const [technical, setTechnical] = useTechnicalView()
   return (
     <>
       <PageHeader
-        eyebrow="Component 2 · Ayurvedic reasoning"
+        eyebrow="Ayurvedic reasoning"
         title="Ayurvedic analysis"
-        description="Case-level reasoning from the personalised Ayurvedic knowledge graph: interpretation, evidence, conflicts, candidates and review status."
+        description={
+          technical
+            ? "Technical view: interpretation paths, evidence records, conflicts, retrieval settings and limitations."
+            : "What the Ayurvedic knowledge base suggests for this case, and what to do next."
+        }
+        actions={<TechnicalViewSwitch on={technical} onChange={setTechnical} />}
       />
       <CaseBar />
-      <WithReasoning>{(output, record) => <ReasoningDetail output={output} record={record} />}</WithReasoning>
+      <WithReasoning>
+        {(output, record) =>
+          technical ? <ReasoningDetail output={output} record={record} /> : <AnalysisSummary output={output} record={record} />
+        }
+      </WithReasoning>
     </>
   )
 }

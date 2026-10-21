@@ -1,0 +1,938 @@
+{
+  "dataset_id": "pandu-subtypes-provisional-v1",
+  "dataset_version": 1,
+  "drafted_on": "2026-10-22",
+  "extraction_method": "ai_assisted_draft",
+  "review_status": "pending_practitioner_review",
+  "notice": "PROVISIONAL RESEARCH DRAFTS. Each claim was drafted with AI assistance from the cited passages and has NOT been verified by a practitioner. verification_status is 'unverified' for every claim. Quotes must match the extracted source text exactly; the ingestion pipeline rejects any quote it cannot locate. Traditional textual claims are not clinical efficacy claims. Translations quoted from the 1890 Kaviratna edition render Pandu as 'chlorosis' and Kamala as 'anaemia'; these are the translator's choices, not equivalences. This dataset adds the five Pandu types (Ca.6.16.3) with their distinguishing signs and type-specific treatment. Signs that the texts list for Pandu in general are not linked to a single type.",
+  "concepts": [
+    {
+      "type": "Roga",
+      "id": "R-PANDU",
+      "name": "Pandu",
+      "aliases": [
+        "pandu",
+        "pāṇḍu",
+        "pandu roga",
+        "pāṇḍuroga",
+        "पाण्डु",
+        "पाण्डुरोग",
+        "පාණ්ඩු",
+        "chlorosis (1890 translation)"
+      ]
+    },
+    {
+      "type": "Dosha",
+      "id": "DO-VATA",
+      "name": "Vata",
+      "aliases": [
+        "vata",
+        "vāta",
+        "anila",
+        "वात",
+        "wind (1890 translation)"
+      ]
+    },
+    {
+      "type": "Dosha",
+      "id": "DO-PITTA",
+      "name": "Pitta",
+      "aliases": [
+        "pitta",
+        "पित्त",
+        "bile (1890 translation)"
+      ]
+    },
+    {
+      "type": "Dosha",
+      "id": "DO-KAPHA",
+      "name": "Kapha",
+      "aliases": [
+        "kapha",
+        "śleṣman",
+        "कफ",
+        "phlegm (1890 translation)"
+      ]
+    },
+    {
+      "type": "Herb",
+      "id": "H-TRIVRIT",
+      "name": "Trivṛt",
+      "aliases": [
+        "trivrit",
+        "trivṛt"
+      ],
+      "botanical_name_as_stated": "Convolvulus turpethum",
+      "botanical_name_source": "kaviratna-charaka-1890"
+    },
+    {
+      "type": "Herb",
+      "id": "H-HARITAKI",
+      "name": "Harītakī",
+      "aliases": [
+        "haritaki",
+        "pathyā",
+        "abhayā",
+        "chebulic myrobalan"
+      ],
+      "botanical_name_as_stated": null,
+      "botanical_name_source": null
+    },
+    {
+      "type": "Roga",
+      "id": "R-PANDU-VATAJA",
+      "subtype_of": "R-PANDU",
+      "name": "Vātaja Pandu",
+      "aliases": [
+        "vataja pandu",
+        "vātaja pāṇḍu",
+        "vātika pāṇḍuroga"
+      ]
+    },
+    {
+      "type": "Roga",
+      "id": "R-PANDU-PITTAJA",
+      "subtype_of": "R-PANDU",
+      "name": "Pittaja Pandu",
+      "aliases": [
+        "pittaja pandu",
+        "pittaja pāṇḍu",
+        "paittika pāṇḍuroga"
+      ]
+    },
+    {
+      "type": "Roga",
+      "id": "R-PANDU-KAPHAJA",
+      "subtype_of": "R-PANDU",
+      "name": "Kaphaja Pandu",
+      "aliases": [
+        "kaphaja pandu",
+        "kaphaja pāṇḍu",
+        "ślaiṣmika pāṇḍuroga",
+        "kaphapāṇḍu"
+      ]
+    },
+    {
+      "type": "Roga",
+      "id": "R-PANDU-MRIDBHAKSHANAJA",
+      "subtype_of": "R-PANDU",
+      "name": "Mṛdbhakṣaṇaja Pandu (from eating clay)",
+      "aliases": [
+        "mridbhakshanaja pandu",
+        "mṛdbhakṣaṇaja pāṇḍu",
+        "clay-induced pandu"
+      ]
+    },
+    {
+      "type": "Symptom",
+      "id": "S-HEADACHE",
+      "name": "headache",
+      "aliases": [
+        "head pain",
+        "frequent headaches",
+        "śiroruk",
+        "mūrdharuk"
+      ]
+    },
+    {
+      "type": "Symptom",
+      "id": "S-CONSTIPATION",
+      "name": "constipation",
+      "aliases": [
+        "dry stools",
+        "hard stools",
+        "hard or dry stool",
+        "varcaḥśoṣa",
+        "viṭśoṣa"
+      ]
+    },
+    {
+      "type": "Symptom",
+      "id": "S-TREMOR",
+      "name": "tremor",
+      "aliases": [
+        "trembling",
+        "shaking",
+        "kampa"
+      ]
+    },
+    {
+      "type": "Symptom",
+      "id": "S-BLOATING",
+      "name": "bloating",
+      "aliases": [
+        "abdominal distension",
+        "ānāha"
+      ]
+    },
+    {
+      "type": "Symptom",
+      "id": "S-BURNING",
+      "name": "burning sensation",
+      "aliases": [
+        "burning",
+        "burning sensation of the skin",
+        "dāha"
+      ]
+    },
+    {
+      "type": "Symptom",
+      "id": "S-THIRST",
+      "name": "excessive thirst",
+      "aliases": [
+        "thirst",
+        "tṛṣṇā",
+        "tṛṭ"
+      ]
+    },
+    {
+      "type": "Symptom",
+      "id": "S-BITTER-TASTE",
+      "name": "bitter taste in the mouth",
+      "aliases": [
+        "bitter taste",
+        "kaṭukāsya",
+        "kaṭuvaktratā"
+      ]
+    },
+    {
+      "type": "Symptom",
+      "id": "S-LOOSE-STOOLS",
+      "name": "loose stools",
+      "aliases": [
+        "loose stool",
+        "bhinnavarcas",
+        "varcobheda"
+      ]
+    },
+    {
+      "type": "Symptom",
+      "id": "S-EXCESS-SWEATING",
+      "name": "excessive sweating",
+      "aliases": [
+        "sweating",
+        "svedana"
+      ]
+    },
+    {
+      "type": "Symptom",
+      "id": "S-DROWSINESS",
+      "name": "drowsiness",
+      "aliases": [
+        "tandrā"
+      ]
+    },
+    {
+      "type": "Symptom",
+      "id": "S-VOMITING",
+      "name": "vomiting",
+      "aliases": [
+        "chardi"
+      ]
+    },
+    {
+      "type": "Symptom",
+      "id": "S-COUGH",
+      "name": "cough",
+      "aliases": [
+        "kāsa"
+      ]
+    },
+    {
+      "type": "Symptom",
+      "id": "S-HOARSE-VOICE",
+      "name": "hoarse or weak voice",
+      "aliases": [
+        "hoarseness",
+        "loss of voice",
+        "vāksvaragraha",
+        "svarakṣaya"
+      ]
+    },
+    {
+      "type": "Symptom",
+      "id": "S-CLAY-EATING",
+      "name": "eating clay or soil",
+      "aliases": [
+        "pica",
+        "geophagia",
+        "eating soil",
+        "mṛttikādana",
+        "mṛdbhakṣaṇa"
+      ]
+    },
+    {
+      "type": "Symptom",
+      "id": "S-WORMS-IN-STOOL",
+      "name": "worms in the stool",
+      "aliases": [
+        "intestinal worms",
+        "krimi"
+      ]
+    },
+    {
+      "type": "Symptom",
+      "id": "S-SWELLING-FEET-NAVEL",
+      "name": "swelling of the feet, navel or genitals",
+      "aliases": [
+        "swollen feet",
+        "swelling of the feet"
+      ]
+    },
+    {
+      "type": "TherapeuticPrinciple",
+      "id": "TP-PANDU-VATIKA",
+      "name": "Predominantly unctuous treatment, in Vātaja Pandu",
+      "aliases": [
+        "snehabhūyiṣṭha"
+      ]
+    },
+    {
+      "type": "TherapeuticPrinciple",
+      "id": "TP-PANDU-PAITTIKA",
+      "name": "Bitter and cooling treatment, in Pittaja Pandu",
+      "aliases": [
+        "tiktaśītala"
+      ]
+    },
+    {
+      "type": "TherapeuticPrinciple",
+      "id": "TP-PANDU-SHLAISHMIKA",
+      "name": "Pungent, bitter and heating treatment, in Kaphaja Pandu",
+      "aliases": [
+        "kaṭutiktoṣṇa"
+      ]
+    },
+    {
+      "type": "TherapeuticPrinciple",
+      "id": "TP-PANDU-MRID-NIRHARANA",
+      "name": "Expelling the ingested clay with strong purification, in clay-induced Pandu",
+      "aliases": [
+        "mṛttikā nirharaṇa"
+      ]
+    },
+    {
+      "type": "TherapeuticPrinciple",
+      "id": "TP-PANDU-MRID-BALA-GHRITA",
+      "name": "Strength-giving medicated ghee after purification, in clay-induced Pandu",
+      "aliases": [
+        "balādhāna sarpis"
+      ]
+    },
+    {
+      "type": "Formulation",
+      "id": "F-VYOSHADI-GHRITA-MRID",
+      "name": "Ghee prepared with vyoṣa, bilva, turmeric and other drugs (for clay-induced Pandu)",
+      "aliases": [
+        "vyoṣādi ghṛta"
+      ]
+    },
+    {
+      "type": "Formulation",
+      "id": "F-KESHARADI-GHRITA-MRID",
+      "name": "Ghee prepared with keśara, yaṣṭyāhva and pippalī (for clay-induced Pandu)",
+      "aliases": [
+        "keśarādi ghṛta"
+      ]
+    }
+  ],
+  "claims": [
+    {
+      "key": "headache-indicates-vataja-pandu",
+      "category": "symptom_indication",
+      "subject": "S-HEADACHE",
+      "predicate": "INDICATES",
+      "object": "R-PANDU-VATAJA",
+      "statement": "Pain in the flanks and head is a sign of Pandu caused by Vāta.",
+      "evidence": [
+        {
+          "source_id": "sarit-carakasamhita",
+          "element_id": "Ca.6.16.18",
+          "quote": "aṅgamardaṃ rujaṃ todaṃ kampaṃ pārśvaśirorujam"
+        },
+        {
+          "source_id": "sarit-astangahrdaya",
+          "element_id": "Ah.3.13.010a",
+          "quote": "śophānāhāsya-vairasya-viṭ-śoṣāḥ pārśva-mūrdha-ruk"
+        }
+      ],
+      "uncertainty": [
+        "Suśruta (Utt.44.13) lists headache among complications of Pandu in general; the texts pair it with flank pain."
+      ]
+    },
+    {
+      "key": "constipation-indicates-vataja-pandu",
+      "category": "symptom_indication",
+      "subject": "S-CONSTIPATION",
+      "predicate": "INDICATES",
+      "object": "R-PANDU-VATAJA",
+      "statement": "Dry, hard stool is a sign of Pandu caused by Vāta.",
+      "evidence": [
+        {
+          "source_id": "sarit-carakasamhita",
+          "element_id": "Ca.6.16.18",
+          "quote": "varcaḥśoṣāsyavairasyaśophānāhabalakṣayān"
+        },
+        {
+          "source_id": "sarit-astangahrdaya",
+          "element_id": "Ah.3.13.010a",
+          "quote": "śophānāhāsya-vairasya-viṭ-śoṣāḥ pārśva-mūrdha-ruk"
+        }
+      ],
+      "uncertainty": []
+    },
+    {
+      "key": "tremor-indicates-vataja-pandu",
+      "category": "symptom_indication",
+      "subject": "S-TREMOR",
+      "predicate": "INDICATES",
+      "object": "R-PANDU-VATAJA",
+      "statement": "Tremor is a sign of Pandu caused by Vāta.",
+      "evidence": [
+        {
+          "source_id": "sarit-carakasamhita",
+          "element_id": "Ca.6.16.18",
+          "quote": "aṅgamardaṃ rujaṃ todaṃ kampaṃ pārśvaśirorujam"
+        },
+        {
+          "source_id": "sarit-astangahrdaya",
+          "element_id": "Ah.3.13.009a",
+          "quote": "gātra-ruk-toda-kampanam"
+        }
+      ],
+      "uncertainty": []
+    },
+    {
+      "key": "bloating-indicates-vataja-pandu",
+      "category": "symptom_indication",
+      "subject": "S-BLOATING",
+      "predicate": "INDICATES",
+      "object": "R-PANDU-VATAJA",
+      "statement": "Abdominal distension (ānāha) is a sign of Pandu caused by Vāta.",
+      "evidence": [
+        {
+          "source_id": "sarit-carakasamhita",
+          "element_id": "Ca.6.16.18",
+          "quote": "varcaḥśoṣāsyavairasyaśophānāhabalakṣayān"
+        },
+        {
+          "source_id": "sarit-astangahrdaya",
+          "element_id": "Ah.3.13.010a",
+          "quote": "śophānāhāsya-vairasya-viṭ-śoṣāḥ pārśva-mūrdha-ruk"
+        }
+      ],
+      "uncertainty": []
+    },
+    {
+      "key": "burning-indicates-pittaja-pandu",
+      "category": "symptom_indication",
+      "subject": "S-BURNING",
+      "predicate": "INDICATES",
+      "object": "R-PANDU-PITTAJA",
+      "statement": "A burning sensation is a sign of Pandu caused by Pitta.",
+      "evidence": [
+        {
+          "source_id": "sarit-carakasamhita",
+          "element_id": "Ca.6.16.20",
+          "quote": "jvaradāhasamanvitaḥ"
+        },
+        {
+          "source_id": "sarit-astangahrdaya",
+          "element_id": "Ah.3.13.011a",
+          "quote": "varco-bhedo 'mlako dāhaḥ"
+        }
+      ],
+      "uncertainty": []
+    },
+    {
+      "key": "thirst-indicates-pittaja-pandu",
+      "category": "symptom_indication",
+      "subject": "S-THIRST",
+      "predicate": "INDICATES",
+      "object": "R-PANDU-PITTAJA",
+      "statement": "Excessive thirst is a sign of Pandu caused by Pitta.",
+      "evidence": [
+        {
+          "source_id": "sarit-carakasamhita",
+          "element_id": "Ca.6.16.20",
+          "quote": "tṛṣṇāmūrcchāpipāsārtaḥ"
+        },
+        {
+          "source_id": "sarit-astangahrdaya",
+          "element_id": "Ah.3.13.011a",
+          "quote": "tṛṭ-sveda-mūrchā-śītecchā daurgandhyaṃ kaṭu-vaktra-tā"
+        }
+      ],
+      "uncertainty": []
+    },
+    {
+      "key": "bitter-taste-indicates-pittaja-pandu",
+      "category": "symptom_indication",
+      "subject": "S-BITTER-TASTE",
+      "predicate": "INDICATES",
+      "object": "R-PANDU-PITTAJA",
+      "statement": "A bitter taste in the mouth is a sign of Pandu caused by Pitta.",
+      "evidence": [
+        {
+          "source_id": "sarit-carakasamhita",
+          "element_id": "Ca.6.16.21",
+          "quote": "kaṭukāsyo na cāsyoṣṇamupaśete"
+        },
+        {
+          "source_id": "sarit-astangahrdaya",
+          "element_id": "Ah.3.13.011a",
+          "quote": "tṛṭ-sveda-mūrchā-śītecchā daurgandhyaṃ kaṭu-vaktra-tā"
+        }
+      ],
+      "uncertainty": []
+    },
+    {
+      "key": "loose-stools-indicate-pittaja-pandu",
+      "category": "symptom_indication",
+      "subject": "S-LOOSE-STOOLS",
+      "predicate": "INDICATES",
+      "object": "R-PANDU-PITTAJA",
+      "statement": "Loose stools are a sign of Pandu caused by Pitta.",
+      "evidence": [
+        {
+          "source_id": "sarit-carakasamhita",
+          "element_id": "Ca.6.16.22",
+          "quote": "daurgandhyaṃ bhinnavarcastvaṃ"
+        },
+        {
+          "source_id": "sarit-astangahrdaya",
+          "element_id": "Ah.3.13.011a",
+          "quote": "varco-bhedo 'mlako dāhaḥ"
+        }
+      ],
+      "uncertainty": []
+    },
+    {
+      "key": "sweating-indicates-pittaja-pandu",
+      "category": "symptom_indication",
+      "subject": "S-EXCESS-SWEATING",
+      "predicate": "INDICATES",
+      "object": "R-PANDU-PITTAJA",
+      "statement": "Sweating is a sign of Pandu caused by Pitta.",
+      "evidence": [
+        {
+          "source_id": "sarit-carakasamhita",
+          "element_id": "Ca.6.16.21",
+          "quote": "svedanaḥ śītakāmaśca"
+        },
+        {
+          "source_id": "sarit-astangahrdaya",
+          "element_id": "Ah.3.13.011a",
+          "quote": "tṛṭ-sveda-mūrchā-śītecchā daurgandhyaṃ kaṭu-vaktra-tā"
+        }
+      ],
+      "uncertainty": [
+        "Absence of sweating is listed as a sign of Pandu in general (Ca.6.16.12); sweating distinguishes the Pitta type."
+      ]
+    },
+    {
+      "key": "drowsiness-indicates-kaphaja-pandu",
+      "category": "symptom_indication",
+      "subject": "S-DROWSINESS",
+      "predicate": "INDICATES",
+      "object": "R-PANDU-KAPHAJA",
+      "statement": "Drowsiness (tandrā) is a sign of Pandu caused by Kapha.",
+      "evidence": [
+        {
+          "source_id": "sarit-carakasamhita",
+          "element_id": "Ca.6.16.23",
+          "quote": "karoti gauravaṃ tandrāṃ chardiṃ"
+        },
+        {
+          "source_id": "sarit-astangahrdaya",
+          "element_id": "Ah.3.13.012a",
+          "quote": "tandrā lavaṇa-vaktra-tvaṃ"
+        }
+      ],
+      "uncertainty": [
+        "Sleepiness (nidrālu) is also listed among the general signs of Pandu (Ca.6.16.15)."
+      ]
+    },
+    {
+      "key": "vomiting-indicates-kaphaja-pandu",
+      "category": "symptom_indication",
+      "subject": "S-VOMITING",
+      "predicate": "INDICATES",
+      "object": "R-PANDU-KAPHAJA",
+      "statement": "Vomiting is a sign of Pandu caused by Kapha.",
+      "evidence": [
+        {
+          "source_id": "sarit-carakasamhita",
+          "element_id": "Ca.6.16.23",
+          "quote": "karoti gauravaṃ tandrāṃ chardiṃ"
+        },
+        {
+          "source_id": "sarit-astangahrdaya",
+          "element_id": "Ah.3.13.012a",
+          "quote": "kāsaś chardiś ca"
+        }
+      ],
+      "uncertainty": []
+    },
+    {
+      "key": "cough-indicates-kaphaja-pandu",
+      "category": "symptom_indication",
+      "subject": "S-COUGH",
+      "predicate": "INDICATES",
+      "object": "R-PANDU-KAPHAJA",
+      "statement": "Cough is a sign of Pandu caused by Kapha.",
+      "evidence": [
+        {
+          "source_id": "sarit-carakasamhita",
+          "element_id": "Ca.6.16.24",
+          "quote": "śvāsaṃ kāsaṃ tathā"
+        },
+        {
+          "source_id": "sarit-astangahrdaya",
+          "element_id": "Ah.3.13.012a",
+          "quote": "kāsaś chardiś ca"
+        }
+      ],
+      "uncertainty": []
+    },
+    {
+      "key": "hoarse-voice-indicates-kaphaja-pandu",
+      "category": "symptom_indication",
+      "subject": "S-HOARSE-VOICE",
+      "predicate": "INDICATES",
+      "object": "R-PANDU-KAPHAJA",
+      "statement": "Obstructed or weak voice is a sign of Pandu caused by Kapha.",
+      "evidence": [
+        {
+          "source_id": "sarit-carakasamhita",
+          "element_id": "Ca.6.16.24",
+          "quote": "maruciṃ vāksvaragraham"
+        },
+        {
+          "source_id": "sarit-astangahrdaya",
+          "element_id": "Ah.3.13.012a",
+          "quote": "roma-harṣaḥ svara-kṣayaḥ"
+        }
+      ],
+      "uncertainty": []
+    },
+    {
+      "key": "clay-eating-indicates-mrid-pandu",
+      "category": "symptom_indication",
+      "subject": "S-CLAY-EATING",
+      "predicate": "INDICATES",
+      "object": "R-PANDU-MRIDBHAKSHANAJA",
+      "statement": "Habitual eating of clay causes the fifth type of Pandu.",
+      "evidence": [
+        {
+          "source_id": "sarit-carakasamhita",
+          "element_id": "Ca.6.16.27",
+          "quote": "mṛttikādanaśīlasya kupyatyanyatamo malaḥ"
+        },
+        {
+          "source_id": "sarit-astangahrdaya",
+          "element_id": "Ah.3.13.007a",
+          "quote": "samastair mṛttikādanāt"
+        }
+      ],
+      "uncertainty": [
+        "Eating clay is a cause rather than a sign; it is modelled as a finding because the ontology has no cause predicate."
+      ]
+    },
+    {
+      "key": "worms-indicate-mrid-pandu",
+      "category": "symptom_indication",
+      "subject": "S-WORMS-IN-STOOL",
+      "predicate": "INDICATES",
+      "object": "R-PANDU-MRIDBHAKSHANAJA",
+      "statement": "Worms in the stool, with loose stool containing blood and mucus, are signs of clay-induced Pandu.",
+      "evidence": [
+        {
+          "source_id": "sarit-carakasamhita",
+          "element_id": "Ca.6.16.30",
+          "quote": "krimikoṣṭho 'atisāryeta malaṃ sāsṛk kaphānvitam"
+        },
+        {
+          "source_id": "sarit-astangahrdaya",
+          "element_id": "Ah.3.13.015a",
+          "quote": "purīṣaṃ kṛmi-man muñced bhinnaṃ sāsṛk kaphaṃ naraḥ"
+        }
+      ],
+      "uncertainty": []
+    },
+    {
+      "key": "feet-swelling-indicates-mrid-pandu",
+      "category": "symptom_indication",
+      "subject": "S-SWELLING-FEET-NAVEL",
+      "predicate": "INDICATES",
+      "object": "R-PANDU-MRIDBHAKSHANAJA",
+      "statement": "Swelling of the feet, navel and genitals is a sign of clay-induced Pandu.",
+      "evidence": [
+        {
+          "source_id": "sarit-carakasamhita",
+          "element_id": "Ca.6.16.30",
+          "quote": "śūnapānnābhimehanaḥ"
+        },
+        {
+          "source_id": "sarit-astangahrdaya",
+          "element_id": "Ah.3.13.014a",
+          "quote": "śūna-nābhi-pādāsya-mehanaḥ"
+        }
+      ],
+      "uncertainty": [
+        "Swelling around the eyes is a general sign of Pandu (Ca.6.16.15) and is not used here."
+      ]
+    },
+    {
+      "key": "vataja-pandu-associated-with-vata",
+      "category": "dosha_association",
+      "subject": "R-PANDU-VATAJA",
+      "predicate": "ASSOCIATED_WITH_DOSHA",
+      "object": "DO-VATA",
+      "statement": "The first type of Pandu is caused by Vāta.",
+      "evidence": [
+        {
+          "source_id": "sarit-carakasamhita",
+          "element_id": "Ca.6.16.3",
+          "quote": "pāṇḍurogāḥ smṛtāḥ pañca vātapittakaphaistrayaḥ"
+        },
+        {
+          "source_id": "sarit-susrutasamhita",
+          "element_id": "Su.6.44.7",
+          "quote": "vātena pāṇḍuṃ manujaṃ vyavasyed"
+        }
+      ],
+      "uncertainty": []
+    },
+    {
+      "key": "pittaja-pandu-associated-with-pitta",
+      "category": "dosha_association",
+      "subject": "R-PANDU-PITTAJA",
+      "predicate": "ASSOCIATED_WITH_DOSHA",
+      "object": "DO-PITTA",
+      "statement": "The second type of Pandu is caused by Pitta.",
+      "evidence": [
+        {
+          "source_id": "sarit-carakasamhita",
+          "element_id": "Ca.6.16.3",
+          "quote": "pāṇḍurogāḥ smṛtāḥ pañca vātapittakaphaistrayaḥ"
+        },
+        {
+          "source_id": "sarit-susrutasamhita",
+          "element_id": "Su.6.44.8",
+          "quote": "pittena pāṇḍuṃ manujaṃ vyavasyed"
+        }
+      ],
+      "uncertainty": []
+    },
+    {
+      "key": "kaphaja-pandu-associated-with-kapha",
+      "category": "dosha_association",
+      "subject": "R-PANDU-KAPHAJA",
+      "predicate": "ASSOCIATED_WITH_DOSHA",
+      "object": "DO-KAPHA",
+      "statement": "The third type of Pandu is caused by Kapha.",
+      "evidence": [
+        {
+          "source_id": "sarit-carakasamhita",
+          "element_id": "Ca.6.16.3",
+          "quote": "pāṇḍurogāḥ smṛtāḥ pañca vātapittakaphaistrayaḥ"
+        },
+        {
+          "source_id": "sarit-susrutasamhita",
+          "element_id": "Su.6.44.9",
+          "quote": "kaphena pāṇḍuṃ manujaṃ vyavasyed"
+        }
+      ],
+      "uncertainty": []
+    },
+    {
+      "key": "vataja-pandu-suggests-unctuous",
+      "category": "treatment_principle",
+      "subject": "R-PANDU-VATAJA",
+      "predicate": "SUGGESTS_PRINCIPLE",
+      "object": "TP-PANDU-VATIKA",
+      "statement": "In Vāta-type Pandu the remedies are adapted to be predominantly unctuous.",
+      "evidence": [
+        {
+          "source_id": "sarit-carakasamhita",
+          "element_id": "Ca.6.16.116",
+          "quote": "vātike shehabhūyiṣṭaṃ"
+        }
+      ],
+      "uncertainty": [
+        "The edition reads 'sheha', taken as a misprint of 'sneha' (unctuous).",
+        "The verse adapts the preceding remedies to the dosha; it names no Vāta-specific formulation."
+      ]
+    },
+    {
+      "key": "pittaja-pandu-suggests-bitter-cooling",
+      "category": "treatment_principle",
+      "subject": "R-PANDU-PITTAJA",
+      "predicate": "SUGGESTS_PRINCIPLE",
+      "object": "TP-PANDU-PAITTIKA",
+      "statement": "In Pitta-type Pandu the remedies are adapted to be bitter and cooling.",
+      "evidence": [
+        {
+          "source_id": "sarit-carakasamhita",
+          "element_id": "Ca.6.16.116",
+          "quote": "paittike tiktaśītalam"
+        }
+      ],
+      "uncertainty": []
+    },
+    {
+      "key": "kaphaja-pandu-suggests-pungent-heating",
+      "category": "treatment_principle",
+      "subject": "R-PANDU-KAPHAJA",
+      "predicate": "SUGGESTS_PRINCIPLE",
+      "object": "TP-PANDU-SHLAISHMIKA",
+      "statement": "In Kapha-type Pandu the remedies are adapted to be pungent, bitter and heating.",
+      "evidence": [
+        {
+          "source_id": "sarit-carakasamhita",
+          "element_id": "Ca.6.16.117",
+          "quote": "ślaiṣmike &kaṭutiktoṣṇaṃ"
+        }
+      ],
+      "uncertainty": [
+        "The '&' is an editorial mark in the SARIT edition and is quoted as printed."
+      ]
+    },
+    {
+      "key": "mrid-pandu-suggests-expelling-clay",
+      "category": "treatment_principle",
+      "subject": "R-PANDU-MRIDBHAKSHANAJA",
+      "predicate": "SUGGESTS_PRINCIPLE",
+      "object": "TP-PANDU-MRID-NIRHARANA",
+      "statement": "In clay-induced Pandu the physician first expels the ingested clay with strong purification, judging the patient's strength.",
+      "evidence": [
+        {
+          "source_id": "sarit-carakasamhita",
+          "element_id": "Ca.6.16.117",
+          "quote": "nipātayeccharīrāttu mṛttikāṃ bhakṣitāṃ bhiṣak"
+        },
+        {
+          "source_id": "sarit-carakasamhita",
+          "element_id": "Ca.6.16.118",
+          "quote": "yuktijñaḥ śodhanaistīkṣṇaiḥ prasamīkṣya balābalam"
+        }
+      ],
+      "uncertainty": []
+    },
+    {
+      "key": "mrid-pandu-suggests-strengthening-ghee",
+      "category": "treatment_principle",
+      "subject": "R-PANDU-MRIDBHAKSHANAJA",
+      "predicate": "SUGGESTS_PRINCIPLE",
+      "object": "TP-PANDU-MRID-BALA-GHRITA",
+      "statement": "After purification, strength-giving medicated ghees are given in clay-induced Pandu.",
+      "evidence": [
+        {
+          "source_id": "sarit-carakasamhita",
+          "element_id": "Ca.6.16.118",
+          "quote": "śuddhakāyasya sarpīṃṣi balādhānāni yojayet"
+        }
+      ],
+      "uncertainty": []
+    },
+    {
+      "key": "paittika-uses-trivrit",
+      "category": "herb_use",
+      "subject": "TP-PANDU-PAITTIKA",
+      "predicate": "USES_HERB",
+      "object": "H-TRIVRIT",
+      "statement": "A person with Pitta-type Pandu drinks trivṛt powder mixed with sugar.",
+      "evidence": [
+        {
+          "source_id": "sarit-carakasamhita",
+          "element_id": "Ca.6.16.57",
+          "quote": "dviśarkaraṃ trivṛccūrṇaṃ"
+        },
+        {
+          "source_id": "sarit-carakasamhita",
+          "element_id": "Ca.6.16.57",
+          "quote": "paittikaḥ pibet"
+        }
+      ],
+      "uncertainty": [
+        "Grouping this remedy under the bitter-and-cooling principle is editorial; the verse names it for Pitta-type Pandu directly.",
+        "The dose in the verse is deliberately not quoted."
+      ]
+    },
+    {
+      "key": "shlaishmika-uses-haritaki",
+      "category": "herb_use",
+      "subject": "TP-PANDU-SHLAISHMIKA",
+      "predicate": "USES_HERB",
+      "object": "H-HARITAKI",
+      "statement": "A person with Kapha-type Pandu takes harītakī soaked in cow's urine.",
+      "evidence": [
+        {
+          "source_id": "sarit-carakasamhita",
+          "element_id": "Ca.6.16.58",
+          "quote": "kaphapāṇḍustu"
+        },
+        {
+          "source_id": "sarit-carakasamhita",
+          "element_id": "Ca.6.16.58",
+          "quote": "gomūtraklinnayuktāṃ harītakīm"
+        }
+      ],
+      "uncertainty": [
+        "Grouping this remedy under the pungent-and-heating principle is editorial; the verse names it for Kapha-type Pandu directly."
+      ]
+    },
+    {
+      "key": "mrid-ghee-uses-vyoshadi",
+      "category": "formulation_use",
+      "subject": "TP-PANDU-MRID-BALA-GHRITA",
+      "predicate": "USES_FORMULATION",
+      "object": "F-VYOSHADI-GHRITA-MRID",
+      "statement": "Ghee prepared with vyoṣa, bilva, turmeric, triphalā, punarnavā and other drugs is taken by a person afflicted by clay-induced Pandu.",
+      "evidence": [
+        {
+          "source_id": "sarit-carakasamhita",
+          "element_id": "Ca.6.16.119",
+          "quote": "vyoṣaṃ bilvaṃ haridre dve triphalā dve punarnave"
+        },
+        {
+          "source_id": "sarit-carakasamhita",
+          "element_id": "Ca.6.16.120",
+          "quote": "sādhayitvā pibedyuktyā naro mṛddoṣapīḍitaḥ"
+        }
+      ],
+      "uncertainty": []
+    },
+    {
+      "key": "mrid-ghee-uses-kesharadi",
+      "category": "formulation_use",
+      "subject": "TP-PANDU-MRID-BALA-GHRITA",
+      "predicate": "USES_FORMULATION",
+      "object": "F-KESHARADI-GHRITA-MRID",
+      "statement": "Ghee prepared in the same way with keśara, yaṣṭyāhva, pippalī, alkali and śādvala is given in clay-induced Pandu.",
+      "evidence": [
+        {
+          "source_id": "sarit-carakasamhita",
+          "element_id": "Ca.6.16.121",
+          "quote": "keśarayaṣṭyāhvapippalīkṣāraśādvalaiḥ"
+        },
+        {
+          "source_id": "sarit-carakasamhita",
+          "element_id": "Ca.6.16.121",
+          "quote": "mṛdbhakṣaṇādāturasya"
+        }
+      ],
+      "uncertainty": []
+    }
+  ],
+  "reference_evidence": [],
+  "known_gaps": [
+    "Sannipātaja Pandu (Ca.6.16.26) shows the signs of all three doshas together. The ontology cannot express 'signs of two or more doshas', so it is not modelled.",
+    "Vātaja Pandu has a treatment principle (Ca.6.16.116) but no Vāta-specific formulation in the chapter; the general Pandu remedies apply.",
+    "Yellow urine and dryness of the skin are listed for one type in Caraka but as early signs of all Pandu in Aṣṭāṅgahṛdaya (Ni.13.8), so they are not linked to a type.",
+    "Swelling (śopha/śvayathu) is listed under Vāta in Aṣṭāṅgahṛdaya and under Kapha in Caraka, so general swelling is not linked to a type.",
+    "Fever, body ache, heaviness, dizziness, breathlessness, fatigue and weakness are general signs of Pandu (Ca.6.16.12-16) and stay linked only to Pandu.",
+    "Most of these signs reach Component 2 only if Component 1 sends them as symptoms; the current C1 payload sends core anaemia symptoms only."
+  ]
+}

@@ -5,12 +5,14 @@ import { FolderOpen, Info, Leaf, Play, Plus, Stethoscope } from "lucide-react"
 import { EmptyState, ErrorState, IdChip, LoadingState, Panel } from "@/components/shared/page"
 import { Button } from "@/components/ui/button"
 import { useWorkspace, type CaseRecord } from "@/context/workspace"
+import { useTechnicalView } from "@/lib/access"
 import { c1View, type Component2Output } from "@/lib/api/types"
 import { formatDateTime } from "@/lib/labels"
 
 /** Active-case selector shown at the top of case-level screens. */
 export function CaseBar() {
   const { cases, activeCase, selectCase } = useWorkspace()
+  const [technical] = useTechnicalView()
   if (cases.length === 0) return null
 
   return (
@@ -32,7 +34,7 @@ export function CaseBar() {
           </select>
         </label>
       </div>
-      {activeCase && (
+      {activeCase && technical && (
         <div className="flex flex-wrap items-center gap-2">
           {activeCase.c2.status === "success" && (
             <span className="text-xs text-slate-500">
