@@ -14,7 +14,7 @@ from app.integration.c1_reference_samples import (
     who_2024_severity,
 )
 
-SAMPLES = Path(__file__).parent / "samples"
+SAMPLES = Path(__file__).resolve().parents[1] / "samples"
 
 
 def _ibm(value: float | None) -> bytes:

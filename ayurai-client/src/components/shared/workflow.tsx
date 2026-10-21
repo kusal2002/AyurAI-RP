@@ -68,7 +68,7 @@ export function WorkflowStrip() {
         <ScrollText aria-hidden className="size-4 shrink-0 text-slate-500" />
         <span>
           <strong className="font-semibold text-slate-800">C4 · Governance &amp; privacy</strong> spans every
-          stage (audit, access control, data protection). Its service is not present in this repository.
+          stage (sign-in, access control, decisions and a tamper-evident audit log).
         </span>
       </Link>
     </div>

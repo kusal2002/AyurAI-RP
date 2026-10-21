@@ -74,6 +74,7 @@ const dependencyLabels: Record<string, string> = {
   knowledge_graph: "the knowledge graph database",
   neo4j: "the knowledge graph database",
   embedding_model: "the embedding model",
+  blockchain: "the Ethereum Sepolia connection",
 }
 
 async function parseBody(response: Response): Promise<unknown> {

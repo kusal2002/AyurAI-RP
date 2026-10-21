@@ -71,7 +71,7 @@ export function readinessChecks(readiness: ReadinessResponse): Pick<ServiceCheck
   return [connectivity, knowledge]
 }
 
-/** Health checks send no patient data. Only enabled in live mode. */
+/** Health checks send no patient data. */
 export function useServiceHealth(enabled: boolean) {
   const [checks, setChecks] = React.useState<ServiceCheck[]>(initial)
   const [tick, setTick] = React.useState(0)

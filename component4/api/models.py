@@ -42,7 +42,9 @@ class AuditLog(Base):
     """Append-only, hash-chained audit trail.
 
     entry_hash = SHA-256(previous entry's hash + this entry's content), so
-    editing or deleting any row breaks every hash after it.
+    editing or deleting a row breaks every hash after it. (Deleting the newest
+    rows leaves a shorter, still-valid chain; blockchain anchors cover that case
+    for every entry up to the latest anchor.)
     """
     __tablename__ = "audit_logs"
 
@@ -56,3 +58,22 @@ class AuditLog(Base):
     details: Mapped[str] = mapped_column(Text, default="{}")  # JSON; identifiers only, never free text
     prev_hash: Mapped[str] = mapped_column(String(64))
     entry_hash: Mapped[str] = mapped_column(String(64), unique=True)
+
+
+class Anchor(Base):
+    """One audit-chain head hash written to the AuditAnchor contract on Sepolia.
+
+    Because every entry hash includes the previous one, anchoring the newest
+    entry's hash commits to the whole log up to and including that entry.
+    """
+    __tablename__ = "anchors"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+    head_entry_id: Mapped[int] = mapped_column(Integer)      # audit_logs.id that was anchored
+    head_hash: Mapped[str] = mapped_column(String(64))       # its entry_hash at anchoring time
+    onchain_id: Mapped[int] = mapped_column(Integer)         # id the contract assigned (hashes[id])
+    tx_hash: Mapped[str] = mapped_column(String(66), unique=True)
+    block_number: Mapped[int] = mapped_column(Integer)
+    contract_address: Mapped[str] = mapped_column(String(42))
+    anchored_by: Mapped[str] = mapped_column(String(64))

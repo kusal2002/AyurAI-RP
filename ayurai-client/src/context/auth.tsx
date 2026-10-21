@@ -6,7 +6,7 @@ import { component4Api, setAuthToken, type C4User } from "@/lib/api/component4"
  * Sign-in state for the Component 4 JWT (proposal FR6).
  *
  * The token is kept in memory only: reloading the page signs the user out.
- * Demo mode needs no sign-in; live mode does (see RequireLiveAuth in App.tsx).
+ * Every workspace page requires sign-in (see RequireLiveAuth in App.tsx).
  */
 
 type AuthContextValue = {

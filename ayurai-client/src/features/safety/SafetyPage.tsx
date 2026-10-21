@@ -213,16 +213,11 @@ function SafetyReportView({ report, record }: { report: SafetyAssessmentReport; 
 
 function SafetyWorkspace({ output, record }: { output: Component2Output; record: CaseRecord }) {
   const { runSafety } = useWorkspace()
-  const isDemo = record.source === "demo"
   const forwarded = output.candidates.filter((candidate) => candidate.disposition === "forward_for_safety_assessment")
   const [selected, setSelected] = React.useState<string[]>(() => forwarded.map((candidate) => candidate.candidate_id))
-  const [form, setForm] = React.useState<PatientFormState>(
-    isDemo
-      ? { ...emptyPatientForm, patientId: "DEMO-PT-001", age: "40", gender: "Other", medications: [{ name: "Demo Drug X", drug_class: "", dosage: "" }] }
-      : emptyPatientForm,
-  )
+  const [form, setForm] = React.useState<PatientFormState>(emptyPatientForm)
   const [errors, setErrors] = React.useState<ReturnType<typeof validatePatientForm>["errors"]>({})
-  const drugSuggestions = useDrugSuggestions(!isDemo)
+  const drugSuggestions = useDrugSuggestions(true)
   const loading = record.c3.status === "loading"
 
   function toggle(id: string, checked: boolean) {
@@ -292,17 +287,15 @@ function SafetyWorkspace({ output, record }: { output: Component2Output; record:
         </Panel>
 
         <Panel step={2} title="Patient context" description="Required by the Component 3 safety service">
-          {!isDemo && (
-            <Notice tone="caution" className="mb-4">
-              This information is sent to the Component 3 service. Use synthetic or de-identified research data only.
-              It is held in this page's memory and is not stored by the interface.
-            </Notice>
-          )}
+          <Notice tone="caution" className="mb-4">
+            This information is sent to the Component 3 service. Use synthetic or de-identified research data only.
+            It is held in this page's memory and is not stored by the interface.
+          </Notice>
           <PatientContextForm form={form} onChange={setForm} errors={errors} drugSuggestions={drugSuggestions} disabled={loading} />
           <div className="mt-5 flex flex-wrap items-center justify-end gap-3 border-t border-slate-100 pt-4">
             {Object.keys(errors).length > 0 && <span className="text-xs text-rose-700">Fix the highlighted fields.</span>}
             <Button className="bg-emerald-700 hover:bg-emerald-800" onClick={submit} disabled={loading || selected.length === 0}>
-              <ShieldCheck /> {isDemo ? "Show demo safety report" : "Run safety assessment"}
+              <ShieldCheck /> Run safety assessment
             </Button>
           </div>
         </Panel>
@@ -335,7 +328,6 @@ function SafetyWorkspace({ output, record }: { output: Component2Output; record:
 }
 
 export function SafetyPage() {
-  const { mode } = useWorkspace()
   return (
     <>
       <PageHeader
@@ -346,7 +338,7 @@ export function SafetyPage() {
       <CaseBar />
       <WithReasoning>{(output, record) => <SafetyWorkspace key={record.id} output={output} record={record} />}</WithReasoning>
       <div className="mt-6">
-        <ReferenceData enabled={mode === "live"} />
+        <ReferenceData />
       </div>
     </>
   )

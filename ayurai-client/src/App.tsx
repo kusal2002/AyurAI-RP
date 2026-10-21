@@ -4,7 +4,7 @@ import { Navigate, Route, Routes, useLocation } from "react-router"
 
 import { AppShell } from "@/components/layout/AppShell"
 import { useAuth } from "@/context/auth"
-import { useWorkspace } from "@/context/workspace"
+import { env } from "@/lib/env"
 
 const LoginPage = lazy(() =>
   import("@/features/auth/LoginPage").then((module) => ({
@@ -15,6 +15,12 @@ const LoginPage = lazy(() =>
 const FederationPage = lazy(() =>
   import("@/features/federation/FederationPage").then((module) => ({
     default: module.FederationPage,
+  })),
+)
+
+const FaklPage = lazy(() =>
+  import("@/features/fakl/FaklPage").then((module) => ({
+    default: module.FaklPage,
   })),
 )
 
@@ -135,15 +141,11 @@ function withPageFallback(page: ReactNode) {
   return <Suspense fallback={<PageLoading />}>{page}</Suspense>
 }
 
-/**
- * Live mode works with real services, so it requires a Component 4 sign-in
- * (proposal FR6). Demo mode shows fictional fixtures and needs no account.
- */
+/** The workspace works with real services, so it requires a Component 4 sign-in (proposal FR6). */
 function RequireLiveAuth({ children }: { children: ReactNode }) {
   const { user } = useAuth()
-  const { mode } = useWorkspace()
   const location = useLocation()
-  if (mode === "live" && !user) {
+  if (!user && !env.authBypass) {
     return <Navigate to="/login" replace state={{ from: location.pathname }} />
   }
   return children
@@ -202,6 +204,7 @@ export function App() {
           element={withPageFallback(<FederationPage />)}
         />
         <Route path="privacy" element={withPageFallback(<PrivacyPage />)} />
+        <Route path="fakl" element={withPageFallback(<FaklPage />)} />
         <Route path="admin" element={withPageFallback(<AdminPage />)} />
         <Route path="*" element={withPageFallback(<NotFoundPage />)} />
       </Route>

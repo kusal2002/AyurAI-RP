@@ -2,7 +2,6 @@ import { Link } from "react-router"
 import { ArrowRight, ClipboardCheck, Leaf, ShieldCheck, Stethoscope } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
 
-import { SourceBadge } from "@/components/shared/case"
 import { EmptyState, Notice, PageHeader, Panel } from "@/components/shared/page"
 import { Button } from "@/components/ui/button"
 import { useWorkspace, type CaseRecord } from "@/context/workspace"
@@ -88,7 +87,6 @@ export function PatientCasesPage() {
                     <p className="text-base font-semibold text-slate-900">{record.caseRef}</p>
                     <p className="text-xs text-slate-500">Created {formatDateTime(record.createdAt)}</p>
                   </div>
-                  <SourceBadge record={record} />
                 </div>
                 <div className="mt-4 flex flex-wrap items-center gap-2" aria-label="Workflow progress">
                   <StageDot icon={Stethoscope} label="Screening summary" state={states.c1} />

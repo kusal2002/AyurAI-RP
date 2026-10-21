@@ -1,5 +1,5 @@
 import * as React from "react"
-import { AlertOctagon, FlaskConical, Inbox, Loader2, RefreshCw } from "lucide-react"
+import { AlertOctagon, Inbox, Loader2, RefreshCw } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -168,7 +168,7 @@ export function Notice({
   children,
   className,
 }: {
-  tone?: "info" | "caution" | "demo" | "neutral" | "critical"
+  tone?: "info" | "caution" | "neutral" | "critical"
   icon?: LucideIcon
   title?: string
   children: React.ReactNode
@@ -177,11 +177,10 @@ export function Notice({
   const styles = {
     info: "border-sky-200 bg-sky-50/70 text-sky-900",
     caution: "border-amber-200 bg-amber-50/70 text-amber-900",
-    demo: "border-violet-200 bg-violet-50/70 text-violet-900",
     neutral: "border-slate-200 bg-slate-50 text-slate-700",
     critical: "border-rose-200 bg-rose-50/70 text-rose-900",
   }[tone]
-  const DefaultIcon = Icon ?? (tone === "demo" ? FlaskConical : AlertOctagon)
+  const DefaultIcon = Icon ?? AlertOctagon
   return (
     <div className={cn("flex gap-3 rounded-xl border px-4 py-3 text-xs leading-5", styles, className)}>
       <DefaultIcon aria-hidden className="mt-0.5 size-4 shrink-0" />

@@ -1,17 +1,15 @@
 import * as React from "react"
 import { useLocation, useNavigate } from "react-router"
-import { FlaskConical, Leaf, LogIn } from "lucide-react"
+import { Leaf, LogIn } from "lucide-react"
 
 import { Notice, fieldClass } from "@/components/shared/page"
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/context/auth"
-import { useWorkspace } from "@/context/workspace"
 import { errorMessage } from "@/lib/api/client"
 
-/** Component 4 sign-in (JWT). Required for live mode; demo mode needs no account. */
+/** Component 4 sign-in (JWT), required to use the workspace. */
 export function LoginPage() {
   const { signIn } = useAuth()
-  const { mode, setMode } = useWorkspace()
   const navigate = useNavigate()
   const location = useLocation()
   // Where to go after sign-in: the page that redirected here, or the overview
@@ -28,7 +26,6 @@ export function LoginPage() {
     setError(null)
     try {
       await signIn(username.trim(), password)
-      if (mode !== "live") setMode("live") // signed-in users work with live services
       navigate(from, { replace: true })
     } catch (err) {
       setError(errorMessage(err))
@@ -36,11 +33,6 @@ export function LoginPage() {
       setSubmitting(false)
       setPassword("") // never keep the password in state longer than needed
     }
-  }
-
-  function continueWithDemo() {
-    if (mode !== "demo") setMode("demo")
-    navigate("/", { replace: true })
   }
 
   return (
@@ -59,7 +51,7 @@ export function LoginPage() {
         <form onSubmit={onSubmit} className="space-y-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
           <div>
             <h1 className="text-lg font-semibold text-slate-900">Sign in</h1>
-            <p className="mt-1 text-xs text-slate-500">Required for live mode. Access is limited by your role and clinic.</p>
+            <p className="mt-1 text-xs text-slate-500">Access is limited by your role and clinic.</p>
           </div>
 
           <label className="block">
@@ -91,12 +83,6 @@ export function LoginPage() {
           </Button>
         </form>
 
-        <Button variant="outline" className="mt-3 w-full" onClick={continueWithDemo}>
-          <FlaskConical /> Continue with demo data (no sign-in)
-        </Button>
-        <p className="mt-3 text-center text-[11px] text-slate-400">
-          Demo mode shows fictional fixtures only; nothing is sent to any service.
-        </p>
       </div>
     </div>
   )
