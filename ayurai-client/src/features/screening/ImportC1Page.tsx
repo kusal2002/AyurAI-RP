@@ -238,7 +238,7 @@ export function ImportC1Page() {
               resolve exactly by ID, name or alias. Unknown and ambiguous names are reported, never guessed.
             </li>
             <li>Haemoglobin, modality results and demographics are not used for reasoning.</li>
-            <li>Cases stay in this browser tab only and are cleared on reload.</li>
+            <li>Cases stay in this browser tab only: a refresh keeps them, closing the tab clears them.</li>
             <li>
               Synthetic scenarios are invented. NHANES reference-derived files (from{" "}
               <code>python -m app.integration.c1_reference_samples</code>) contain real de-identified survey data:
