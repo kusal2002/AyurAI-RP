@@ -1,0 +1,13 @@
+# Plain HTTP site. Used first, before a certificate exists (NGINX_CONF=http).
+
+server {
+    listen 80;
+    server_name ${DOMAIN};
+
+    # Let's Encrypt domain check (see deploy/README.md, "HTTPS")
+    location /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+    }
+
+    include /etc/nginx/snippets/ayurai-locations.conf;
+}
