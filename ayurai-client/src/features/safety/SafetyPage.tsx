@@ -8,6 +8,7 @@ import {
   Flame,
   Info,
   Layers,
+  Network,
   Play,
   RotateCcw,
   ShieldAlert,
@@ -45,6 +46,7 @@ import {
 import { ReferenceData } from "./ReferenceData"
 import { SafetyGateCard, type SignOffAction } from "./SafetyGateCard"
 import { ModelAblationWidget } from "./ModelAblationWidget"
+import { SafetyKnowledgeGraph } from "./SafetyKnowledgeGraph"
 
 function useDrugSuggestions(enabled: boolean) {
   const [names, setNames] = React.useState<string[]>([])
@@ -927,7 +929,7 @@ function ClinicalDemonstrationSandbox() {
 
 export function SafetyPage() {
   const { activeCase } = useWorkspace()
-  const [activeTab, setActiveTab] = React.useState<"pipeline" | "sandbox" | "ablation" | "reference">("pipeline")
+  const [activeTab, setActiveTab] = React.useState<"pipeline" | "graph" | "sandbox" | "ablation" | "reference">("pipeline")
 
   return (
     <div className="space-y-6">
@@ -976,6 +978,18 @@ export function SafetyPage() {
 
         <button
           type="button"
+          onClick={() => setActiveTab("graph")}
+          className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-semibold transition-all ${
+            activeTab === "graph"
+              ? "bg-emerald-700 text-white shadow-xs"
+              : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+          }`}
+        >
+          <Network className="size-3.5" /> Safety Knowledge Graph
+        </button>
+
+        <button
+          type="button"
           onClick={() => setActiveTab("sandbox")}
           className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-semibold transition-all ${
             activeTab === "sandbox"
@@ -1010,6 +1024,13 @@ export function SafetyPage() {
           <Beaker className="size-3.5" /> Safety Knowledge Base & Datasets
         </button>
       </div>
+
+      {/* Tab: Safety Knowledge Graph */}
+      {activeTab === "graph" && (
+        <section className="space-y-6">
+          <SafetyKnowledgeGraph />
+        </section>
+      )}
 
       {/* Tab 1: Active Workspace Pipeline */}
       {activeTab === "pipeline" && (
