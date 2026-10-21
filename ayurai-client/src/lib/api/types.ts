@@ -815,6 +815,45 @@ export type C3CypPathway = {
   inducers: string[]
 }
 
+export type C3GraphNode = {
+  id: string
+  name: string
+  type: "Herb" | "Compound" | "Enzyme" | "Target" | "Drug" | "Condition"
+  category?: string
+  sanskrit_name?: string
+  botanical_name?: string
+  contraindications?: string[]
+  traditional_uses?: string[]
+  active_compounds?: string[]
+  narrow_therapeutic_index?: boolean
+  metabolizing_enzymes?: string[]
+  target_receptors?: string[]
+}
+
+export type C3GraphEdge = {
+  id: string
+  source: string
+  target: string
+  type: string
+  label: string
+  severity: "High" | "Moderate" | "Low" | "Safe" | "Info" | string
+  interaction_type?: string
+  mechanism?: string
+  evidence_level?: string
+  pmid?: string
+  citation?: string
+  recommended_action?: string
+}
+
+export type C3GraphResponse = {
+  mode: "live_neo4j" | "offline_fallback"
+  total_nodes: number
+  total_edges: number
+  nodes: C3GraphNode[]
+  edges: C3GraphEdge[]
+  stats?: Record<string, unknown>
+}
+
 // ---------------------------------------------------------------------------
 // Provisional research knowledge (GET /api/v1/c2/research/knowledge)
 // ---------------------------------------------------------------------------

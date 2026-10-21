@@ -3,6 +3,7 @@ import type {
   C2SafetyEvaluationRequest,
   C3CypPathway,
   C3Drug,
+  C3GraphResponse,
   C3Herb,
   C3KnownInteraction,
   HealthResponse,
@@ -35,4 +36,30 @@ export const component3Api = {
     component3Client.get<Record<string, unknown>>("/api/v1/safety/graph-stats", { signal }),
   benchmarks: (signal?: AbortSignal) =>
     component3Client.get<Record<string, unknown>>("/api/v1/safety/benchmarks", { signal }),
+
+  /** GET /api/v1/safety/subgraph */
+  subgraph: (
+    params?: { herb?: string; drug?: string; severity?: string; limit?: number },
+    signal?: AbortSignal,
+  ) => {
+    const search = new URLSearchParams()
+    if (params?.herb) search.set("herb", params.herb)
+    if (params?.drug) search.set("drug", params.drug)
+    if (params?.severity) search.set("severity", params.severity)
+    if (params?.limit) search.set("limit", String(params.limit))
+    const query = search.toString()
+    return component3Client.get<C3GraphResponse>(
+      `/api/v1/safety/subgraph${query ? `?${query}` : ""}`,
+      { signal },
+    )
+  },
+
+  /** GET /api/v1/safety/graph-path */
+  graphPath: (herb: string, drug: string, signal?: AbortSignal) => {
+    const search = new URLSearchParams({ herb, drug })
+    return component3Client.get<Record<string, unknown>>(
+      `/api/v1/safety/graph-path?${search.toString()}`,
+      { signal },
+    )
+  },
 }
