@@ -22,8 +22,8 @@ services:
       - ./deploy/nginx/${NGINX_CONF:-http}.conf.template:/etc/nginx/templates/default.conf.template:ro
       - ./deploy/nginx/snippets:/etc/nginx/snippets:ro
       - certbot_www:/var/www/certbot:ro
-      - letsencrypt:/etc/letsencrypt:ro
-    depends_on: [c1, c2, c3, c4-api]
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+    depends_on: [ c1, c2, c3, c4-api ]
 
   # ---------- Component 1: screening intake ----------
   # Questionnaire, webcam images and image analysis. PPG recording needs the
@@ -37,7 +37,7 @@ services:
       #   trained_model_artifacts/  model weights (copy from the Component 1 owner)
       #   live_sessions/, screening_sessions.sqlite3  created by the API
       - ${C1_DATASETS_DIR:-../datasets}:/datasets
-    expose: ["8001"]
+    expose: [ "8001" ]
 
   # ---------- Component 2: KG reasoning ----------
   c2:
@@ -46,8 +46,8 @@ services:
     restart: unless-stopped
     env_file: ./component2/.env
     volumes:
-      - hf_models:/models           # downloaded embedding models survive rebuilds
-    expose: ["8000"]
+      - hf_models:/models # downloaded embedding models survive rebuilds
+    expose: [ "8000" ]
 
   # ---------- Component 3: safety assessment ----------
   c3:
@@ -57,7 +57,7 @@ services:
     env_file: ./component3/.env
     environment:
       DEBUG: "false"
-    expose: ["8003"]
+    expose: [ "8003" ]
 
   # ---------- Component 4: security & governance API ----------
   c4-api:
@@ -71,8 +71,8 @@ services:
       # Overrides the localhost URL in component4/.env: "postgres" is the container below
       DATABASE_URL: postgresql+psycopg2://${POSTGRES_USER:-ayurai}:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env.prod}@postgres:5432/${POSTGRES_DB:-ayurai_audit}
     volumes:
-      - ./component4/results:/app/results:ro   # federated/FAKL result CSVs shown on the dashboard
-    expose: ["8004"]
+      - ./component4/results:/app/results:ro # federated/FAKL result CSVs shown on the dashboard
+    expose: [ "8004" ]
     depends_on:
       postgres:
         condition: service_healthy
@@ -87,7 +87,7 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      test: [ "CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}" ]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -96,13 +96,13 @@ services:
   # Not started by "up": run it by hand, see deploy/README.md.
   certbot:
     image: certbot/certbot:latest
-    profiles: ["certbot"]
+    profiles: [ "certbot" ]
     volumes:
       - certbot_www:/var/www/certbot
-      - letsencrypt:/etc/letsencrypt
+      # Same host folder nginx reads, so renewed certificates reach nginx
+      - /etc/letsencrypt:/etc/letsencrypt
 
 volumes:
   pgdata:
   hf_models:
   certbot_www:
-  letsencrypt:

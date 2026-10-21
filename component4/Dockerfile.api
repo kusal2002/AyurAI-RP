@@ -20,4 +20,6 @@ ENV PYTHONUNBUFFERED=1
 WORKDIR /app/api
 
 EXPOSE 8004
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8004"]
+# Create the demo accounts first when C4_SEED_PASSWORD is set (existing accounts
+# are left as they are), then start the API. "exec" lets uvicorn receive stop signals.
+CMD ["sh", "-c", "python seed_users.py --if-configured && exec uvicorn main:app --host 0.0.0.0 --port 8004"]
