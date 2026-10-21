@@ -4,30 +4,25 @@ import {
   AlertTriangle,
   ArrowRight,
   BookOpen,
-  CheckCircle2,
   Database,
   ExternalLink,
   Filter,
   FlaskConical,
-  Info,
   Leaf,
   Network,
   Pill,
   Search,
   ShieldAlert,
-  ShieldCheck,
   Sparkles,
   X,
 } from "lucide-react"
 
-import { CaseBar } from "@/components/shared/case"
-import { EmptyState, IdChip, KeyValueList, Notice, PageHeader, Panel } from "@/components/shared/page"
-import { StatusBadge, safetySpec } from "@/components/shared/status"
+import { EmptyState, IdChip, KeyValueList, Panel } from "@/components/shared/page"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useWorkspace } from "@/context/workspace"
 import { component3Api } from "@/lib/api/component3"
-import type { C3Drug, C3GraphEdge, C3GraphNode, C3GraphResponse, C3Herb } from "@/lib/api/types"
+import type { C3Drug, C3GraphNode, C3GraphResponse, C3Herb } from "@/lib/api/types"
 
 const NODE_W = 184
 const NODE_H = 50
@@ -84,7 +79,7 @@ function truncate(text: string, max: number) {
 }
 
 export function SafetyKnowledgeGraph() {
-  const { currentRecord } = useWorkspace()
+  const { activeCase } = useWorkspace()
   const [data, setData] = React.useState<C3GraphResponse | null>(null)
   const [loading, setLoading] = React.useState(true)
   const [error, setError] = React.useState<string | null>(null)
@@ -114,42 +109,56 @@ export function SafetyKnowledgeGraph() {
     return () => controller.abort()
   }, [])
 
-  // Fetch graph data
-  const fetchGraph = React.useCallback(async () => {
-    setLoading(true)
-    setError(null)
-    try {
-      let herbParam: string | undefined
-      let drugParam: string | undefined
-
-      if (mode === "tracer") {
-        herbParam = selectedHerb || undefined
-        drugParam = selectedDrug || undefined
-      } else if (mode === "active_case" && currentRecord?.c2) {
-        // Infer primary candidate and patient meds
-        const topCandidate = currentRecord.c2.candidates[0]?.name
-        const patientMed = currentRecord.c3Payload?.patient_context?.concurrent_medications[0]
-        if (topCandidate) herbParam = topCandidate
-        if (patientMed) drugParam = patientMed
-      }
-
-      const res = await component3Api.subgraph({
-        herb: herbParam,
-        drug: drugParam,
-        severity: severityFilter !== "all" ? severityFilter : undefined,
-        limit: mode === "all" ? 60 : 35,
-      })
-      setData(res)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load safety graph data")
-    } finally {
-      setLoading(false)
-    }
-  }, [mode, selectedHerb, selectedDrug, severityFilter, currentRecord])
-
+  // Fetch graph data on filter or mode changes
   React.useEffect(() => {
-    fetchGraph()
-  }, [fetchGraph])
+    let ignore = false
+    const controller = new AbortController()
+
+    let herbParam: string | undefined
+    let drugParam: string | undefined
+
+    if (mode === "tracer") {
+      herbParam = selectedHerb || undefined
+      drugParam = selectedDrug || undefined
+    } else if (mode === "active_case" && activeCase?.c2?.status === "success" && activeCase.c2.data) {
+      const topCandidate = activeCase.c2.data.candidates[0]?.name
+      const patientMed =
+        activeCase.c3?.status === "success" && activeCase.c3.data
+          ? activeCase.c3.data.evaluations[0]?.interaction_findings[0]?.target_drug
+          : undefined
+      if (topCandidate) herbParam = topCandidate
+      if (patientMed) drugParam = patientMed
+    }
+
+    component3Api
+      .subgraph(
+        {
+          herb: herbParam,
+          drug: drugParam,
+          severity: severityFilter !== "all" ? severityFilter : undefined,
+          limit: mode === "all" ? 60 : 35,
+        },
+        controller.signal,
+      )
+      .then((res) => {
+        if (!ignore) {
+          setData(res)
+          setLoading(false)
+          setError(null)
+        }
+      })
+      .catch((err) => {
+        if (!ignore) {
+          setError(err instanceof Error ? err.message : "Failed to load safety graph data")
+          setLoading(false)
+        }
+      })
+
+    return () => {
+      ignore = true
+      controller.abort()
+    }
+  }, [mode, selectedHerb, selectedDrug, severityFilter, activeCase])
 
   // Process nodes into 5-column layout
   const layout = React.useMemo(() => {

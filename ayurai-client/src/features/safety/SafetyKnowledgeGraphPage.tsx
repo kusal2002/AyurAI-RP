@@ -1,4 +1,3 @@
-import * as React from "react"
 import { CaseBar } from "@/components/shared/case"
 import { PageHeader } from "@/components/shared/page"
 import { SafetyKnowledgeGraph } from "./SafetyKnowledgeGraph"

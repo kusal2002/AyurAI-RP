@@ -4,20 +4,13 @@ import {
   AlertTriangle,
   Beaker,
   CheckCircle2,
-  ChevronRight,
-  Flame,
-  Info,
   Layers,
   Network,
   Play,
   RotateCcw,
-  ShieldAlert,
   ShieldCheck,
-  Siren,
   Sparkles,
   Stethoscope,
-  TestTube2,
-  UserCheck,
 } from "lucide-react"
 
 import { CaseBar, WithReasoning } from "@/components/shared/case"
@@ -29,14 +22,11 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { useWorkspace, type CaseRecord } from "@/context/workspace"
 import { component3Api } from "@/lib/api/component3"
 import type {
-  C2CandidatePackage,
   C2SafetyEvaluationRequest,
   Component2Output,
-  EvaluatedCandidateSafety,
-  PatientContext,
   SafetyAssessmentReport,
 } from "@/lib/api/types"
-import { formatDateTime, formatScore } from "@/lib/labels"
+import { formatDateTime } from "@/lib/labels"
 import {
   PatientContextForm,
   emptyPatientForm,
@@ -44,7 +34,7 @@ import {
   type PatientFormState,
 } from "./PatientContextForm"
 import { ReferenceData } from "./ReferenceData"
-import { SafetyGateCard, type SignOffAction } from "./SafetyGateCard"
+import { SafetyGateCard } from "./SafetyGateCard"
 import { ModelAblationWidget } from "./ModelAblationWidget"
 import { SafetyKnowledgeGraph } from "./SafetyKnowledgeGraph"
 
@@ -604,12 +594,26 @@ function CustomPatientTester({
           <label className="block text-xs font-semibold text-slate-700 mb-1">Biological Sex</label>
           <select
             value={gender}
-            onChange={(e) => setGender(e.target.value)}
+            onChange={(e) => {
+              setGender(e.target.value)
+              if (e.target.value !== "Female") setPregnant(false)
+            }}
             className="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium focus:border-emerald-600 focus:outline-none bg-white"
           >
             <option value="Male">Male</option>
             <option value="Female">Female</option>
           </select>
+          {gender === "Female" && (
+            <label className="mt-1.5 flex items-center gap-1.5 text-[11px] font-medium text-slate-600">
+              <input
+                type="checkbox"
+                checked={pregnant}
+                onChange={(e) => setPregnant(e.target.checked)}
+                className="rounded border-slate-300 text-emerald-600"
+              />
+              Pregnant (Trimester 2)
+            </label>
+          )}
         </div>
 
         {/* eGFR */}
