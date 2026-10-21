@@ -92,23 +92,32 @@ class RuleEngine:
                 except ValueError:
                     ev_grade = EvidenceGrade.ESTABLISHED
 
+                pmid = str(rule.get("pmid", "")).strip() if rule.get("pmid") else None
+                source_id = f"PUBMED-{pmid}" if pmid else f"RULE-{rule.get('id', 'REF')}"
+                source_url = f"https://pubmed.ncbi.nlm.nih.gov/{pmid}/" if pmid and pmid.isdigit() else None
+                citation = rule.get("citation") or ("AYUSH Pharmacopoeia of India Monograph" if not pmid else "PubMed Clinical Literature")
+                citation_type = "PubMed Clinical Literature" if pmid else "Classical AYUSH Monograph"
+
                 provenance = EvidenceProvenance(
-                    source_id=f"PUBMED-{rule.get('pmid', 'REF')}",
-                    source_title=rule.get("citation", "Clinical interaction literature"),
-                    citation_type="PubMed / Clinical Monograph",
-                    pmid_or_ref=rule.get("pmid"),
+                    source_id=source_id,
+                    source_title=citation,
+                    citation_type=citation_type,
+                    pmid_or_ref=pmid,
                     grade=ev_grade,
+                    source_url=source_url,
+                    excerpt=rule.get("mechanism"),
                 )
 
                 finding = InteractionFinding(
                     herb_or_constituent=rule["herb"],
                     target_drug=rule["drug"],
-                    interaction_type="Known Rule",
+                    interaction_type=rule.get("interaction_type", "Known Rule"),
                     severity=rule.get("severity", "Moderate"),
                     mechanism=rule.get("mechanism", "Pharmacodynamic or pharmacokinetic interaction"),
                     evidence_strength=ev_grade,
                     prediction_confidence=0.98,
                     source_refs=[provenance],
+                    clinical_action=rule.get("recommended_action"),
                 )
                 findings.append(finding)
 
