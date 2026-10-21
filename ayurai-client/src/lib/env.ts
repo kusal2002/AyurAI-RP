@@ -8,6 +8,7 @@ function trimTrailingSlash(value: string): string {
 }
 
 export const env = {
+  c1BaseUrl: trimTrailingSlash(import.meta.env.VITE_C1_API_BASE_URL || "/c1-api"),
   c2BaseUrl: trimTrailingSlash(import.meta.env.VITE_C2_API_BASE_URL || "/c2-api"),
   c3BaseUrl: trimTrailingSlash(import.meta.env.VITE_C3_API_BASE_URL || "/c3-api"),
   c4BaseUrl: trimTrailingSlash(import.meta.env.VITE_C4_API_BASE_URL || "/c4-api"),
