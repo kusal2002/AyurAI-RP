@@ -144,6 +144,11 @@ empty. No approved classical or contemporary corpus exists in the
 repository, so real-world semantic retrieval is not yet meaningful. After
 ingesting, call `POST /api/v1/c2/evidence-index/refresh`.
 
+Source books (PDF, DOCX, EPUB, TXT, Markdown) are extracted into
+location-tagged passages by `python -m app.knowledge_ingestion`; see
+`docs/knowledge_ingestion.md`. Extracted passages are raw source content and
+are not saved to Neo4j or used in reasoning.
+
 Index chunks keep `evidence_id`, `chunk_id` (`<evidence_id>#chunk-<n>`),
 title, source name, evidence type, section, page, citation, URL and
 practitioner-verified flag.
@@ -165,9 +170,17 @@ every claim's verification status, stored confidence and evidence are kept.
 Claims inserted outside `save_ontology_claim` are re-validated; violations
 appear in `rejected_paths` and the `ontology_invalid_paths_rejected` flag.
 
-Known inefficiency: the existing tracer calls `get_connected_knowledge`
-and `evaluate_claim` per claim (N+1 queries). Acceptable for the current
-graph size; batch traversal is future work.
+Query bound (2026-10-19):
+
+- The tracer queries each distinct concept once per trace, using a
+  per-trace cache.
+- It builds each claim's evaluation from the evidence that the concept
+  query already returns (`summarize_claim_evidence`), so the earlier
+  per-claim `evaluate_claim` query is gone.
+- `evaluate_claim` remains as a fallback for records that carry no
+  embedded evidence.
+- The number of graph queries is reported as `graph_queries` in the trace
+  result.
 
 ## 9. Semantic retrieval flow
 
@@ -244,7 +257,7 @@ Also returned: `uncertainty_flags`, `evidence_gaps` (e.g.
 
 ## 12. Component 2 output schema
 
-`Component2Output` (`c2-output/0.1.0`): `request_id`, `generated_at`,
+`Component2Output` (`c2-output/0.2.0`; 0.2.0 adds `decision` (recommend_for_review / caution / abstain), `decision_reasons` and `risk_context`, see `design_risk_tier_integration.md`): `request_id`, `generated_at`,
 `upstream` (risk tier, calibrated confidence), `input_symptom_ids`,
 `symptom_mappings`, `interpretation`, `candidates` (rank, category, name,
 ranking breakdown, disposition, paths with full claim steps and evidence
@@ -320,7 +333,7 @@ python -m pytest -q
 ```
 
 Unit tests run offline: an in-memory `FakeGraph` replaces Neo4j and a
-test-only `KeywordEncoder` replaces the model (`c2_test_support.py`).
+test-only `KeywordEncoder` replaces the model (`tests/c2_test_support.py`).
 One test (`test_invalid_model_path_raises_clear_error`) is skipped if
 sentence-transformers is not installed.
 
@@ -338,7 +351,30 @@ such nodes remain, and loads the real embedding model.
 ## 18. Configuration
 
 Neo4j: `NEO4J_URI`, `NEO4J_USERNAME`, `NEO4J_PASSWORD` in `component2/.env`
-(git-ignored). Model/retrieval: §4.
+(git-ignored; placeholders in `.env.example`). Model/retrieval: §4.
+
+Driver hardening (2026-10-19):
+
+- **Encryption.** A non-local `NEO4J_URI` must use `neo4j+s://` or
+  `bolt+s://`. Otherwise the driver is not created.
+- **Timeouts.** `C2_NEO4J_CONNECTION_TIMEOUT` (10 s),
+  `C2_NEO4J_ACQUISITION_TIMEOUT` (15 s), `C2_NEO4J_MAX_RETRY_TIME` (10 s),
+  and `C2_NEO4J_QUERY_TIMEOUT` (15 s) for health queries.
+- **Shutdown.** The driver is closed by the FastAPI lifespan handler.
+
+Health endpoints. None of them writes or loads the embedding model.
+
+| Endpoint | Reports |
+|---|---|
+| `GET /health` | Process liveness only |
+| `GET /health/neo4j` | A read-only `RETURN 1`. The reason is one of `healthy`, `not_configured`, `misconfigured`, `auth_failed`, `unreachable`, `query_failed`, and is never a secret or a host. 503 when not healthy. |
+| `GET /health/readiness` | Separate components: database connectivity, graph schema (constraints), knowledge graph content (node counts), local corpus ingestion (manifest and candidate counts), retrieval service, embedding model (loaded / cached locally), component integration. `ready_for_reasoning` and `knowledge_available` are separate flags. |
+| `GET /health/graph-validation` | Full read-only integrity report (`docs/knowledge_graph_schema.md` §7) |
+
+API evidence references now include `source_id` and `source_chunk_id`
+when the evidence was promoted from the source corpus. Both fields are
+optional and default to null, so the output schema stays backward
+compatible.
 
 ## 19. Known limitations and unimplemented items
 

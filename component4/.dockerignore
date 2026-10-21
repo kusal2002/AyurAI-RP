@@ -1,0 +1,9 @@
+# Files Docker should NOT send into the build (smaller, faster, and no secrets in images)
+venv/
+__pycache__/
+results/
+.git/
+*.csv
+.env
+# Local development database (also contains password hashes)
+*.sqlite3

@@ -5,7 +5,7 @@ import { Ban, CheckCircle2, ClipboardCheck, FilePenLine, Lock, Send, TriangleAle
 import { CaseBar, WithReasoning } from "@/components/shared/case"
 import { FlagList } from "@/components/shared/c2"
 import { EmptyState, IdChip, KeyValueList, Notice, PageHeader, Panel, fieldClass } from "@/components/shared/page"
-import { StatusBadge, abstentionSpec, safetySpec, sufficiencySpec } from "@/components/shared/status"
+import { StatusBadge, decisionSpec, safetySpec, sufficiencySpec } from "@/components/shared/status"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -18,7 +18,10 @@ import {
 } from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
+import { useAuth } from "@/context/auth"
 import { useWorkspace, type CaseRecord, type FeedbackRecord } from "@/context/workspace"
+import { errorMessage, isAbortError } from "@/lib/api/client"
+import { component4Api, type Decision, type DecisionValue } from "@/lib/api/component4"
 import type {
   Component2Output,
   IssueCategory,
@@ -27,7 +30,7 @@ import type {
   ReviewerRole,
 } from "@/lib/api/types"
 import { indexClaims } from "@/lib/c2-derive"
-import { formatDateTime, humanizeCode } from "@/lib/labels"
+import { formatDateTime, formatScore, humanizeCode } from "@/lib/labels"
 
 const ID_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/
 
@@ -63,15 +66,16 @@ function CaseSummary({ output, record }: { output: Component2Output; record: Cas
         <KeyValueList
           items={[
             { label: "Risk tier", value: <span className="capitalize">{output.upstream.risk_tier}</span> },
-            { label: "Calibrated confidence", value: output.upstream.calibrated_confidence.toFixed(2) },
+            { label: "Calibrated confidence", value: formatScore(output.upstream.calibrated_confidence) },
             { label: "Symptoms mapped", value: `${output.symptom_mappings.filter((m) => m.found).length} of ${output.symptom_mappings.length}` },
-            { label: "Origin", value: record.c1?.origin === "demo_fixture" ? "Demo fixture" : "Manual entry" },
+            { label: "Origin", value: record.c1?.origin === "c1_payload" ? "Imported C1 payload" : "Manual entry" },
           ]}
         />
       </Panel>
       <Panel title="Component 2 · Reasoning" actions={<Link className="text-xs font-semibold text-emerald-700" to="/analysis">Analysis</Link>}>
         <div className="space-y-2">
-          {output.abstention.abstain ? <StatusBadge spec={abstentionSpec} /> : <StatusBadge spec={sufficiencySpec(output.sufficiency_status)} />}
+          <StatusBadge spec={decisionSpec(output.decision)} />
+          <StatusBadge spec={sufficiencySpec(output.sufficiency_status)} />
           <KeyValueList
             items={[
               { label: "Interpreted concepts", value: output.interpretation.length },
@@ -245,7 +249,6 @@ function FeedbackForm({ output, record }: { output: Component2Output; record: Ca
         <Notice tone="info">
           Feedback is an append-only review record stored by Component 2 (<code>POST /api/v1/c2/feedback</code>). It never
           changes a claim or its verification status and does not approve anything.
-          {record.source === "demo" && " In demo mode nothing is sent."}
         </Notice>
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <MultiSelect
@@ -356,9 +359,7 @@ function FeedbackForm({ output, record }: { output: Component2Output; record: Ca
           <AlertDialogHeader>
             <AlertDialogTitle>Submit practitioner feedback?</AlertDialogTitle>
             <AlertDialogDescription>
-              {record.source === "demo"
-                ? "Demo mode: the feedback will be listed in this session only and not sent."
-                : "This creates a permanent, append-only feedback record in the Component 2 knowledge graph database for reasoning request " + output.request_id + "."}
+              {"This creates a permanent, append-only feedback record in the Component 2 knowledge graph database for reasoning request " + output.request_id + "."}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <KeyValueList
@@ -395,9 +396,6 @@ function FeedbackResult({ entry }: { entry: FeedbackRecord }) {
       </Notice>
     )
   }
-  if (entry.outcome.status === "demo_not_sent") {
-    return <Notice tone="demo" title="Demo feedback listed">Nothing was sent to the Component 2 service.</Notice>
-  }
   const response = entry.outcome.response
   return (
     <Notice tone="info" icon={CheckCircle2} title="Feedback recorded by Component 2">
@@ -425,7 +423,6 @@ function ReviewHistory({ record }: { record: CaseRecord }) {
           </p>
           <p className="mt-1 text-xs">
             {entry.outcome.status === "recorded" && <span className="text-emerald-800">Recorded as <IdChip>{entry.outcome.response.feedback_id}</IdChip></span>}
-            {entry.outcome.status === "demo_not_sent" && <span className="text-violet-800">Demo — not sent</span>}
             {entry.outcome.status === "error" && <span className="text-rose-700">Failed: {entry.outcome.error.message}</span>}
           </p>
         </li>
@@ -434,21 +431,157 @@ function ReviewHistory({ record }: { record: CaseRecord }) {
   )
 }
 
-function DecisionPanel() {
+const decisionOptions: { value: DecisionValue; label: string; icon: typeof CheckCircle2 }[] = [
+  { value: "approve", label: "Approve", icon: CheckCircle2 },
+  { value: "request_changes", label: "Request changes", icon: FilePenLine },
+  { value: "reject", label: "Reject", icon: XCircle },
+]
+
+/**
+ * Final clinical decision, recorded by the Component 4 service (FR4).
+ * Every decision is written to the hash-chained audit log by the backend.
+ */
+function DecisionPanel({ output, record }: { output: Component2Output; record: CaseRecord }) {
+  const { user } = useAuth()
+  const [history, setHistory] = React.useState<Decision[]>([])
+  const [choice, setChoice] = React.useState<DecisionValue | null>(null)
+  const [rationale, setRationale] = React.useState("")
+  const [confirming, setConfirming] = React.useState(false)
+  const [submitting, setSubmitting] = React.useState(false)
+  const [error, setError] = React.useState<string | null>(null)
+
+  const canDecide = user !== null && user.role !== "researcher"
+  const needsRationale = choice !== null && choice !== "approve"
+  const rationaleMissing = needsRationale && !rationale.trim()
+
+  // Load earlier decisions for this case (scoped to the user's clinic by the backend)
+  React.useEffect(() => {
+    if (!canDecide) return
+    const controller = new AbortController()
+    component4Api
+      .listDecisions(record.caseRef, controller.signal)
+      .then(setHistory)
+      .catch((err) => {
+        if (!isAbortError(err)) setError(errorMessage(err))
+      })
+    return () => controller.abort()
+  }, [canDecide, record.caseRef])
+
+  async function submit() {
+    if (!choice) return
+    setConfirming(false)
+    setSubmitting(true)
+    setError(null)
+    try {
+      const saved = await component4Api.createDecision({
+        case_ref: record.caseRef,
+        c2_request_id: output.request_id,
+        c3_assessment_id: record.c3.status === "success" ? record.c3.data.assessment_id : null,
+        decision: choice,
+        rationale: rationale.trim(),
+      })
+      setHistory((current) => [saved, ...current])
+      setChoice(null)
+      setRationale("")
+    } catch (err) {
+      setError(errorMessage(err))
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  if (!canDecide) {
+    return (
+      <div className="space-y-4">
+        <Notice tone="neutral" icon={Lock} title="Decision recording needs a signed-in practitioner">
+          {user?.role === "researcher"
+            ? "Researchers can view results but cannot approve, reject or request changes."
+            : "Sign in to record a decision."}{" "}
+          Nothing has been approved.
+        </Notice>
+        <div className="flex flex-wrap gap-2">
+          {decisionOptions.map(({ value, label, icon: Icon }) => (
+            <Button key={value} disabled variant="outline"><Icon /> {label}</Button>
+          ))}
+        </div>
+      </div>
+    )
+  }
+
+  const latest = history[0]
   return (
     <div className="space-y-4">
-      <Notice tone="neutral" icon={Lock} title="Final decision recording is not available">
-        No Component 4 decision, approval or audit service exists in this repository, so approve, reject and
-        request-changes actions cannot be recorded. They are disabled rather than simulated. Nothing has been approved.
-      </Notice>
-      <div className="flex flex-wrap gap-2">
-        <Button disabled variant="outline"><CheckCircle2 /> Approve</Button>
-        <Button disabled variant="outline"><FilePenLine /> Request changes</Button>
-        <Button disabled variant="outline"><XCircle /> Reject</Button>
+      <div role="radiogroup" aria-label="Final decision" className="flex flex-wrap gap-2">
+        {decisionOptions.map(({ value, label, icon: Icon }) => (
+          <Button
+            key={value}
+            role="radio"
+            aria-checked={choice === value}
+            variant={choice === value ? "default" : "outline"}
+            className={choice === value ? "bg-emerald-700 hover:bg-emerald-800" : undefined}
+            onClick={() => setChoice(value)}
+          >
+            <Icon /> {label}
+          </Button>
+        ))}
       </div>
+
+      {choice && (
+        <label className="block">
+          <span className="text-sm font-medium text-slate-700">
+            Rationale {needsRationale ? "(required)" : "(optional)"}
+          </span>
+          <textarea
+            className={`${fieldClass} h-24 py-2`}
+            maxLength={2000}
+            value={rationale}
+            onChange={(e) => setRationale(e.target.value)}
+          />
+          <span className="mt-1 block text-[11px] text-slate-400">
+            Stored with the decision. Not copied into the audit log, which keeps identifiers only.
+          </span>
+        </label>
+      )}
+
+      {error && <Notice tone="critical">{error}</Notice>}
+
+      <Button
+        disabled={!choice || rationaleMissing || submitting}
+        onClick={() => setConfirming(true)}
+        className="bg-emerald-700 hover:bg-emerald-800"
+      >
+        <Send /> {submitting ? "Recording…" : "Record decision"}
+      </Button>
+
       <p className="flex items-center gap-1.5 text-xs text-slate-500">
-        <Ban aria-hidden className="size-3.5" /> Current decision: none recorded.
+        {latest ? (
+          <>
+            <CheckCircle2 aria-hidden className="size-3.5 text-emerald-700" /> Current decision:{" "}
+            <strong className="text-slate-700">{humanizeCode(latest.decision)}</strong> by {latest.reviewer},{" "}
+            {formatDateTime(latest.created_at)}
+          </>
+        ) : (
+          <>
+            <Ban aria-hidden className="size-3.5" /> Current decision: none recorded.
+          </>
+        )}
       </p>
+
+      <AlertDialog open={confirming} onOpenChange={setConfirming}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Record “{choice ? humanizeCode(choice) : ""}” for {record.caseRef}?</AlertDialogTitle>
+            <AlertDialogDescription>
+              The decision is stored by Component 4 under your account ({user?.username}) and written to the
+              tamper-evident audit log. It cannot be edited afterwards; record a new decision to change it.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={submit}>Record decision</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }
@@ -466,7 +599,7 @@ function ReviewWorkspace({ output, record }: { output: Component2Output; record:
         </Panel>
         <div className="space-y-5">
           <Panel title="Final clinical decision">
-            <DecisionPanel />
+            <DecisionPanel output={output} record={record} />
           </Panel>
           <Panel title="Review history (this session)">
             <ReviewHistory record={record} />

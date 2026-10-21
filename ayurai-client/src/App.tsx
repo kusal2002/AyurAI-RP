@@ -1,8 +1,34 @@
 
 import { lazy, Suspense, type ReactNode } from "react"
-import { Route, Routes } from "react-router"
+import { Navigate, Route, Routes, useLocation } from "react-router"
 
 import { AppShell } from "@/components/layout/AppShell"
+import { useAuth } from "@/context/auth"
+import { env } from "@/lib/env"
+
+const LoginPage = lazy(() =>
+  import("@/features/auth/LoginPage").then((module) => ({
+    default: module.LoginPage,
+  })),
+)
+
+const FederationPage = lazy(() =>
+  import("@/features/federation/FederationPage").then((module) => ({
+    default: module.FederationPage,
+  })),
+)
+
+const FaklPage = lazy(() =>
+  import("@/features/fakl/FaklPage").then((module) => ({
+    default: module.FaklPage,
+  })),
+)
+
+const PrivacyPage = lazy(() =>
+  import("@/features/federation/PrivacyPage").then((module) => ({
+    default: module.PrivacyPage,
+  })),
+)
 
 const AdminPage = lazy(() =>
   import("@/features/admin/AdminPage").then((module) => ({
@@ -76,6 +102,17 @@ const NewScreeningPage = lazy(() =>
   })),
 )
 
+const ImportC1Page = lazy(() =>
+  import("@/features/screening/ImportC1Page").then((module) => ({
+    default: module.ImportC1Page,
+  })),
+)
+
+const ResearchKnowledgePage = lazy(() =>
+  import("@/features/knowledge-graph/ResearchKnowledgePage").then((module) => ({
+    default: module.ResearchKnowledgePage,
+  })),
+)
 const ScreeningRecordsPage = lazy(() =>
   import("@/features/screening/ScreeningRecordsPage").then((module) => ({
     default: module.ScreeningRecordsPage,
@@ -104,14 +141,35 @@ function withPageFallback(page: ReactNode) {
   return <Suspense fallback={<PageLoading />}>{page}</Suspense>
 }
 
+/** The workspace works with real services, so it requires a Component 4 sign-in (proposal FR6). */
+function RequireLiveAuth({ children }: { children: ReactNode }) {
+  const { user } = useAuth()
+  const location = useLocation()
+  if (!user && !env.authBypass) {
+    return <Navigate to="/login" replace state={{ from: location.pathname }} />
+  }
+  return children
+}
+
 export function App() {
   return (
     <Routes>
-      <Route element={<AppShell />}>
+      <Route path="login" element={withPageFallback(<LoginPage />)} />
+      <Route
+        element={
+          <RequireLiveAuth>
+            <AppShell />
+          </RequireLiveAuth>
+        }
+      >
         <Route index element={withPageFallback(<OverviewPage />)} />
         <Route
           path="screening/new"
           element={withPageFallback(<NewScreeningPage />)}
+        />
+        <Route
+          path="screening/import"
+          element={withPageFallback(<ImportC1Page />)}
         />
         <Route
           path="screenings"
@@ -130,6 +188,7 @@ export function App() {
           element={withPageFallback(<KnowledgeGraphPage />)}
         />
         <Route path="evidence" element={withPageFallback(<EvidencePage />)} />
+        <Route path="research-knowledge" element={withPageFallback(<ResearchKnowledgePage />)} />
         <Route
           path="candidates"
           element={withPageFallback(<CandidatesPage />)}
@@ -140,6 +199,12 @@ export function App() {
           path="governance"
           element={withPageFallback(<GovernancePage />)}
         />
+        <Route
+          path="federation"
+          element={withPageFallback(<FederationPage />)}
+        />
+        <Route path="privacy" element={withPageFallback(<PrivacyPage />)} />
+        <Route path="fakl" element={withPageFallback(<FaklPage />)} />
         <Route path="admin" element={withPageFallback(<AdminPage />)} />
         <Route path="*" element={withPageFallback(<NotFoundPage />)} />
       </Route>

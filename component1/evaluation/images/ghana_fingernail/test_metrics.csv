@@ -1,0 +1,2 @@
+Source,Model,Test_Images,Accuracy,Balanced_Accuracy,Sensitivity,Specificity,F1,AUROC,True_Negatives,False_Positives,False_Negatives,True_Positives
+ghana_fingernail,ResNet-50,84,0.6428571428571429,0.6058823529411765,0.8,0.4117647058823529,0.7272727272727273,0.6464705882352941,14,20,10,40

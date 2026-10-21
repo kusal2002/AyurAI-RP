@@ -6,6 +6,7 @@ import "./index.css"
 import App from "./App.tsx"
 import { ThemeProvider } from "@/components/theme-provider.tsx"
 import { TooltipProvider } from "@/components/ui/tooltip"
+import { AuthProvider } from "@/context/auth"
 import { WorkspaceProvider } from "@/context/workspace"
 
 createRoot(document.getElementById("root")!).render(
@@ -14,9 +15,11 @@ createRoot(document.getElementById("root")!).render(
     <ThemeProvider defaultTheme="light" storageKey="ayurai-theme" enableHotkey={false}>
       <TooltipProvider>
         <BrowserRouter>
-          <WorkspaceProvider>
-            <App />
-          </WorkspaceProvider>
+          <AuthProvider>
+            <WorkspaceProvider>
+              <App />
+            </WorkspaceProvider>
+          </AuthProvider>
         </BrowserRouter>
       </TooltipProvider>
     </ThemeProvider>

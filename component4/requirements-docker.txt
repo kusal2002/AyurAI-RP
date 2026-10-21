@@ -1,0 +1,7 @@
+# Packages for the federated-node Docker image (server + clinic containers).
+# Only what component4/federated/ imports. Same pinned versions as requirements.txt.
+# torch is NOT listed: the Dockerfile installs the smaller CPU-only build first.
+# The API packages (FastAPI, SQLAlchemy, ...) are not needed by the nodes.
+flwr==1.34.0
+opacus==1.6.0
+numpy==2.4.6

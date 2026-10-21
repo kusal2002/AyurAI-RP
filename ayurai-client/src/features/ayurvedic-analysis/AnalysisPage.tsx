@@ -1,6 +1,6 @@
 import * as React from "react"
 import { Link } from "react-router"
-import { Bot, BookOpen, CheckCircle2, CircleSlash, Database, RefreshCw, UserCheck } from "lucide-react"
+import { Bot, BookOpen, CheckCircle2, CircleSlash, Database, RefreshCw, TriangleAlert, UserCheck } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
 
 import { CaseBar, WithReasoning } from "@/components/shared/case"
@@ -9,12 +9,14 @@ import {
   EvidenceReferenceRow,
   ExplanationList,
   FlagList,
+  ResearchScopeBanner,
   ScoreCaveat,
 } from "@/components/shared/c2"
 import { EmptyState, IdChip, KeyValueList, Notice, PageHeader, Panel } from "@/components/shared/page"
 import {
   StatusBadge,
   abstentionSpec,
+  decisionSpec,
   dispositionSpec,
   safetySpec,
   sufficiencySpec,
@@ -22,9 +24,9 @@ import {
 } from "@/components/shared/status"
 import { Button } from "@/components/ui/button"
 import { useWorkspace, type CaseRecord } from "@/context/workspace"
-import type { Component2Output, EvidenceReference } from "@/lib/api/types"
+import type { C1SymptomMapping, Component2Output, EvidenceReference } from "@/lib/api/types"
 import { conceptNames, indexEvidence } from "@/lib/c2-derive"
-import { conceptTypeLabels, describeFlag, formatDateTime, formatScore } from "@/lib/labels"
+import { conceptTypeLabels, describeFlag, formatDateTime, formatScore, humanizeCode } from "@/lib/labels"
 
 /** Labels that separate who produced each piece of information. */
 export function OriginTag({ kind }: { kind: "model" | "knowledge" | "practitioner" }) {
@@ -80,7 +82,7 @@ function InterpretationSection({ output }: { output: Component2Output }) {
               <li key={concept.concept_id} className="rounded-xl border border-slate-200 p-3">
                 <div className="flex flex-wrap items-start justify-between gap-2">
                   <div className="min-w-0">
-                    <p className="font-semibold text-slate-900">{concept.name ?? "Name not supplied"}</p>
+                    <p className="font-semibold text-slate-900">{concept.name ?? concept.concept_id}</p>
                     <IdChip>{concept.concept_id}</IdChip>
                   </div>
                   <div className="flex flex-wrap gap-1">
@@ -113,29 +115,26 @@ function evidenceRefsFor(output: Component2Output, relationship: EvidenceReferen
       relationship === "SUPPORTS" ? concept.supporting_evidence_ids : concept.contradicting_evidence_ids,
     ),
   )
+  // Only evidence whose details are in the response is listed; bare IDs are
+  // counted instead of being shown as empty rows.
   const refs: EvidenceReference[] = []
+  let withoutDetails = 0
   for (const id of ids) {
     const entry = index.get(id)
-    refs.push(
-      entry
-        ? { ...entry.reference, relationship }
-        : {
-            evidence_id: id,
-            relationship,
-            title: null,
-            source_name: null,
-            evidence_type: null,
-            section: null,
-            page: null,
-            citation: null,
-            source_url: null,
-            practitioner_verified: false,
-            provenance_complete: false,
-            missing_provenance: ["metadata_not_in_response"],
-          },
-    )
+    if (entry) refs.push({ ...entry.reference, relationship })
+    else withoutDetails += 1
   }
-  return refs
+  return { refs, withoutDetails }
+}
+
+function EvidenceOmittedNote({ count }: { count: number }) {
+  if (count === 0) return null
+  return (
+    <p className="mt-2 text-xs text-slate-500">
+      {count} further evidence record{count === 1 ? " is" : "s are"} linked by ID only and not listed, because the
+      response does not include {count === 1 ? "its" : "their"} details. See the Evidence explorer.
+    </p>
+  )
 }
 
 function SafetyStatus({ record }: { record: CaseRecord }) {
@@ -174,6 +173,48 @@ function SafetyStatus({ record }: { record: CaseRecord }) {
   )
 }
 
+function DecisionNotice({ output }: { output: Component2Output }) {
+  if (output.decision !== "caution") return null
+  const evidenceReasons = output.decision_reasons.filter((reason) => reason.startsWith("evidence:"))
+  return (
+    <Notice tone="caution" title="Decision: caution" icon={TriangleAlert}>
+      <ul className="list-disc space-y-1 pl-5">
+        {output.risk_context.escalation.map((note) => (
+          <li key={note}>{note}</li>
+        ))}
+        {evidenceReasons.map((reason) => (
+          <li key={reason}>Evidence status: {humanizeCode(reason.slice("evidence:".length))}.</li>
+        ))}
+      </ul>
+      <p className="mt-1.5 text-xs">
+        Risk rules ({output.risk_context.policy_id}) only gate this decision. They never change candidate ranking,
+        evidence sufficiency or which candidates are forwarded.
+      </p>
+    </Notice>
+  )
+}
+
+function C1MappingList({ mapping }: { mapping: C1SymptomMapping }) {
+  return (
+    <div className="mt-3 rounded-lg border border-slate-200 p-3">
+      <p className="text-xs font-semibold text-slate-700">Component 1 symptom names → knowledge-graph symptoms</p>
+      <ul className="mt-1.5 space-y-1 text-xs text-slate-600">
+        {mapping.resolved_symptoms.map((item) => (
+          <li key={`r-${item.input_name}`}>
+            “{item.input_name}” → {item.canonical_name} <IdChip>{item.symptom_id}</IdChip>
+          </li>
+        ))}
+        {mapping.unresolved_symptoms.map((item) => (
+          <li key={`u-${item.input_name}`} className="text-amber-800">
+            “{item.input_name}”: {item.status.replace(/_/g, " ")}
+            {item.candidate_ids?.length ? ` (matches ${item.candidate_ids.join(", ")}; not guessed)` : " (not guessed)"}
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
+}
+
 function ReasoningDetail({ output, record }: { output: Component2Output; record: CaseRecord }) {
   const { runReasoning } = useWorkspace()
   const names = React.useMemo(() => conceptNames(output), [output])
@@ -186,11 +227,9 @@ function ReasoningDetail({ output, record }: { output: Component2Output; record:
     <div className="space-y-5">
       <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3">
         <div className="flex flex-wrap items-center gap-2">
-          {output.abstention.abstain ? (
-            <StatusBadge size="md" spec={abstentionSpec} />
-          ) : (
-            <StatusBadge size="md" spec={sufficiencySpec(output.sufficiency_status)} />
-          )}
+          <StatusBadge size="md" spec={decisionSpec(output.decision)} />
+          <span className="text-xs text-slate-500">Evidence:</span>
+          <StatusBadge spec={sufficiencySpec(output.sufficiency_status)} />
           {output.review_required && (
             <span className="text-xs font-medium text-slate-600">Practitioner review required</span>
           )}
@@ -203,6 +242,9 @@ function ReasoningDetail({ output, record }: { output: Component2Output; record:
           </Button>
         </div>
       </div>
+
+      <ResearchScopeBanner output={output} />
+      <DecisionNotice output={output} />
 
       <div className="flex flex-wrap gap-2 text-xs text-slate-500">
         <span>Information origin:</span>
@@ -219,10 +261,17 @@ function ReasoningDetail({ output, record }: { output: Component2Output; record:
                 { label: "Case reference", value: record.caseRef },
                 { label: "Component 1 risk tier", value: <span className="capitalize">{output.upstream.risk_tier}</span> },
                 { label: "Component 1 calibrated confidence", value: formatScore(output.upstream.calibrated_confidence) },
-                { label: "Summary origin", value: record.c1?.origin === "demo_fixture" ? "Demo fixture" : "Manual entry of approved C1 result" },
+                {
+                  label: "Summary origin",
+                  value:
+                    record.c1?.origin === "c1_payload"
+                      ? `Imported Component 1 payload (${record.c1.payloadSource ?? "unknown source"})`
+                      : "Manual entry of approved C1 result",
+                },
                 { label: "Symptoms mapped", value: `${mapped} of ${output.symptom_mappings.length}` },
               ]}
             />
+            {record.c1?.mapping && <C1MappingList mapping={record.c1.mapping} />}
             <div className="mt-2">
               <ScoreCaveat>
                 The screening confidence is upstream metadata only. Component 2 does not reuse it as confidence in any
@@ -270,15 +319,18 @@ function ReasoningDetail({ output, record }: { output: Component2Output; record:
           </>
         }
       >
-        {supporting.length === 0 ? (
-          <p className="text-sm text-slate-500">No supporting evidence is linked to the interpretation.</p>
+        {supporting.refs.length === 0 ? (
+          <p className="text-sm text-slate-500">
+            {supporting.withoutDetails ? "No evidence details are available in this response." : "No supporting evidence is linked to the interpretation."}
+          </p>
         ) : (
           <ul className="space-y-2">
-            {supporting.map((reference) => (
+            {supporting.refs.map((reference) => (
               <EvidenceReferenceRow key={reference.evidence_id} reference={reference} />
             ))}
           </ul>
         )}
+        <EvidenceOmittedNote count={supporting.withoutDetails} />
         <p className="mt-3 text-xs text-slate-500">
           The reasoning response carries evidence metadata, not source passages. Full source text is not
           available from the current API.
@@ -289,15 +341,16 @@ function ReasoningDetail({ output, record }: { output: Component2Output; record:
         <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
           <div>
             <h3 className="mb-2 text-xs font-semibold tracking-wide text-slate-500 uppercase">Contradicting evidence (interpretation)</h3>
-            {contradicting.length === 0 ? (
+            {contradicting.refs.length === 0 ? (
               <p className="text-sm text-slate-500">None linked to the interpreted concepts.</p>
             ) : (
               <ul className="space-y-2">
-                {contradicting.map((reference) => (
+                {contradicting.refs.map((reference) => (
                   <EvidenceReferenceRow key={reference.evidence_id} reference={reference} />
                 ))}
               </ul>
             )}
+            <EvidenceOmittedNote count={contradicting.withoutDetails} />
             <h3 className="mt-5 mb-2 text-xs font-semibold tracking-wide text-slate-500 uppercase">Evidence gaps</h3>
             <FlagList flags={output.evidence_gaps} />
           </div>
@@ -399,11 +452,14 @@ function ReasoningDetail({ output, record }: { output: Component2Output; record:
         ) : (
           <div className="space-y-2 text-sm text-slate-700">
             <p className="flex flex-wrap items-center gap-2">
-              Component 2 did not abstain. Request-level status:
+              Decision:
+              <StatusBadge spec={decisionSpec(output.decision)} />
+              Evidence status:
               <StatusBadge spec={sufficiencySpec(output.sufficiency_status)} />
             </p>
             <p className="text-xs text-slate-500">
-              {sufficiencySpec(output.sufficiency_status).description} Sufficiency rules are a provisional prototype policy.
+              {decisionSpec(output.decision).description} {sufficiencySpec(output.sufficiency_status).description}{" "}
+              Sufficiency and risk-context rules are provisional prototype policies.
             </p>
           </div>
         )}
@@ -422,7 +478,8 @@ function ReasoningDetail({ output, record }: { output: Component2Output; record:
                 : `${record.feedback.length} feedback submission(s) in this session; ${feedbackRecorded} recorded by the Component 2 service.`}
             </p>
             <p className="mt-1 text-xs text-slate-500">
-              Final approval is not available: no Component 4 decision service exists. Nothing has been approved.
+              Final approval is recorded by Component 4 on the Practitioner review page (signed-in practitioners).
+              Nothing is approved on this page.
             </p>
           </div>
           <Button className="bg-emerald-700 hover:bg-emerald-800" size="sm" render={<Link to="/review" />} nativeButton={false}>

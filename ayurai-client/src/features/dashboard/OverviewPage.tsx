@@ -3,30 +3,23 @@ import {
   Activity,
   ArrowUpRight,
   CircleSlash,
-  ClipboardCheck,
-  Clock3,
-  FlaskConical,
   Leaf,
   Plus,
   ShieldCheck,
 } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
-import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis } from "recharts"
 
-import { SourceBadge } from "@/components/shared/case"
 import { EmptyState, Notice, PageHeader, Panel } from "@/components/shared/page"
 import {
   StatusBadge,
-  abstentionSpec,
+  decisionSpec,
   safetySpec,
   serviceStateSpecs,
-  sufficiencySpec,
 } from "@/components/shared/status"
 import { WorkflowStrip } from "@/components/shared/workflow"
 import { Button } from "@/components/ui/button"
 import { useWorkspace, type CaseRecord } from "@/context/workspace"
 import { useServiceHealth } from "@/lib/api/health"
-import { demoMetrics, demoScreeningTrend } from "@/lib/demo/fixtures"
 import { formatDateTime } from "@/lib/labels"
 
 function MetricCard({
@@ -70,14 +63,12 @@ export function CaseStatusBadge({ record }: { record: CaseRecord }) {
     return <span className="text-xs text-slate-500">{caseStage(record)}</span>
   }
   if (record.c3.status === "success") return <StatusBadge spec={safetySpec(record.c3.data.overall_safety_tier)} />
-  if (record.c2.data.abstention.abstain) return <StatusBadge spec={abstentionSpec} />
-  return <StatusBadge spec={sufficiencySpec(record.c2.data.sufficiency_status)} />
+  return <StatusBadge spec={decisionSpec(record.c2.data.decision)} />
 }
 
 export function OverviewPage() {
-  const { mode, cases, selectCase } = useWorkspace()
-  const { checks } = useServiceHealth(mode === "live")
-  const isDemo = mode === "demo"
+  const { cases, selectCase } = useWorkspace()
+  const { checks } = useServiceHealth(true)
 
   const reasoned = cases.filter((record) => record.c2.status === "success")
   const abstained = reasoned.filter(
@@ -102,45 +93,38 @@ export function OverviewPage() {
         <WorkflowStrip />
       </Panel>
 
-      {isDemo ? (
-        <Notice tone="demo" title="Illustrative figures" className="mb-5">
-          The metrics and chart below are fictional examples for layout demonstration. No patient
-          records or live assessments are displayed.
-        </Notice>
-      ) : (
-        <Notice tone="info" title="Session figures only" className="mb-5">
+      <Notice tone="info" title="Session figures only" className="mb-5">
           No analytics or case-persistence service exists yet, so these counts cover only the cases
           created in this browser session.
-        </Notice>
-      )}
+      </Notice>
 
       <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 2xl:grid-cols-4">
         <MetricCard
-          title={isDemo ? "Screening sessions" : "Cases this session"}
-          value={String(isDemo ? demoMetrics.screeningSessions : cases.length)}
-          note={isDemo ? "Fictional example" : "Not persisted"}
+          title="Cases this session"
+          value={String(cases.length)}
+          note="Not persisted"
           icon={Activity}
           iconStyle="bg-emerald-50 text-emerald-700"
         />
         <MetricCard
-          title={isDemo ? "Awaiting review" : "Reasoning outputs"}
-          value={String(isDemo ? demoMetrics.awaitingReview : reasoned.length)}
-          note={isDemo ? "Fictional example" : "Component 2 responses received"}
-          icon={isDemo ? ClipboardCheck : Leaf}
+          title="Reasoning outputs"
+          value={String(reasoned.length)}
+          note="Component 2 responses received"
+          icon={Leaf}
           iconStyle="bg-amber-50 text-amber-700"
         />
         <MetricCard
-          title={isDemo ? "Safety checks" : "Safety assessments"}
-          value={String(isDemo ? demoMetrics.safetyChecks : safetyRuns.length)}
-          note={isDemo ? "Fictional example" : "Component 3 responses received"}
+          title="Safety assessments"
+          value={String(safetyRuns.length)}
+          note="Component 3 responses received"
           icon={ShieldCheck}
           iconStyle="bg-sky-50 text-sky-700"
         />
         <MetricCard
-          title={isDemo ? "Data quality" : "Abstentions"}
-          value={isDemo ? `${demoMetrics.dataQualityPercent}%` : String(abstained.length)}
-          note={isDemo ? "Fictional example" : "Component 2 declined to recommend"}
-          icon={isDemo ? FlaskConical : CircleSlash}
+          title="Abstentions"
+          value={String(abstained.length)}
+          note="Component 2 declined to recommend"
+          icon={CircleSlash}
           iconStyle="bg-violet-50 text-violet-700"
         />
       </section>
@@ -148,50 +132,17 @@ export function OverviewPage() {
       <section className="mt-6 grid grid-cols-1 gap-6 2xl:grid-cols-[minmax(0,1.6fr)_minmax(330px,1fr)]">
         <Panel
           title="Screening activity"
-          description={isDemo ? "Illustrative screening and review counts" : "Requires an analytics service"}
+          description="Requires an analytics service"
         >
-          {isDemo ? (
-            <>
-              <div className="flex flex-wrap gap-x-5 gap-y-2 text-xs text-slate-500">
-                <span className="inline-flex items-center gap-2">
-                  <span className="size-2 rounded-full bg-emerald-600" /> Screenings
-                </span>
-                <span className="inline-flex items-center gap-2">
-                  <span className="size-2 rounded-full bg-teal-300" /> Reviews completed
-                </span>
-              </div>
-              <div className="mt-4 h-[240px] w-full" role="img" aria-label="Fictional weekly screening and review counts">
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={demoScreeningTrend} margin={{ top: 12, right: 4, left: -22, bottom: 0 }}>
-                    <defs>
-                      <linearGradient id="screeningFill" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#059669" stopOpacity={0.17} />
-                        <stop offset="95%" stopColor="#059669" stopOpacity={0} />
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid stroke="#edf1ef" strokeDasharray="4 5" vertical={false} />
-                    <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fill: "#94a3b8", fontSize: 12 }} tickMargin={12} />
-                    <Tooltip contentStyle={{ borderRadius: 12, border: "1px solid #e2e8f0", fontSize: 12 }} />
-                    <Area type="monotone" dataKey="screenings" name="Screenings" stroke="#047857" strokeWidth={2.5} fill="url(#screeningFill)" />
-                    <Area type="monotone" dataKey="reviewed" name="Reviews completed" stroke="#5eead4" strokeWidth={2} fill="transparent" />
-                  </AreaChart>
-                </ResponsiveContainer>
-              </div>
-              <p className="mt-3 flex items-center gap-2 border-t border-slate-100 pt-3 text-xs text-slate-500">
-                <Clock3 aria-hidden size={14} /> Fictional 7-day period · not live service data
-              </p>
-            </>
-          ) : (
-            <EmptyState
-              title="No activity data source"
-              description="There is no screening analytics endpoint in the current backend, so no activity chart is shown."
-            />
-          )}
+          <EmptyState
+            title="No activity data source"
+            description="There is no screening analytics endpoint in the current backend, so no activity chart is shown."
+          />
         </Panel>
 
         <Panel
-          title={isDemo ? "Services" : "Service status"}
-          description={isDemo ? "Health checks run in live mode only" : "Live health endpoints"}
+          title="Service status"
+          description="Live health endpoints"
           actions={
             <Link to="/admin" className="text-xs font-semibold text-emerald-700 hover:text-emerald-900">
               Details
@@ -202,15 +153,11 @@ export function OverviewPage() {
             {checks.map((check) => (
               <li key={check.key} className="flex items-center justify-between gap-3 rounded-lg border border-slate-100 px-3 py-2">
                 <span className="text-sm text-slate-700">{check.label}</span>
-                <StatusBadge spec={isDemo ? serviceStateSpecs.demo : serviceStateSpecs[check.state]} />
+                <StatusBadge spec={serviceStateSpecs[check.state]} />
               </li>
             ))}
             <li className="flex items-center justify-between gap-3 rounded-lg border border-slate-100 px-3 py-2">
               <span className="text-sm text-slate-700">Component 1 screening model</span>
-              <StatusBadge spec={serviceStateSpecs.missing} />
-            </li>
-            <li className="flex items-center justify-between gap-3 rounded-lg border border-slate-100 px-3 py-2">
-              <span className="text-sm text-slate-700">Component 4 governance service</span>
               <StatusBadge spec={serviceStateSpecs.missing} />
             </li>
           </ul>
@@ -220,7 +167,7 @@ export function OverviewPage() {
       <Panel
         className="mt-6"
         title="Recent cases"
-        description={isDemo ? "Fictional demo cases" : "Cases created in this session"}
+        description="Cases created in this session"
         bodyClassName="p-0"
       >
         {cases.length === 0 ? (
@@ -235,7 +182,6 @@ export function OverviewPage() {
                 <tr className="bg-slate-50/70 text-[10px] font-bold tracking-wider text-slate-400 uppercase">
                   <th className="px-5 py-3">Case</th>
                   <th className="px-4 py-3">Created</th>
-                  <th className="px-4 py-3">Data</th>
                   <th className="px-4 py-3">Status</th>
                   <th className="px-4 py-3">Current stage</th>
                   <th className="px-5 py-3 text-right">Open</th>
@@ -246,7 +192,6 @@ export function OverviewPage() {
                   <tr key={record.id} className="hover:bg-slate-50/70">
                     <td className="px-5 py-3 text-sm font-semibold text-slate-800">{record.caseRef}</td>
                     <td className="px-4 py-3 text-xs text-slate-500">{formatDateTime(record.createdAt)}</td>
-                    <td className="px-4 py-3"><SourceBadge record={record} /></td>
                     <td className="px-4 py-3"><CaseStatusBadge record={record} /></td>
                     <td className="px-4 py-3 text-xs text-slate-600">{caseStage(record)}</td>
                     <td className="px-5 py-3 text-right">

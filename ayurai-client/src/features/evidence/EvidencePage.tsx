@@ -2,7 +2,7 @@ import * as React from "react"
 import { FileSearch, TriangleAlert, X } from "lucide-react"
 
 import { CaseBar, WithReasoning } from "@/components/shared/case"
-import { ScoreCaveat, SourceLink } from "@/components/shared/c2"
+import { ScoreCaveat, SourceLine, SourceLink } from "@/components/shared/c2"
 import {
   EmptyState,
   FilterChips,
@@ -40,7 +40,7 @@ function EvidenceDetail({
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
           <IdChip>{entry.evidenceId}</IdChip>
-          <h3 className="mt-1 text-base font-semibold text-slate-900">{ref.title ?? "Title not supplied"}</h3>
+          {ref.title && <h3 className="mt-1 text-base font-semibold text-slate-900">{ref.title}</h3>}
         </div>
         <Button variant="ghost" size="icon-sm" aria-label="Close evidence detail" onClick={onClose}>
           <X />
@@ -54,6 +54,12 @@ function EvidenceDetail({
           { label: "Page", value: ref.page ?? "Not supplied" },
           { label: "Citation", value: ref.citation ?? "Not supplied" },
           { label: "Source link", value: <SourceLink url={ref.source_url} /> },
+          ...(ref.source_id
+            ? [{ label: "Source ID", value: <code className="text-xs break-all">{ref.source_id}</code> }]
+            : []),
+          ...(ref.source_chunk_id
+            ? [{ label: "Source passage", value: <code className="text-xs break-all">{ref.source_chunk_id}</code> }]
+            : []),
           { label: "Practitioner verified", value: ref.practitioner_verified ? "Yes" : "No" },
           {
             label: "Provenance",
@@ -250,12 +256,18 @@ function EvidenceExplorer({ output }: { output: Component2Output }) {
                             </span>
                           )}
                         </div>
-                        <p className="mt-1 text-sm font-medium text-slate-800">{entry.reference.title ?? "Title not supplied"}</p>
-                        <p className="text-xs text-slate-500">
-                          {entry.reference.source_name ?? "Source not supplied"}
-                          {entry.reference.evidence_type ? ` · ${evidenceTypeLabels[entry.reference.evidence_type] ?? entry.reference.evidence_type}` : ""}
-                          {entry.reference.practitioner_verified ? " · practitioner verified" : ""}
-                        </p>
+                        {entry.reference.title && (
+                          <p className="mt-1 text-sm font-medium text-slate-800">{entry.reference.title}</p>
+                        )}
+                        <SourceLine
+                          parts={[
+                            entry.reference.source_name,
+                            entry.reference.evidence_type
+                              ? evidenceTypeLabels[entry.reference.evidence_type] ?? entry.reference.evidence_type
+                              : null,
+                            entry.reference.practitioner_verified ? "practitioner verified" : null,
+                          ]}
+                        />
                       </button>
                     </li>
                   )
@@ -308,8 +320,8 @@ function EvidenceExplorer({ output }: { output: Component2Output }) {
                     <tr key={hit.chunk_id} className="align-top">
                       <td className="px-5 py-3"><IdChip>{hit.chunk_id}</IdChip></td>
                       <td className="px-4 py-3">
-                        <p className="font-medium text-slate-800">{hit.title ?? "Title not supplied"}</p>
-                        <p className="text-xs text-slate-500">{hit.source_name ?? "Source not supplied"}</p>
+                        {hit.title && <p className="font-medium text-slate-800">{hit.title}</p>}
+                        <SourceLine parts={[hit.source_name]} />
                       </td>
                       <td className="px-4 py-3 font-mono text-xs">{formatScore(hit.similarity)}</td>
                       <td className="px-4 py-3 text-xs">{hit.below_threshold ? "Below threshold" : "At or above"}</td>

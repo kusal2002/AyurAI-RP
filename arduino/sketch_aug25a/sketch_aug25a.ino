@@ -1,3 +1,6 @@
+// DEPRECATED - not used by AyurAI. Active firmware: arduino/ayurai_max30102_local (USB serial only).
+// Credentials removed; values below are placeholders. Do not add real secrets here.
+
 // =====================================================
 //  AyurAI — ESP32-S3 Mini + MAX30102
 //  Collects real HR, SpO2 and a 100-sample PPG window
@@ -25,10 +28,10 @@
 // CONFIGURATION
 // =====================================================
 
-#define WIFI_SSID       "LRWIFI"
-#define WIFI_PASSWORD   "72107210"
+#define WIFI_SSID       "YOUR_WIFI_SSID"
+#define WIFI_PASSWORD   "YOUR_WIFI_PASSWORD"
 
-#define FIREBASE_HOST   "https://ayurai-39fff-default-rtdb.asia-southeast1.firebasedatabase.app"
+#define FIREBASE_HOST   "https://YOUR-PROJECT.firebaseio.example"
 #define DEVICE_ID       "device01"
 
 // I2C pins for ESP32-S3 Mini

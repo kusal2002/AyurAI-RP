@@ -16,9 +16,14 @@ import {
 import { Notice, PageHeader, Panel, fieldClass } from "@/components/shared/page"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
+import { KnowledgeScopeToggle } from "@/components/shared/c2"
 import { useWorkspace, type ModalityKey } from "@/context/workspace"
 import type { RiskTier } from "@/lib/api/types"
 import { cn } from "@/lib/utils"
+import { Component1IntakeWizard } from "@/features/screening/Component1IntakeWizard"
+
+// Manual 4-step form hidden: the Component 1 clinical intake panel replaces it. Set true to restore.
+const SHOW_MANUAL_FORM = false
 
 const ID_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,63}$/
 const SYMPTOM_ID_PATTERN = /^[^\s,]{1,128}$/
@@ -81,11 +86,10 @@ const steps = [
 
 export function NewScreeningPage() {
   const navigate = useNavigate()
-  const { mode, createCase, runReasoning, validateIntake } = useWorkspace()
-  const isDemo = mode === "demo"
+  const { createCase, runReasoning, validateIntake, knowledgeScope, setKnowledgeScope } = useWorkspace()
 
   const [step, setStep] = React.useState(1)
-  const [caseRef, setCaseRef] = React.useState(isDemo ? "DEMO-CASE-002" : "")
+  const [caseRef, setCaseRef] = React.useState("")
   const [ageGroup, setAgeGroup] = React.useState("")
   const [sexAtBirth, setSexAtBirth] = React.useState("not-provided")
   const [files, setFiles] = React.useState<Partial<Record<ModalityKey, File>>>({})
@@ -154,7 +158,7 @@ export function NewScreeningPage() {
         symptom_ids: symptomIds,
       },
     })
-    if (validateFirst && !isDemo) void validateIntake(id)
+    if (validateFirst) void validateIntake(id)
     void runReasoning(id)
     navigate("/analysis")
   }
@@ -167,13 +171,23 @@ export function NewScreeningPage() {
         description="Collect screening inputs, record the approved Component 1 summary and send it to Component 2 for Ayurvedic reasoning."
       />
 
-      <Notice tone="caution" title="What this form does and does not do" className="mb-5">
-        No Component 1 screening model service exists in this repository. Selected images and PPG
-        files stay in this browser: they are not uploaded and no model runs on them. The anemia risk
+      <Notice tone="caution" title="What the manual form below does and does not do" className="mb-5">
+        Use the Component 1 clinical intake panel for live capture, trained-model inference and the
+        clinician report. In the manual form below, selected images and PPG files stay in this
+        browser: they are not uploaded and no model runs on them. The anemia risk
         tier, calibrated confidence and symptom IDs must come from an approved Component 1 result and
         are entered manually in step 3. Use synthetic or de-identified data only.
       </Notice>
 
+      <div className="mb-5">
+        <KnowledgeScopeToggle value={knowledgeScope} onChange={setKnowledgeScope} />
+      </div>
+
+      <div className="mb-6">
+        <Component1IntakeWizard />
+      </div>
+
+      {SHOW_MANUAL_FORM && (
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-[240px_minmax(0,1fr)]">
         <nav aria-label="Screening steps">
           <ol className="grid grid-cols-2 gap-2 sm:grid-cols-4 xl:grid-cols-1">
@@ -438,12 +452,7 @@ export function NewScreeningPage() {
 
               <div className="mt-4 rounded-xl border border-slate-200 p-4 text-sm">
                 <p className="font-semibold text-slate-800">What will be sent</p>
-                {isDemo ? (
-                  <p className="mt-1 text-slate-600">
-                    Nothing. Demo mode displays a fixed fictional Component 2 response; your inputs are not analysed.
-                  </p>
-                ) : (
-                  <>
+                <>
                     <p className="mt-1 text-slate-600">
                       Only <code className="text-xs">risk_tier</code>, <code className="text-xs">calibrated_confidence</code> and{" "}
                       <code className="text-xs">symptom_ids</code> go to <code className="text-xs">POST /api/v1/c2/reasoning</code>.
@@ -457,8 +466,7 @@ export function NewScreeningPage() {
                         echo only; sends the case reference, risk tier and confidence).
                       </span>
                     </label>
-                  </>
-                )}
+                </>
               </div>
             </div>
           )}
@@ -478,12 +486,13 @@ export function NewScreeningPage() {
               </Button>
             ) : (
               <Button className="bg-emerald-700 hover:bg-emerald-800" onClick={submit} disabled={submitting || !c1Valid || !caseRefValid}>
-                <Leaf /> {isDemo ? "Create demo case" : "Create case & run reasoning"}
+                <Leaf /> Create case & run reasoning
               </Button>
             )}
           </div>
         </Panel>
       </div>
+      )}
     </>
   )
 }

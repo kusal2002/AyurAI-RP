@@ -14,11 +14,190 @@
 
 export type RiskTier = "low" | "moderate" | "high"
 
+/** Component 1 API responses are preserved as raw JSON because the research
+ * report schema is owned by Component 1 and must not be reconstructed here. */
+export type Component1Json = Record<string, unknown>
+
+export type Component1HealthResponse = Component1Json
+export type Component1Session = Component1Json & {
+  session_id?: string
+  created_utc?: string | null
+  questionnaire_available?: boolean
+  image_count?: number
+  ppg_available?: boolean
+  record_saved?: boolean
+  risk_level?: string | null
+}
+/** GET /api/c1/sessions wraps the list in an object. */
+export type Component1SessionsResponse = { sessions?: Component1Session[] }
+
+/** Component 1 clinical intake (fictional demo sessions only). */
+export type C1Question = {
+  id: string
+  prompt: string
+  type: string
+  options: string[] | null
+  section: string
+}
+
+export type C1QuestionSet = {
+  version: string
+  approval_status?: string
+  common: C1Question[]
+  pregnancy_safety: C1Question
+  safety_ids: string[]
+  ppg_comfort: C1Question[]
+}
+
+export type C1Profile = { age_months: number; sex: string; pregnancy_status: string }
+
+export type C1Answers = Record<string, string | number>
+
+export type C1QuestionnaireBody = {
+  profile: C1Profile
+  consent: boolean
+  consent_ppg: boolean
+  consent_images: boolean
+  guardian_permission: boolean
+  answers: C1Answers
+  medications: string
+  herbals: string
+  allergies: string
+  no_medications: boolean
+  no_allergies: boolean
+}
+
+export type C1CaptureStatus = {
+  image_acquisition_allowed?: boolean
+  ppg_acquisition_allowed?: boolean
+  ppg_pending_finger_comfort_check?: boolean
+  ppg_comfort_blocking_ids?: string[]
+  ppg_optical_obstruction_reported?: boolean
+  urgent_clinician_review?: boolean
+}
+
+export type C1CaptureCounts = Record<"conjunctiva" | "nails" | "tongue", number>
+
+export type C1SerialPorts = {
+  configured_port: string
+  configured_baud: number
+  ports: { device: string; description: string }[]
+}
+
+export type C1PpgSummary = {
+  port: string
+  sample_count: number
+  quality_status: string | null
+  observed_receive_rate_hz: number | null
+  metrics_count: number
+  median_experimental_hr_bpm: number | null
+  median_experimental_spo2_percent: number | null
+  median_temperature_c: number | null
+  hb_model_applied: boolean
+}
+
+/** Read-only view of GET /api/c1/sessions/{id}/report. All fields optional: render defensively. */
+export type C1EvidenceItem = {
+  modality: string
+  source: string
+  task: string
+  outputs: number
+  mean_output: number | null
+  evidence: number | null
+  technical_pass_ratio: number | null
+  performance_weight: number
+  reliability_weight: number
+  weight_basis: string
+  note?: string
+}
+
+export type C1FusionBlock = {
+  fusion_version?: string
+  experimental_risk_tier?: string
+  hb_threshold_g_dl?: number | null
+  hb_threshold_basis?: string
+  questionnaire_evidence?: {
+    answered_items: number
+    present_symptoms: string[]
+    absent_symptoms: string[]
+    symptom_fraction: number | null
+    usable: boolean
+  } | null
+  evidence_items?: C1EvidenceItem[]
+  conventional_fusion?: { method: string; votes: number; anaemia_vote_fraction: number | null; tier: string }
+  reliability_aware_fusion?: {
+    weighted_evidence_score: number | null
+    reliability_score: number
+    conflict_ratio: number
+    usable_physiological_modalities: string[]
+    excluded_sources: string[]
+    insufficient_reasons: string[]
+    tier: string
+  }
+  rationale?: string[]
+  safety_flags?: string[]
+  doctor_review_recommendations?: string[]
+}
+
+export type C1Region = {
+  captures?: number
+  technical_passes?: number
+  technical_pass_ratio?: number
+  cross_model_disagreement?: boolean
+}
+
+export type Component1Report = {
+  schema_version?: string
+  session_id?: string
+  generated_utc?: string
+  patient?: { age_months?: number | null; sex?: string | null; pregnancy_status?: string | null; fictional_demo?: boolean }
+  workflow?: { key: string; label: string; status: string }[]
+  questionnaire?: { available?: boolean; completion_status?: string | null }
+  modalities?: {
+    images?: { image_count?: number; regions?: Record<string, C1Region> }
+    ppg?: {
+      available?: boolean
+      sample_count?: number
+      observed_receive_rate_hz?: number
+      quality_status?: string | null
+      quality_windows_passed?: number
+      quality_windows_checked?: number
+      median_experimental_hr_bpm?: number | null
+      median_experimental_spo2_percent?: number | null
+      hb_model_applied?: boolean
+    }
+  }
+  screening_result?: {
+    risk_level?: string | null
+    decision_status?: string
+    reliability_score?: number | null
+  }
+  fusion?: C1FusionBlock
+  missing_inputs?: string[]
+  storage?: {
+    folder: string
+    record_saved: boolean
+    record_saved_utc: string | null
+    files: string[]
+    image_files: number
+    ppg_recordings: number
+  }
+  doctor_report?: {
+    summary?: string
+    observations?: string[]
+    recommendations?: string[]
+    reliability_flags?: string[]
+    limitations?: string[]
+    clinical_action?: string
+  }
+}
+
 /** POST /api/v1/c1/screening-result (Component 2 service) - validation/echo only. */
 export type C1Input = {
   case_id: string
   risk_tier: RiskTier
-  calibrated_confidence: number
+  /** Nullable upstream metadata (backend C1Input). */
+  calibrated_confidence: number | null
   symptom_summary: string[]
   derived_context: Record<string, unknown>
 }
@@ -36,7 +215,8 @@ export type C1IntakeResponse = {
 export type Component2ReasoningRequest = {
   request_id?: string
   risk_tier: RiskTier
-  calibrated_confidence: number
+  /** Nullable upstream metadata (backend Component2ReasoningRequest). */
+  calibrated_confidence: number | null
   symptom_ids: string[]
 }
 
@@ -61,9 +241,33 @@ export type VerificationStatus =
 
 export type EvidenceRelationship = "SUPPORTS" | "CONTRADICTS"
 
+/**
+ * Knowledge scope (c2-output/0.3.0). "approved" (default) reads human-approved
+ * claims only; "approved_and_provisional" is research mode, which also reads
+ * unverified AI-assisted draft claims. Provisional items are always labelled
+ * and can never make a candidate sufficient.
+ */
+export type KnowledgeScope = "approved" | "approved_and_provisional"
+export type KnowledgeStatus = "approved" | "provisional"
+
+/** Request-level decision (FR9); always a decision for practitioner review. */
+export type C2Decision = "recommend_for_review" | "caution" | "abstain"
+
+export type RiskRule = "upstream_high_risk" | "upstream_confidence_missing" | "upstream_low_confidence"
+
+/** Upstream risk gating. Never changes ranking, sufficiency or dispositions. */
+export type RiskContext = {
+  risk_tier: RiskTier
+  calibrated_confidence: number | null
+  rules_triggered: RiskRule[]
+  escalation: string[]
+  policy_id: string
+}
+
 export type UpstreamScreeningMetadata = {
   risk_tier: RiskTier
-  calibrated_confidence: number
+  /** Null when Component 1 supplied no calibrated confidence. */
+  calibrated_confidence: number | null
 }
 
 export type EvidenceReference = {
@@ -76,9 +280,17 @@ export type EvidenceReference = {
   page: string | null
   citation: string | null
   source_url: string | null
+  /** Set for evidence promoted from the source corpus (Stage E). */
+  source_id?: string | null
+  /** Source-text chunk the quoted sentence came from. */
+  source_chunk_id?: string | null
   practitioner_verified: boolean
   provenance_complete: boolean
   missing_provenance: string[]
+  /** Added in 0.3.0: approved or provisional (research scope only). */
+  knowledge_status?: KnowledgeStatus | null
+  /** claim_support | translation_support | modern_reference (provisional evidence). */
+  evidence_role?: string | null
 }
 
 export type ClaimStep = {
@@ -96,6 +308,12 @@ export type ClaimStep = {
   contradicting_evidence: EvidenceReference[]
   evidence_lookup_failed: boolean
   retrieval_similarity: number | null
+  /** Added in 0.3.0. Absent from older outputs: treat as approved. */
+  knowledge_status?: KnowledgeStatus
+  claim_category?: string | null
+  uncertainty_notes?: string[]
+  /** Modern reference statements that qualify (not support) a provisional claim. */
+  qualifying_evidence?: EvidenceReference[]
 }
 
 export type CandidatePath = {
@@ -129,6 +347,8 @@ export type Candidate = {
   candidate_id: string
   category: CandidateCategory
   name: string | null
+  /** Botanical name as stated by a cited translation; not verified. */
+  botanical_name?: string | null
   rank: number
   ranking: RankingBreakdown
   disposition: CandidateDisposition
@@ -179,6 +399,10 @@ export type RetrievedEvidenceItem = {
   page: string | null
   citation: string | null
   source_url: string | null
+  source_id?: string | null
+  source_chunk_id?: string | null
+  knowledge_status?: KnowledgeStatus | null
+  evidence_role?: string | null
 }
 
 export type RetrievalInfo = {
@@ -201,6 +425,8 @@ export type Component2Output = {
   schema_version: string
   request_id: string
   generated_at: string
+  /** Added in c2-output/0.3.0; absent means approved. */
+  knowledge_scope?: KnowledgeScope
   upstream: UpstreamScreeningMetadata
   input_symptom_ids: string[]
   symptom_mappings: SymptomMapping[]
@@ -210,6 +436,10 @@ export type Component2Output = {
   retrieval: RetrievalInfo
   retrieved_evidence: RetrievedEvidenceItem[]
   sufficiency_status: SufficiencyStatus
+  /** Added in c2-output/0.2.0. */
+  decision: C2Decision
+  decision_reasons: string[]
+  risk_context: RiskContext
   uncertainty_flags: string[]
   evidence_gaps: string[]
   review_required: boolean
@@ -282,8 +512,145 @@ export type PractitionerFeedbackResponse = {
 // Health
 // ---------------------------------------------------------------------------
 
-export type HealthResponse = { status: string; service?: string; version?: string }
-export type Neo4jHealthResponse = { status: string; database: string; connected: boolean }
+export type HealthResponse = {
+  status: string
+  service?: string
+  version?: string
+}
+
+// ---------------------------------------------------------------------------
+// Component 1 screening payload -> Component 2 (POST /api/v1/c1/reasoning)
+// ---------------------------------------------------------------------------
+
+/** Provisional Component 1 output contract (component2/app/models/c1_screening_payload.py). */
+export type C1ScreeningPayloadProvisional = {
+  screening_id: string
+  session_id: string
+  screening_result: {
+    condition: string
+    risk_level: string
+    screening_confidence: number | null
+    evidence_strength: string
+    status: string
+    requires_clinician_review: boolean
+  }
+  hemoglobin: {
+    estimated_g_dl: number | null
+    measured_lab_g_dl: number | null
+    source: string
+    clinically_validated: boolean
+  }
+  modality_results: Record<string, unknown>
+  symptoms: { name: string; present: boolean }[]
+  clinical_findings: Record<string, unknown>[]
+  contributing_factors: string[]
+  missing_data: string[]
+  recommendation: string
+  model_version: string
+  disclaimer: string
+}
+
+/** Component 1 output `c1.screening.v1` (component2/app/models/c1_screening_v1.py). */
+export type C1ScreeningPayloadV1 = {
+  schema_version: "c1.screening.v1"
+  screening_id: string
+  session_id: string
+  synthetic_fixture?: boolean
+  screening_result: {
+    risk_level: string
+    /** Calibrated confidence 0–100; null when none is available. */
+    confidence_percent: number | null
+    /** Not calibrated: never used as a confidence. */
+    experimental_reliability_score?: number | null
+    clinician_review_required?: boolean
+    contributing_factors?: string[]
+  }
+  /** Symptoms reported present. */
+  symptoms: string[]
+  questionnaire_status?: { urgent_clinician_review?: boolean }
+  missing_modalities?: string[]
+  [key: string]: unknown
+}
+
+export type C1ScreeningPayload = C1ScreeningPayloadProvisional | C1ScreeningPayloadV1
+
+/** The values Component 2 reads, from either Component 1 format. */
+export function c1View(payload: C1ScreeningPayload) {
+  if ("schema_version" in payload && payload.schema_version === "c1.screening.v1") {
+    const percent = payload.screening_result.confidence_percent
+    return {
+      riskLevel: payload.screening_result.risk_level,
+      confidence: percent === null || percent === undefined ? null : percent / 100,
+      symptoms: payload.symptoms.map((name) => ({ name: name.replace(/_/g, " "), present: true })),
+      urgentReview: payload.questionnaire_status?.urgent_clinician_review === true,
+      synthetic: payload.synthetic_fixture === true,
+    }
+  }
+  const legacy = payload as C1ScreeningPayloadProvisional
+  return {
+    riskLevel: legacy.screening_result.risk_level,
+    confidence: legacy.screening_result.screening_confidence,
+    symptoms: legacy.symptoms,
+    urgentReview: false,
+    synthetic: false,
+  }
+}
+
+export type C1SymptomMapping = {
+  status: "ready" | "blocked" | "insufficient_input"
+  reason: string | null
+  resolved_symptoms: { input_name: string; symptom_id: string; canonical_name: string }[]
+  unresolved_symptoms: { input_name: string; status: string; candidate_ids?: string[] }[]
+}
+
+export type C1ReasoningResponse = {
+  status: "completed" | "blocked" | "insufficient_input"
+  screening_id: string
+  mapping: C1SymptomMapping
+  reasoning: Component2Output | null
+}
+export type Neo4jHealthResponse = {
+  status: string
+  database: string
+  connected: boolean
+  /** healthy | not_configured | misconfigured | auth_failed | unreachable | query_failed */
+  reason?: string
+  detail?: string
+  encrypted?: boolean | null
+}
+
+/** GET /health/readiness: each concern is reported separately. */
+export type ReadinessComponent = { status: string; detail?: string }
+
+export type ReadinessResponse = {
+  service: string
+  generated_at: string
+  ready_for_reasoning: boolean
+  knowledge_available: boolean
+  components: {
+    database_connectivity: ReadinessComponent & { encrypted?: boolean | null }
+    graph_schema: ReadinessComponent & { missing_core_constraints?: string[]; stage_e_applied?: boolean }
+    knowledge_graph_content: ReadinessComponent & { node_counts?: Record<string, number>; note?: string }
+    local_corpus_ingestion: ReadinessComponent & {
+      sources?: number
+      processed?: number
+      needs_ocr_or_review?: number
+      rejected?: number
+      candidate_claims?: number
+      approved_candidates?: number
+      with_curated_metadata?: number
+      note?: string
+    }
+    retrieval_service: ReadinessComponent & {
+      indexed_evidence?: number | null
+      indexed_chunks?: number | null
+      last_error?: string | null
+    }
+    embedding_model: { model_id: string; loaded: boolean; cached_locally: boolean | null }
+    component_integration: Record<string, string>
+  }
+  notes: string[]
+}
 
 // ---------------------------------------------------------------------------
 // Component 3 safety
@@ -304,7 +671,7 @@ export type C3CandidateItem = {
 export type C3CandidatePackage = {
   case_id: string
   anemia_risk_tier: string
-  anemia_confidence: number
+  anemia_confidence: number | null
   ayurvedic_interpretation: string
   symptom_summary: string[]
   candidates: C3CandidateItem[]
@@ -443,4 +810,53 @@ export type C3CypPathway = {
   substrates: string[]
   inhibitors: string[]
   inducers: string[]
+}
+
+// ---------------------------------------------------------------------------
+// Provisional research knowledge (GET /api/v1/c2/research/knowledge)
+// ---------------------------------------------------------------------------
+
+export type ResearchEvidence = {
+  evidence_id: string
+  text?: string | null
+  citation?: string | null
+  source_id?: string | null
+  source_name?: string | null
+  evidence_role?: string | null
+  evidence_type?: string | null
+  source_language?: string | null
+  licence_note?: string | null
+  category?: string | null
+  topics?: string[] | null
+}
+
+export type ResearchClaim = {
+  claim_id: string
+  claim_key?: string | null
+  claim_category?: string | null
+  subject_id: string
+  predicate: string
+  object_id: string
+  statement?: string | null
+  verification_status: string
+  review_status?: string | null
+  uncertainty_notes?: string[] | null
+  dataset_id?: string | null
+}
+
+export type ResearchClaimRow = {
+  claim: ResearchClaim
+  subject_name: string
+  subject_type: string | null
+  object_name: string
+  object_type: string | null
+  evidence: ResearchEvidence[]
+  qualifying_evidence: ResearchEvidence[]
+}
+
+export type ResearchKnowledgeResponse = {
+  knowledge_status: "provisional"
+  notice: string
+  claims: ResearchClaimRow[]
+  reference_evidence: ResearchEvidence[]
 }

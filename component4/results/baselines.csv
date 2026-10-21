@@ -1,0 +1,5 @@
+method,accuracy_mean,accuracy_std,macro_f1_mean,runs,data_source
+majority_class,0.5102040816326531,0.0,0.22522522522522523,1,"CP-AnemiC v2 (conjunctiva colour features, lab-Hb risk tiers)"
+centralised_no_dp,0.564625850340136,0.06560306640131262,0.3986093104315686,3,"CP-AnemiC v2 (conjunctiva colour features, lab-Hb risk tiers)"
+fedavg_no_dp,0.5442176870748299,0.01178265855489027,0.3807016942422048,3,"CP-AnemiC v2 (conjunctiva colour features, lab-Hb risk tiers)"
+fedprox_no_dp,0.5510204081632653,0.0,0.3830532212885154,3,"CP-AnemiC v2 (conjunctiva colour features, lab-Hb risk tiers)"

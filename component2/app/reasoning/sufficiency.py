@@ -84,6 +84,12 @@ def _assess_path(
                 else "contradicting_evidence_only"
             )
 
+        if claim.knowledge_status == "provisional":
+            # Unverified research record: never acceptable for review
+            # forwarding, whatever its stored status says.
+            unverified = True
+            flags.add("provisional_unverified_claim")
+
         if claim.verification_status == "disputed":
             conflict = True
             flags.add("disputed_claim")

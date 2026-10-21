@@ -11,7 +11,8 @@ import type {
  *
  * The two services were built separately and their contracts differ. Every
  * transformation is listed in `notes` so the UI can show it; nothing
- * clinical is invented here (no dose, no botanical name, no new rationale).
+ * clinical is invented here (no dose, no new rationale; a botanical name only
+ * when a cited translation states it).
  */
 
 export type C3PackageBuild = {
@@ -60,6 +61,7 @@ export function buildC3Package(
         id: candidate.candidate_id,
         name: candidate.name as string,
         category: candidate.category,
+        botanical_name: candidate.botanical_name ?? null,
         reasoning_score: score,
         rationale:
           candidate.rationale.map((statement) => statement.text).join(" ") ||
@@ -87,12 +89,16 @@ export function buildC3Package(
     )
   }
   notes.push("rationale joins the Component 2 rationale statements into one text field.")
-  notes.push("No dose or botanical name is sent: Component 2 does not provide them.")
+  notes.push("No dose is sent: Component 2 does not prescribe. Botanical names are sent only where a cited translation states them.")
+  if (output.upstream.calibrated_confidence === null) {
+    notes.push("Component 1 supplied no confidence, so anemia_confidence is sent as null; no value is substituted.")
+  }
 
   return {
     package: {
       case_id: options.caseId,
       anemia_risk_tier: tierLabel[output.upstream.risk_tier],
+      // Null when Component 1 supplied no calibrated confidence (never invented).
       anemia_confidence: output.upstream.calibrated_confidence,
       ayurvedic_interpretation: interpretation,
       symptom_summary: output.symptom_mappings

@@ -2,12 +2,12 @@ import * as React from "react"
 import { Link } from "react-router"
 import { Plus } from "lucide-react"
 
-import { SourceBadge } from "@/components/shared/case"
 import { EmptyState, IdChip, Notice, PageHeader, Panel, SearchInput } from "@/components/shared/page"
 import { StatusBadge, serviceStateSpecs } from "@/components/shared/status"
 import { Button } from "@/components/ui/button"
 import { useWorkspace, type ModalityKey } from "@/context/workspace"
 import { formatDateTime, formatScore } from "@/lib/labels"
+import { Component1SessionPanel } from "@/features/screening/Component1SessionPanel"
 
 const modalityLabels: Record<ModalityKey, string> = {
   conjunctiva: "Eye",
@@ -40,10 +40,13 @@ export function ScreeningRecordsPage() {
           </Button>
         }
       />
+      <div className="mb-6">
+        <Component1SessionPanel />
+      </div>
       <Notice tone="info" className="mb-5" title="Session-only records">
-        There is no screening persistence or Component 1 model service in the repository. Records live
-        in this browser tab's memory and are cleared on reload. Risk tiers shown here were entered
-        manually or come from demo fixtures.
+        Component 1 sessions above are stored by the local Component 1 API. The records below are
+        separate: they live in this browser tab's memory and are cleared on reload, and their risk
+        tiers were entered manually or imported from Component 1 payloads.
       </Notice>
 
       <Panel
@@ -67,8 +70,7 @@ export function ScreeningRecordsPage() {
                   <th className="px-4 py-3">Risk tier</th>
                   <th className="px-4 py-3">C1 confidence</th>
                   <th className="px-4 py-3">Symptom IDs</th>
-                  <th className="px-4 py-3">Origin</th>
-                  <th className="px-5 py-3 text-right">Data</th>
+                  <th className="px-5 py-3">Origin</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -98,21 +100,18 @@ export function ScreeningRecordsPage() {
                           ))}
                         </div>
                       </td>
-                      <td className="px-4 py-3 text-xs text-slate-600">
-                        {record.c1?.origin === "demo_fixture" ? "Demo fixture" : "Manual entry"}
+                      <td className="px-5 py-3 text-xs text-slate-600">
+                        {record.c1?.origin === "c1_payload" ? "Imported C1 payload" : "Manual entry"}
                         {record.c1?.intake.status === "success" && (
                           <div className="mt-1">
                             <StatusBadge spec={{ ...serviceStateSpecs.online, label: "Intake validated" }} />
                           </div>
                         )}
-                        {record.c1?.intake.status === "error" && record.source === "live" && (
+                        {record.c1?.intake.status === "error" && (
                           <div className="mt-1">
                             <StatusBadge spec={{ ...serviceStateSpecs.offline, label: "Intake check failed" }} title={record.c1.intake.error.message} />
                           </div>
                         )}
-                      </td>
-                      <td className="px-5 py-3 text-right">
-                        <SourceBadge record={record} />
                       </td>
                     </tr>
                   )

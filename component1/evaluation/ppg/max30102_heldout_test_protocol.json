@@ -1,0 +1,17 @@
+{
+  "source": "hb_ppg_max30102",
+  "model": "Ridge",
+  "selected_prior_to_test_by": "validation MAE",
+  "train_participants": 43,
+  "test_participants": 14,
+  "same_11_features_as_training": true,
+  "test_retraining": false,
+  "metrics": [
+    "MAE",
+    "RMSE",
+    "R2",
+    "mean_error"
+  ],
+  "confusion_matrix_note": "Hb regression is not a classification task; no F1 or confusion matrix without an independently specified classification target.",
+  "live_hardware_transfer_evaluated": false
+}

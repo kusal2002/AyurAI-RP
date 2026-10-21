@@ -30,12 +30,18 @@ class C1Input(BaseModel):
         description="Anemia risk tier produced by Component 1"
     )
 
-    calibrated_confidence: float = Field(
-        ...,
+    calibrated_confidence: float | None = Field(
+        default=None,
         ge=0.0,
         le=1.0,
-        description="Calibrated confidence score from Component 1"
-    )
+        validation_alias=AliasChoices(
+            "calibrated_confidence",
+            "screening_confidence",
+        ),
+        description=(
+            "Component 1 screening confidence; nullable upstream metadata only."
+        ),
+    )   
 
     symptom_summary: list[str] = Field(
         default_factory=list,
@@ -77,8 +83,8 @@ class Component2ReasoningRequest(BaseModel):
         description="Anemia risk tier produced by Component 1",
     )
 
-    calibrated_confidence: float = Field(
-        ...,
+    calibrated_confidence: float | None = Field(
+        default=None,
         ge=0.0,
         le=1.0,
         validation_alias=AliasChoices(
@@ -86,7 +92,7 @@ class Component2ReasoningRequest(BaseModel):
             "screening_confidence",
         ),
         description=(
-            "Component 1 screening confidence (upstream metadata only)"
+            "Component 1 screening confidence; nullable upstream metadata only."
         ),
     )
 
@@ -95,6 +101,14 @@ class Component2ReasoningRequest(BaseModel):
         min_length=1,
         max_length=50,
         description="Approved canonical symptom concept identifiers",
+    )
+
+    urgent_clinician_review: bool = Field(
+        default=False,
+        description=(
+            "Component 1 safety flag: urgent clinician review is required. "
+            "It gates the decision to caution; it never changes ranking."
+        ),
     )
 
     @field_validator("request_id")
@@ -111,9 +125,12 @@ class Component2ReasoningRequest(BaseModel):
     @field_validator("calibrated_confidence", mode="before")
     @classmethod
     def reject_non_numeric_confidence(cls, value: Any) -> Any:
-        # bool is a subclass of int; a True/False confidence is malformed.
+        if value is None:
+            return None
         if isinstance(value, bool) or not isinstance(value, (int, float)):
-            raise ValueError("calibrated_confidence must be a number.")
+            raise ValueError(
+                "calibrated_confidence must be a number or None."
+            )
         return value
 
     @field_validator("symptom_ids", mode="before")

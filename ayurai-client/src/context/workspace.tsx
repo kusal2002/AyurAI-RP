@@ -5,15 +5,17 @@ import { ApiError, isAbortError, isApiError } from "@/lib/api/client"
 import { component1IntakeApi, component2Api } from "@/lib/api/component2"
 import { component3Api } from "@/lib/api/component3"
 import type {
+  C1ScreeningPayload,
+  C1SymptomMapping,
   Component2Output,
+  KnowledgeScope,
   PatientContext,
   PractitionerFeedbackRequest,
   PractitionerFeedbackResponse,
   RiskTier,
   SafetyAssessmentReport,
 } from "@/lib/api/types"
-import { demoComponent2Output, demoSafetyReport } from "@/lib/demo/fixtures"
-import { env, type DataMode } from "@/lib/env"
+import { c1View } from "@/lib/api/types"
 
 /**
  * Session workspace.
@@ -44,11 +46,21 @@ export type ScreeningInputs = {
 
 export type C1Summary = {
   risk_tier: RiskTier
-  calibrated_confidence: number
+  /** Null when Component 1 supplied no calibrated confidence. */
+  calibrated_confidence: number | null
   symptom_ids: string[]
-  /** How this summary was obtained. No Component 1 model service exists yet. */
-  origin: "manual_entry" | "demo_fixture"
+  /**
+   * How this summary was obtained. No Component 1 model service exists yet:
+   * manual entry or an imported C1 screening payload.
+   */
+  origin: "manual_entry" | "c1_payload"
   intake: AsyncState<{ status: string; message: string }>
+  /** Imported Component 1 payload (held in this tab only). */
+  payload?: C1ScreeningPayload
+  /** Symptom-name mapping reported by POST /api/v1/c1/reasoning. */
+  mapping?: C1SymptomMapping
+  /** Label of the payload source shown to the user (e.g. "synthetic scenario"). */
+  payloadSource?: string
 }
 
 export type FeedbackRecord = {
@@ -57,13 +69,11 @@ export type FeedbackRecord = {
   request: PractitionerFeedbackRequest
   outcome:
     | { status: "recorded"; response: PractitionerFeedbackResponse }
-    | { status: "demo_not_sent" }
     | { status: "error"; error: ErrorInfo }
 }
 
 export type CaseRecord = {
   id: string
-  source: DataMode
   caseRef: string
   createdAt: string
   screening: ScreeningInputs | null
@@ -75,8 +85,9 @@ export type CaseRecord = {
 }
 
 type WorkspaceContextValue = {
-  mode: DataMode
-  setMode: (mode: DataMode) => void
+  /** Knowledge scope for the next reasoning run (approved by default; never stored). */
+  knowledgeScope: KnowledgeScope
+  setKnowledgeScope: (scope: KnowledgeScope) => void
   cases: CaseRecord[]
   activeCase: CaseRecord | null
   selectCase: (id: string) => void
@@ -87,13 +98,15 @@ type WorkspaceContextValue = {
   }) => string
   validateIntake: (caseId: string) => Promise<void>
   runReasoning: (caseId: string) => Promise<void>
+  /** Create one case per Component 1 payload and run C1 -> C2 for each, in order. */
+  importC1Payloads: (payloads: C1ScreeningPayload[], payloadSource: string) => Promise<string[]>
   runSafety: (caseId: string, patient: PatientContext, candidateIds: string[]) => Promise<void>
   submitFeedback: (caseId: string, request: PractitionerFeedbackRequest) => Promise<FeedbackRecord>
 }
 
 const WorkspaceContext = React.createContext<WorkspaceContextValue | undefined>(undefined)
 
-function toErrorInfo(error: unknown): ErrorInfo {
+export function toErrorInfo(error: unknown): ErrorInfo {
   if (isApiError(error)) {
     return { kind: error.kind, message: error.message, details: error.details }
   }
@@ -108,45 +121,14 @@ function localId(prefix: string) {
   return `${prefix}-${random}`
 }
 
-const wait = (ms: number) => new Promise((resolve) => window.setTimeout(resolve, ms))
-
-function demoCase(): CaseRecord {
-  const now = new Date().toISOString()
-  return {
-    id: "demo-case-1",
-    source: "demo",
-    caseRef: "DEMO-CASE-001",
-    createdAt: now,
-    screening: {
-      ageGroup: "30-44",
-      sexAtBirth: "not-provided",
-      modalities: { conjunctiva: "demo-eye.jpg", tongue: "demo-tongue.jpg" },
-      questionnaire: { fatigue: "yes", dizziness: "not-answered", diet: "mixed" },
-    },
-    c1: {
-      risk_tier: demoComponent2Output.upstream.risk_tier,
-      calibrated_confidence: demoComponent2Output.upstream.calibrated_confidence,
-      symptom_ids: demoComponent2Output.input_symptom_ids,
-      origin: "demo_fixture",
-      intake: { status: "idle" },
-    },
-    c2: { status: "success", data: demoComponent2Output, receivedAt: now },
-    c3: { status: "success", data: demoSafetyReport, receivedAt: now },
-    c3Build: null,
-    feedback: [],
-  }
-}
-
-function initialCases(mode: DataMode): CaseRecord[] {
-  return mode === "demo" ? [demoCase()] : []
-}
-
 export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
-  const [mode, setModeState] = React.useState<DataMode>(env.defaultDataMode)
-  const [cases, setCases] = React.useState<CaseRecord[]>(() => initialCases(env.defaultDataMode))
-  const [activeId, setActiveId] = React.useState<string | null>(
-    () => initialCases(env.defaultDataMode)[0]?.id ?? null,
-  )
+  const [cases, setCases] = React.useState<CaseRecord[]>([])
+  const [activeId, setActiveId] = React.useState<string | null>(null)
+  const [knowledgeScope, setKnowledgeScope] = React.useState<KnowledgeScope>("approved")
+  const scopeRef = React.useRef<KnowledgeScope>("approved")
+  React.useEffect(() => {
+    scopeRef.current = knowledgeScope
+  }, [knowledgeScope])
   const controllers = React.useRef(new Map<string, AbortController>())
   const casesRef = React.useRef(cases)
   React.useEffect(() => {
@@ -165,21 +147,11 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
     return controller
   }, [])
 
-  const setMode = React.useCallback((next: DataMode) => {
-    controllers.current.forEach((controller) => controller.abort())
-    controllers.current.clear()
-    const seeded = initialCases(next)
-    setModeState(next)
-    setCases(seeded)
-    setActiveId(seeded[0]?.id ?? null)
-  }, [])
-
   const createCase: WorkspaceContextValue["createCase"] = React.useCallback(
     ({ caseRef, screening, c1 }) => {
       const id = localId("case")
       const record: CaseRecord = {
         id,
-        source: mode,
         caseRef,
         createdAt: new Date().toISOString(),
         screening,
@@ -195,7 +167,7 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
       setActiveId(id)
       return id
     },
-    [mode],
+    [],
   )
 
   const findCase = React.useCallback(
@@ -211,10 +183,6 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
         updateCase(caseId, (current) =>
           current.c1 ? { ...current, c1: { ...current.c1, intake } } : current,
         )
-      if (record.source === "demo") {
-        setIntake({ status: "error", error: { kind: "unknown", message: "Demo mode: nothing is sent to a service.", details: [] } })
-        return
-      }
       setIntake({ status: "loading" })
       const controller = startRequest(`${caseId}:intake`)
       try {
@@ -251,16 +219,45 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
         c3Build: null,
       }))
 
-      if (record.source === "demo") {
-        await wait(500)
-        updateCase(caseId, (current) => ({
-          ...current,
-          c2: { status: "success", data: demoComponent2Output, receivedAt: new Date().toISOString() },
-        }))
+      const controller = startRequest(`${caseId}:c2`)
+      if (record.c1.origin === "c1_payload" && record.c1.payload) {
+        try {
+          const response = await component2Api.reasonFromScreening(
+            record.c1.payload,
+            controller.signal,
+            scopeRef.current,
+          )
+          updateCase(caseId, (current) => ({
+            ...current,
+            c1: current.c1
+              ? {
+                  ...current.c1,
+                  mapping: response.mapping,
+                  symptom_ids: response.mapping.resolved_symptoms.map((item) => item.symptom_id),
+                }
+              : current.c1,
+            c2: response.reasoning
+              ? { status: "success", data: response.reasoning, receivedAt: new Date().toISOString() }
+              : {
+                  status: "error",
+                  error: {
+                    kind: "validation",
+                    message:
+                      response.status === "blocked"
+                        ? `Component 2 did not run: the Component 1 payload was blocked (${response.mapping.reason ?? "unknown reason"}).`
+                        : `Component 2 did not run: no present symptom resolved to a knowledge-graph symptom (${response.mapping.reason ?? "unknown reason"}). Nothing was guessed.`,
+                    details: response.mapping.unresolved_symptoms.map(
+                      (item) => `${item.input_name}: ${item.status.replace(/_/g, " ")}`,
+                    ),
+                  },
+                },
+          }))
+        } catch (error) {
+          if (isAbortError(error)) return
+          updateCase(caseId, (current) => ({ ...current, c2: { status: "error", error: toErrorInfo(error) } }))
+        }
         return
       }
-
-      const controller = startRequest(`${caseId}:c2`)
       try {
         const output = await component2Api.reason(
           {
@@ -269,6 +266,7 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
             symptom_ids: record.c1.symptom_ids,
           },
           controller.signal,
+          scopeRef.current,
         )
         updateCase(caseId, (current) => ({
           ...current,
@@ -282,24 +280,50 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
     [findCase, startRequest, updateCase],
   )
 
+  const importC1Payloads = React.useCallback(
+    async (payloads: C1ScreeningPayload[], payloadSource: string) => {
+      const ids: string[] = []
+      for (const payload of payloads) {
+        const view = c1View(payload)
+        const tier = view.riskLevel.trim().toLowerCase()
+        const id = localId("case")
+        const record: CaseRecord = {
+          id,
+          caseRef: payload.screening_id,
+          createdAt: new Date().toISOString(),
+          screening: null,
+          c1: {
+            // An unsupported tier is still sent: the service reports it as blocked.
+            risk_tier: tier as RiskTier,
+            calibrated_confidence: view.confidence,
+            symptom_ids: [],
+            origin: "c1_payload",
+            intake: { status: "idle" },
+            payload,
+            payloadSource,
+          },
+          c2: { status: "idle" },
+          c3: { status: "idle" },
+          c3Build: null,
+          feedback: [],
+        }
+        casesRef.current = [record, ...casesRef.current]
+        setCases((current) => [record, ...current])
+        ids.push(id)
+      }
+      if (ids.length) setActiveId(ids[0])
+      // Sequential: the first request may load the embedding model.
+      for (const id of ids) await runReasoning(id)
+      return ids
+    },
+    [runReasoning],
+  )
+
   const runSafety = React.useCallback(
     async (caseId: string, patient: PatientContext, candidateIds: string[]) => {
       const record = findCase(caseId)
       if (!record || record.c2.status !== "success") return
       updateCase(caseId, (current) => ({ ...current, c3: { status: "loading" } }))
-
-      if (record.source === "demo") {
-        await wait(500)
-        updateCase(caseId, (current) => ({
-          ...current,
-          c3: { status: "success", data: demoSafetyReport, receivedAt: new Date().toISOString() },
-          c3Build: {
-            notes: ["Demo mode: the fictional safety report fixture is shown; nothing was sent."],
-            excluded: [],
-          },
-        }))
-        return
-      }
 
       const build = buildC3Package(record.c2.data, { caseId: record.caseRef, candidateIds })
       updateCase(caseId, (current) => ({
@@ -341,46 +365,41 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
 
   const submitFeedback = React.useCallback(
     async (caseId: string, request: PractitionerFeedbackRequest): Promise<FeedbackRecord> => {
-      const record = findCase(caseId)
       const base = {
         localId: localId("fb"),
         submittedAt: new Date().toISOString(),
         request,
       }
       let entry: FeedbackRecord
-      if (!record || record.source === "demo") {
-        await wait(300)
-        entry = { ...base, outcome: { status: "demo_not_sent" } }
-      } else {
-        try {
-          const response = await component2Api.submitFeedback(request)
-          entry = { ...base, outcome: { status: "recorded", response } }
-        } catch (error) {
-          entry = { ...base, outcome: { status: "error", error: toErrorInfo(error) } }
-        }
+      try {
+        const response = await component2Api.submitFeedback(request)
+        entry = { ...base, outcome: { status: "recorded", response } }
+      } catch (error) {
+        entry = { ...base, outcome: { status: "error", error: toErrorInfo(error) } }
       }
       updateCase(caseId, (current) => ({ ...current, feedback: [entry, ...current.feedback] }))
       return entry
     },
-    [findCase, updateCase],
+    [updateCase],
   )
 
   const activeCase = cases.find((record) => record.id === activeId) ?? null
 
   const value = React.useMemo<WorkspaceContextValue>(
     () => ({
-      mode,
-      setMode,
+      knowledgeScope,
+      setKnowledgeScope,
       cases,
       activeCase,
       selectCase: setActiveId,
       createCase,
       validateIntake,
       runReasoning,
+      importC1Payloads,
       runSafety,
       submitFeedback,
     }),
-    [mode, setMode, cases, activeCase, createCase, validateIntake, runReasoning, runSafety, submitFeedback],
+    [knowledgeScope, cases, activeCase, createCase, validateIntake, runReasoning, importC1Payloads, runSafety, submitFeedback],
   )
 
   return <WorkspaceContext.Provider value={value}>{children}</WorkspaceContext.Provider>

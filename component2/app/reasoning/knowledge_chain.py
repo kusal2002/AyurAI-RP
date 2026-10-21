@@ -6,7 +6,22 @@ from neo4j import Driver
 
 from app.db.repository import get_connected_knowledge
 from app.ontology.relationships import RELATIONSHIP_RULES
-from app.reasoning.evaluator import evaluate_claim
+from app.reasoning.evaluator import evaluate_claim, summarize_claim_evidence
+
+
+def _embedded_evidence(record: dict[str, Any]) -> list[dict[str, Any]] | None:
+    """Evidence returned with the claim by get_connected_knowledge, if any."""
+    if "supporting_evidence" not in record and "contradicting_evidence" not in record:
+        return None
+    return [
+        {"evidence": evidence, "relationship": relationship}
+        for key, relationship in (
+            ("supporting_evidence", "SUPPORTS"),
+            ("contradicting_evidence", "CONTRADICTS"),
+        )
+        for evidence in record.get(key) or []
+        if evidence
+    ]
 
 
 def trace_knowledge_chains(
@@ -14,6 +29,7 @@ def trace_knowledge_chains(
     driver: Driver | None = None,
     max_depth: int = 5,
     max_chains: int = 100,
+    graph: Any = None,
 ) -> dict[str, Any]:
     """Trace existing directed ontology claims from a starting concept.
 
@@ -41,6 +57,11 @@ def trace_knowledge_chains(
     start_concept_id = start_concept_id.strip()
     completed_chains: list[dict[str, Any]] = []
     truncated = False
+    # One graph query per distinct concept: a concept reached by several
+    # chains is looked up once, and each claim's evidence comes with it.
+    connected_cache: dict[str, list[dict[str, Any]]] = {}
+    connected_for = graph.get_connected_knowledge if graph is not None else get_connected_knowledge
+    query_count = 0
 
     def finish_chain(
         concept_ids: list[str],
@@ -61,7 +82,7 @@ def trace_knowledge_chains(
         concept_ids: list[str],
         claims: list[dict[str, Any]],
     ) -> None:
-        nonlocal truncated
+        nonlocal truncated, query_count
 
         if len(completed_chains) >= max_chains:
             truncated = True
@@ -71,10 +92,13 @@ def trace_knowledge_chains(
             finish_chain(concept_ids, claims, "max_depth")
             return
 
-        connected_records = get_connected_knowledge(
-            current_concept_id,
-            driver,
-        )
+        if current_concept_id not in connected_cache:
+            connected_cache[current_concept_id] = connected_for(
+                current_concept_id,
+                driver,
+            )
+            query_count += 1
+        connected_records = connected_cache[current_concept_id]
 
         outgoing_claims = []
         seen_claim_ids: set[str] = set()
@@ -117,7 +141,17 @@ def trace_knowledge_chains(
                 cycle_detected = True
                 continue
 
-            evaluation = evaluate_claim(claim_id, driver)
+            embedded = _embedded_evidence(record)
+            if embedded is not None:
+                evaluation = summarize_claim_evidence(claim, embedded)
+            else:
+                # Records without embedded evidence (other callers or
+                # minimal stand-ins): fetch it separately.
+                evaluation = (
+                    evaluate_claim(claim_id, driver) if graph is None
+                    else evaluate_claim(claim_id, driver, graph=graph)
+                )
+                query_count += 1
 
             verification_status = (
                 evaluation["verification_status"]
@@ -134,6 +168,10 @@ def trace_knowledge_chains(
                     "statement": claim.get("statement"),
                     "verification_status": verification_status,
                     "evaluation": evaluation,
+                    "knowledge_status": claim.get("knowledge_status", "approved"),
+                    "claim_category": claim.get("claim_category"),
+                    "uncertainty_notes": list(claim.get("uncertainty_notes") or []),
+                    "qualifying_evidence": list(record.get("qualifying_evidence") or []),
                 }
             )
 
@@ -202,5 +240,6 @@ def trace_knowledge_chains(
             "chains_with_conflicting_evidence": conflicting_chain_count,
         },
         "truncated": truncated,
+        "graph_queries": query_count,
         "medical_conclusion": None,
     }

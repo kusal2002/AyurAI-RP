@@ -1,21 +1,11 @@
 import * as React from "react"
-import { NavLink, Outlet, useLocation, useNavigate } from "react-router"
-import { FlaskConical, Leaf, Menu, Plus, Radio, ShieldCheck, X } from "lucide-react"
+import { NavLink, Outlet, useLocation } from "react-router"
+import { Leaf, LogIn, LogOut, Menu, Plus, ShieldCheck, UserRound, X } from "lucide-react"
 
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button"
 import { navGroups, navItemFor } from "@/components/layout/nav"
-import { useWorkspace } from "@/context/workspace"
-import type { DataMode } from "@/lib/env"
+import { roleLabels, useAuth } from "@/context/auth"
+import { env } from "@/lib/env"
 import { cn } from "@/lib/utils"
 
 function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
@@ -105,84 +95,28 @@ function Brand() {
   )
 }
 
-function ModeSwitch() {
-  const { mode, setMode, cases } = useWorkspace()
-  const [pending, setPending] = React.useState<DataMode | null>(null)
-  const navigate = useNavigate()
-
-  function request(next: DataMode) {
-    if (next === mode) return
-    setPending(next)
+/** Signed-in Component 4 user (name, role, clinic) with sign-out, or a sign-in link. */
+function UserMenu() {
+  const { user, signOut } = useAuth()
+  if (!user) {
+    return (
+      <Button variant="outline" size="sm" render={<NavLink to="/login" />} nativeButton={false}>
+        <LogIn /> Sign in
+      </Button>
+    )
   }
-
-  const liveCases = cases.filter((record) => record.source === "live").length
-
   return (
-    <>
-      <div
-        role="radiogroup"
-        aria-label="Data mode"
-        className="flex items-center rounded-xl border border-slate-200 bg-slate-50 p-0.5"
-      >
-        {(
-          [
-            { value: "demo", label: "Demo", icon: FlaskConical },
-            { value: "live", label: "Live", icon: Radio },
-          ] as const
-        ).map(({ value, label, icon: Icon }) => {
-          const selected = mode === value
-          return (
-            <button
-              key={value}
-              type="button"
-              role="radio"
-              aria-checked={selected}
-              onClick={() => request(value)}
-              className={cn(
-                "inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-semibold transition",
-                selected
-                  ? value === "demo"
-                    ? "bg-violet-600 text-white shadow-sm"
-                    : "bg-emerald-700 text-white shadow-sm"
-                  : "text-slate-500 hover:text-slate-800",
-              )}
-            >
-              <Icon aria-hidden className="size-3.5" />
-              {label}
-            </button>
-          )
-        })}
-      </div>
-
-      <AlertDialog open={pending !== null} onOpenChange={(open) => !open && setPending(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>
-              Switch to {pending === "demo" ? "demo" : "live"} mode?
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              {pending === "demo"
-                ? "Demo mode shows fictional fixtures only. Nothing is sent to any service."
-                : "Live mode calls the configured Component 2 and Component 3 services. Use synthetic or properly de-identified data only."}{" "}
-              Switching clears the cases in this session so demo and live records are never mixed
-              {liveCases > 0 ? ` (${liveCases} live case${liveCases === 1 ? "" : "s"} will be cleared)` : ""}.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => {
-                if (pending) setMode(pending)
-                setPending(null)
-                navigate("/")
-              }}
-            >
-              Switch mode
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </>
+    <div className="flex items-center gap-1.5">
+      <span className="hidden items-center gap-1.5 rounded-lg bg-slate-50 px-2.5 py-1.5 text-xs text-slate-600 ring-1 ring-slate-200 ring-inset md:inline-flex">
+        <UserRound aria-hidden className="size-3.5" />
+        <span className="font-semibold text-slate-800">{user.username}</span>
+        {roleLabels[user.role]}
+        {user.clinic_id ? ` · ${user.clinic_id}` : ""}
+      </span>
+      <Button variant="ghost" size="icon" aria-label="Sign out" title="Sign out" onClick={signOut}>
+        <LogOut />
+      </Button>
+    </div>
   )
 }
 
@@ -190,7 +124,7 @@ export function AppShell() {
   const [mobileOpen, setMobileOpen] = React.useState(false)
   const location = useLocation()
   const current = navItemFor(location.pathname)
-  const { mode } = useWorkspace()
+  const { user } = useAuth()
 
   React.useEffect(() => {
     if (!mobileOpen) return
@@ -258,7 +192,7 @@ export function AppShell() {
             </div>
           </div>
           <div className="flex shrink-0 items-center gap-2">
-            <ModeSwitch />
+            <UserMenu />
             <Button
               size="sm"
               className="hidden bg-emerald-700 hover:bg-emerald-800 sm:inline-flex"
@@ -270,13 +204,10 @@ export function AppShell() {
           </div>
         </header>
 
-        {mode === "demo" && (
-          <div className="border-b border-violet-200 bg-violet-50 px-4 py-2 text-xs text-violet-900 sm:px-6">
-            <span className="inline-flex items-center gap-1.5 font-semibold">
-              <FlaskConical aria-hidden className="size-3.5" /> Demo mode:
-            </span>{" "}
-            every record, result and figure shown is fictional. No service is called and nothing you
-            enter leaves this browser.
+        {env.authBypass && !user && (
+          <div role="status" className="border-b border-amber-300 bg-amber-50 px-4 py-2 text-xs text-amber-900 sm:px-6">
+            <strong>Sign-in bypassed (development only).</strong> Component 4 pages and decision recording still need a
+            real sign-in. Remove <code>VITE_AUTH_BYPASS</code> from <code>.env.local</code> to turn this off.
           </div>
         )}
 

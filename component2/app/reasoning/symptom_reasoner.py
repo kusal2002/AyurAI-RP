@@ -11,6 +11,7 @@ from app.reasoning.evaluator import evaluate_claim
 def reason_about_symptoms(
     symptom_ids: list[str],
     driver: Driver | None = None,
+    graph: Any = None,
 ) -> dict[str, Any]:
     """Summarize evidence associated with supplied symptoms.
 
@@ -33,12 +34,15 @@ def reason_about_symptoms(
             normalized_ids.append(normalized_id)
             seen.add(normalized_id)
 
+    lookup_symptom = graph.get_symptom if graph is not None else get_symptom
+    claims_for = graph.get_claims_for_concept if graph is not None else get_claims_for_concept
+
     results = []
     found_symptom_count = 0
     indicates_claim_count = 0
 
     for symptom_id in normalized_ids:
-        symptom = get_symptom(symptom_id, driver)
+        symptom = lookup_symptom(symptom_id, driver)
 
         if symptom is None:
             results.append(
@@ -55,7 +59,7 @@ def reason_about_symptoms(
             continue
 
         found_symptom_count += 1
-        connected_claims = get_claims_for_concept(symptom_id, driver)
+        connected_claims = claims_for(symptom_id, driver)
         indicates_claims = []
 
         for item in connected_claims:
@@ -75,7 +79,10 @@ def reason_about_symptoms(
                     "Stored INDICATES claim is missing a valid claim_id."
                 )
 
-            evaluation = evaluate_claim(claim_id, driver)
+            evaluation = (
+                evaluate_claim(claim_id, driver) if graph is None
+                else evaluate_claim(claim_id, driver, graph=graph)
+            )
 
             indicates_claims.append(
                 {
@@ -88,6 +95,7 @@ def reason_about_symptoms(
                         else claim.get("verification_status", "unverified")
                     ),
                     "evaluation": evaluation,
+                    "knowledge_status": claim.get("knowledge_status", "approved"),
                 }
             )
 

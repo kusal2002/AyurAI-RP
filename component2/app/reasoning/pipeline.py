@@ -21,6 +21,7 @@ from neo4j import Driver
 from app.db.repository import get_concepts
 from app.models.c1_input import Component2ReasoningRequest
 from app.models.c2_output import (
+    DEFAULT_LIMITATIONS,
     Abstention,
     Candidate,
     CandidateCategory,
@@ -32,15 +33,17 @@ from app.models.c2_output import (
     SymptomMapping,
     UpstreamScreeningMetadata,
 )
-from app.reasoning.candidates import concept_name, extract_candidate_paths
+from app.reasoning.candidates import concept_botanical_name, concept_name, extract_candidate_paths
 from app.reasoning.explanation import (
     explain_abstention,
+    explain_caution,
     explain_candidate,
     explain_interpretation,
     explain_symptom_mappings,
 )
 from app.reasoning.knowledge_chain import trace_knowledge_chains
 from app.reasoning.ranking import RankingPolicy, rank_candidate
+from app.reasoning.risk_context import RiskContextPolicy, decide, evaluate_risk_context
 from app.reasoning.sufficiency import (
     SufficiencyPolicy,
     assess_candidate,
@@ -140,6 +143,10 @@ def _apply_retrieval(
                         page=chunk.page,
                         citation=chunk.citation,
                         source_url=chunk.source_url,
+                        source_id=chunk.source_id,
+                        source_chunk_id=chunk.source_chunk_id,
+                        knowledge_status=chunk.knowledge_status,
+                        evidence_role=chunk.evidence_role,
                     )
                 )
     except EmbeddingModelUnavailableError as exc:
@@ -152,6 +159,15 @@ def _apply_retrieval(
     return info, retrieved
 
 
+def _indicates_statuses(symptom_reasoning, mappings):
+    """(mapping, knowledge_status) for every INDICATES claim found."""
+    by_id = {m.symptom_id: m for m in mappings}
+    for result in symptom_reasoning["results"]:
+        mapping = by_id.get(result["symptom_id"])
+        for claim in result.get("indicates_claims", []):
+            yield mapping, claim.get("knowledge_status", "approved")
+
+
 def run_component2_reasoning(
     request: Component2ReasoningRequest,
     driver: Driver | None = None,
@@ -160,12 +176,19 @@ def run_component2_reasoning(
     sufficiency_policy: SufficiencyPolicy | None = None,
     max_depth: int = 5,
     max_chains: int = 100,
+    risk_policy: RiskContextPolicy | None = None,
+    graph: Any = None,
 ) -> Component2Output:
+    """Run the pipeline. `graph` selects the knowledge scope: None reads
+    approved knowledge only (the default, unchanged); a
+    `ResearchGraphAccess` also reads provisional, unverified records."""
+    knowledge_scope = getattr(graph, "knowledge_scope", "approved")
     ranking_policy = ranking_policy or RankingPolicy()
     sufficiency_policy = sufficiency_policy or SufficiencyPolicy()
+    risk_policy = risk_policy or RiskContextPolicy()
 
     # 1-2. Map supplied symptoms to stored Symptom concepts.
-    symptom_reasoning = reason_about_symptoms(request.symptom_ids, driver)
+    symptom_reasoning = reason_about_symptoms(request.symptom_ids, driver, graph=graph)
     mappings = _map_symptoms(symptom_reasoning)
     mapped_ids = [m.symptom_id for m in mappings if m.found]
 
@@ -174,7 +197,7 @@ def run_component2_reasoning(
     truncated = False
     for symptom_id in mapped_ids:
         result = trace_knowledge_chains(
-            symptom_id, driver, max_depth=max_depth, max_chains=max_chains
+            symptom_id, driver, max_depth=max_depth, max_chains=max_chains, graph=graph
         )
         truncated = truncated or result["truncated"]
         chain_results.append(result)
@@ -185,7 +208,8 @@ def run_component2_reasoning(
         for chain in result["chains"]
         for concept_id in chain["concept_ids"]
     }
-    concepts = get_concepts(sorted(concept_ids), driver) if concept_ids else {}
+    concept_lookup = graph.get_concepts if graph is not None else get_concepts
+    concepts = concept_lookup(sorted(concept_ids), driver) if concept_ids else {}
 
     # 4. Type-validated candidate extraction.
     extracted = extract_candidate_paths(chain_results, concepts)
@@ -246,6 +270,7 @@ def run_component2_reasoning(
                 candidate_id=candidate_id,
                 category=category,
                 name=concept_name(concepts, candidate_id),
+                botanical_name=concept_botanical_name(concepts, candidate_id),
                 ranking=ranking,
                 disposition=disposition,
                 paths=paths,
@@ -310,9 +335,32 @@ def run_component2_reasoning(
     ):
         flags.add("retrieved_evidence_not_linked_to_claims")
 
+    # Request-level decision (FR9): evidence status gated by upstream risk.
+    # Ranking, candidate sufficiency and dispositions are already final.
+    risk_context = evaluate_risk_context(
+        request.risk_tier,
+        request.calibrated_confidence,
+        risk_policy,
+        urgent_clinician_review=request.urgent_clinician_review,
+    )
+    decision, decision_reasons = decide(status, risk_context, risk_policy)
+    provisional_used = any(
+        step.knowledge_status == "provisional"
+        for candidate in candidates for path in candidate.paths for step in path.claims
+    ) or any(
+        mapping.found and claim_status == "provisional"
+        for mapping, claim_status in _indicates_statuses(symptom_reasoning, mappings)
+    )
+    if provisional_used:
+        flags.add("provisional_unverified_knowledge_used")
+        if "knowledge:provisional_records_used" not in decision_reasons:
+            decision_reasons = decision_reasons + ["knowledge:provisional_records_used"]
+
     explanation = explain_symptom_mappings(mappings) + explain_interpretation(
         interpretation
     )
+    if decision.value == "caution":
+        explanation.append(explain_caution(decision_reasons, risk_context.escalation))
     abstain = bool(abstention_reasons)
     abstention = Abstention(abstain=abstain, reasons=abstention_reasons)
     if abstain:
@@ -320,8 +368,17 @@ def run_component2_reasoning(
         abstention.explanation = statement.text
         explanation.append(statement)
 
+    limitations = list(DEFAULT_LIMITATIONS)
+    if knowledge_scope != "approved":
+        limitations.append(
+            "Research scope: includes provisional, AI-assisted draft claims quoted from sources "
+            "but not verified by a practitioner (verification_status 'unverified'). They are "
+            "shown for research demonstration only and are never sufficient for a recommendation."
+        )
     return Component2Output(
         request_id=request.request_id,
+        knowledge_scope=knowledge_scope,
+        limitations=limitations,
         upstream=UpstreamScreeningMetadata(
             risk_tier=request.risk_tier,
             calibrated_confidence=request.calibrated_confidence,
@@ -334,10 +391,14 @@ def run_component2_reasoning(
         retrieval=retrieval_info,
         retrieved_evidence=retrieved,
         sufficiency_status=status,
+        decision=decision,
+        decision_reasons=decision_reasons,
+        risk_context=risk_context,
         uncertainty_flags=sorted(flags),
         evidence_gaps=sorted(gaps),
         review_required=(
             abstain
+            or decision.value != "recommend_for_review"
             or bool(flags)
             or any(c.sufficiency.review_required for c in candidates)
         ),
