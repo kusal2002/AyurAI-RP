@@ -17,7 +17,8 @@ import { StatusBadge, type StatusSpec } from "@/components/shared/status"
 import { Button } from "@/components/ui/button"
 import { ApiError } from "@/lib/api/client"
 import { component1Api } from "@/lib/api/component1"
-import type { C1EvidenceItem, Component1Json, Component1Report, Component1Session } from "@/lib/api/types"
+import type { C1EvidenceItem, C1PatientDataStatus, Component1Json, Component1Report, Component1Session } from "@/lib/api/types"
+import { PdfReportButton, patientFeaturesAvailable } from "@/features/screening/PatientRegistration"
 import { formatDateTime } from "@/lib/labels"
 import { cn } from "@/lib/utils"
 
@@ -586,6 +587,12 @@ export function Component1SessionPanel() {
   const [report, setReport] = React.useState<LoadState<Component1Report>>({ status: "idle" })
   const [actionError, setActionError] = React.useState<string | null>(null)
   const [busy, setBusy] = React.useState(false)
+  const [patientStatus, setPatientStatus] = React.useState<C1PatientDataStatus | null>(null)
+  React.useEffect(() => {
+    const controller = new AbortController()
+    component1Api.patientDataStatus(controller.signal).then(setPatientStatus).catch(() => undefined)
+    return () => controller.abort()
+  }, [])
   // Request identity: a report response is applied only if it is the latest request and its session is still selected.
   const selectedRef = React.useRef("")
   const requestRef = React.useRef(0)
@@ -768,6 +775,9 @@ export function Component1SessionPanel() {
               <Button variant="outline" size="sm" disabled={report.data.analysis_outdated} onClick={() => void download("c2-payload")}>
                 <Download /> Component 2 payload
               </Button>
+              {patientFeaturesAvailable(patientStatus) && (
+                <PdfReportButton sessionId={selectedId} disabled={report.data.analysis_outdated} />
+              )}
             </div>
           </div>
           <ReportView report={report.data} />

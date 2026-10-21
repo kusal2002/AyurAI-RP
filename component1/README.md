@@ -554,3 +554,89 @@ Other proxy settings: the upload is a JSON body of up to about 0.5 MB (`client_m
 5. Click **Test live signal**; expect about 25 rows/s.
 6. Record 20 s; expect "Recording saved", about 500 samples and about 25 Hz.
 7. Click **Analyse** and check that PPG is listed as available.
+
+---
+
+## 14. Patient registration, PDF reports and the doctor-review API
+
+Component 1 can register a patient's **full name and contact phone** before the screening session starts, and produce an A4 **PDF screening report** for doctor review.
+- Both features are **off by default**, because the Component 1 API has no user authentication of its own.
+- Personal details live in a **separate SQLite file** (`c1_patient_identity.sqlite3`); the existing screening database is unchanged.
+- They are never written into session folders, session IDs, file names, URLs, logs, error messages or Component 2 payloads.
+- The public routes (`/sessions`, `/report`, `/c2-payload`, …) never return them.
+
+### Access modes (`C1_PATIENT_DATA_ACCESS`)
+
+| Mode | Who can use the routes below | Where |
+|---|---|---|
+| `off` (default) | Nobody: every route returns **503** | Any server until Component 4 sign-in is wired in |
+| `component4` | `Authorization: Bearer <Component 4 JWT>`, verified by calling Component 4 `GET /api/v1/c4/auth/me` (`C1_C4_AUTH_ME_URL`). The role must be in `C1_PATIENT_DATA_ROLES` (default `practitioner,supervisor`). A **practitioner** sees only sessions registered by their own clinic; a **supervisor** sees all. If Component 4 is unreachable, requests are **refused** (503). | Production |
+| `local_dev` | Requests made **on this computer only**: loopback client, `localhost`/`127.0.0.1` Host header, and no proxy headers | Your laptop demo. **Never set this on a server.** |
+
+Other settings: `C1_PII_DB_PATH` (default `<datasets>/c1_patient_identity.sqlite3`; on Linux the file is created with mode `0600`), `C1_C4_AUTH_ME_URL` (default `http://127.0.0.1:8004/api/v1/c4/auth/me`), and `C1_PATIENT_DATA_ROLES`.
+
+### Registration rules
+
+- **Name:** 2–100 characters; letters in any script (including Sinhala and Tamil), spaces, `.` `'` `-`; extra spaces are removed.
+- **Phone:** stored as E.164. `077 123 4567`, `0771234567`, `94771234567` and `0094 77 …` all become `+94771234567`; other countries start with `+` and the country code (8–15 digits).
+- **No duplicate sessions:** `POST /patients/register` creates the coded session and the registration together. The form sends one random `request_id`, and re-sending it returns the same session.
+- **Corrections:** saved with `PUT /sessions/{id}/patient`. Only the *names* of changed fields are logged (`registration_changes`), never the values.
+- **Older sessions:** coded sessions keep working unchanged; details can be added to them later.
+
+### API contract for the doctor dashboard (Component 4 owner)
+
+All routes need the access described above, and every response has `Cache-Control: no-store`.
+
+| Method and path | Returns |
+|---|---|
+| `GET /api/c1/patient-data/status` (public) | `{access_mode, enabled, requires_bearer_token}`; contains no personal data |
+| `GET /api/c1/doctor/sessions` | `{sessions: [Summary]}`, newest first, filtered by clinic; **no phone numbers** |
+| `GET /api/c1/doctor/sessions/{session_id}` | `Summary`, with `patient.phone_display` |
+| `GET /api/c1/doctor/sessions/{session_id}/report` | `{patient, review_status, report}`, where `report` is the full Component 1 screening report |
+| `GET /api/c1/doctor/sessions/{session_id}/report.pdf[?thumbnails=true]` | `application/pdf`, file name `AyurAI-C1-report-{session_id}.pdf`. Thumbnails appear only if requested **and** image consent was given |
+| `POST /api/c1/patients/register` | Body `{request_id (32 hex), full_name, phone}`; returns 201 `{session_id, duplicate, patient}` |
+| `GET` / `PUT /api/c1/sessions/{session_id}/patient` | `{patient}` (404 for a coded session) / `{patient, changed_fields}` |
+
+`Summary` = `{session_id, created_utc, patient: {full_name|null, registered, age_months, sex, pregnancy_status[, phone_display]}, outcome ("screening"|"safety_referral"), risk_level ("low"|"moderate"|"high"|"insufficient_evidence"|null), risk_level_validated: false, reliability_score, reliability_score_is_probability: false, decision_status, analysis_outdated, record_saved, review_status: "pending_review", links: {summary, report, pdf}}`.
+
+Status codes:
+- **401:** no or invalid token.
+- **403:** the role isn't allowed.
+- **404:** the session doesn't exist **or** belongs to another clinic.
+- **422:** validation failed; the message never repeats the input.
+- **503:** the feature is off, or the sign-in service is down.
+
+**Review decisions:** Component 1 does **not** record doctor decisions. `review_status` is always `pending_review`, and the PDF prints a blank review form that says it is not a record of approval. To record a decision, the dashboard should use Component 4's existing `POST /api/v1/c4/decisions`, with `case_ref = <Component 1 session_id>` and `decision` of `approve`, `request_changes` or `reject`. Showing those decisions in Component 1's summary would need a read route from Component 4 (not built).
+
+### Shared changes needed before production use (not made; need the owners' approval)
+
+1. **`ayurai-client/src/lib/api/component4.ts`:** export a token getter, for example `export function getAuthToken() { return authToken }`. The Component 1 frontend currently has no way to send the signed-in user's JWT.
+2. **`ayurai-client/src/lib/api/component1.ts`** (Component 1, after item 1):
+   - send `Authorization: Bearer ${getAuthToken()}` from `intake()` and `reportPdf()`;
+   - in `PatientRegistration.tsx`, let `patientFeaturesAvailable` also return true for `component4` mode when a token exists.
+3. **Practitioner review page (Component 4):** list `GET /api/c1/doctor/sessions`, open the PDF link, and record decisions with `case_ref = session_id`.
+4. **Deployment:**
+   - HTTPS;
+   - `/c1-api` behind the sign-in;
+   - `C1_PATIENT_DATA_ACCESS=component4` only after items 1–3 have been tested;
+   - `C1_PII_DB_PATH` on persistent storage with owner-only permissions;
+   - the personal-data file included in **encrypted** backups.
+
+### PDF report contents
+
+Every page has an A4 layout with a green header band, a "Page X of Y" footer and the research-prototype note. The content comes from the saved screening report only; nothing is recalculated, and missing values print as "Not recorded". The sections are:
+- **Header:** session ID and timestamps.
+- **Patient information:** name, contact number, age, sex and pregnancy status as recorded.
+- **Safety status:** normal pathway, or a referral warning saying further screening was blocked.
+- **Screening inputs:** consents, symptoms, medicines, allergies and all questionnaire answers.
+- **Image evidence:** captures and technical checks per region, uncalibrated model outputs, model disagreement, per-image quality, and optional thumbnails.
+- **PPG evidence:** duration from the stored samples, sample count, signal quality, and device heart rate and SpO2, with the note that these alone are not anaemia evidence.
+- **Screening result:** experimental tier; the reliability score **labelled as a heuristic, not a probability or calibrated confidence**; contributing and excluded evidence; missing inputs; limitations; and the laboratory Hb/CBC recommendation.
+- **Doctor review form:** "Pending review".
+- **Disclaimer.**
+
+Fonts: DejaVu Sans on Linux (`fonts-dejavu-core`) or Arial on Windows; otherwise Helvetica. Names in Sinhala or Tamil use Noto Sans Sinhala/Tamil (Linux) or Nirmala UI (Windows) when installed. Complex-script shaping is basic (a reportlab limitation).
+
+### Laptop demonstration
+
+Add `C1_PATIENT_DATA_ACCESS=local_dev` to `component1\.env` and restart the API. **New screening** then starts with **Patient registration**, and the report step and **Screening records** show **PDF report**.
