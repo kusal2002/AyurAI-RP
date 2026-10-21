@@ -1,0 +1,13 @@
+{
+  "dataset": "imagehb_sample",
+  "modality": "tongue",
+  "independent_participants": 26,
+  "train_participants": 16,
+  "validation_participants": 5,
+  "test_participants": 5,
+  "best_epoch": 6,
+  "best_validation_MAE_g_dl": 1.0626035690307618,
+  "baseline_validation_MAE_g_dl": 1.2912500000000002,
+  "test_evaluated": false,
+  "limitation": "Only 26 participants; results are exploratory and highly sensitive to the split."
+}
