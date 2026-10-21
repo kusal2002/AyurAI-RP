@@ -24,7 +24,7 @@ from app.knowledge_ingestion.service import build_manifest
 from ingestion_test_support import SYNTHETIC_TEI_BODY, make_tei
 
 
-REAL_REGISTRY = Path(__file__).parent / "corpus" / "source_registry.csv"
+REAL_REGISTRY = Path(__file__).resolve().parents[1] / "corpus" / "source_registry.csv"
 
 
 class FakeResponse(io.BytesIO):
