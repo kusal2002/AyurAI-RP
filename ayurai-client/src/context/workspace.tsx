@@ -124,8 +124,8 @@ function localId(prefix: string) {
 export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
   const [cases, setCases] = React.useState<CaseRecord[]>([])
   const [activeId, setActiveId] = React.useState<string | null>(null)
-  const [knowledgeScope, setKnowledgeScope] = React.useState<KnowledgeScope>("approved")
-  const scopeRef = React.useRef<KnowledgeScope>("approved")
+  const [knowledgeScope, setKnowledgeScope] = React.useState<KnowledgeScope>("approved_and_provisional")
+  const scopeRef = React.useRef<KnowledgeScope>("approved_and_provisional")
   React.useEffect(() => {
     scopeRef.current = knowledgeScope
   }, [knowledgeScope])
