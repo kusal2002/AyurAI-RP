@@ -122,6 +122,28 @@ null).
   (haemoglobin with WHO 2024 severity thresholds). These are population
   data, not patients. Their confidence is null, so they correctly produce
   `caution`.
+- **C1 output `c1.screening.v1`.** `POST /api/v1/c1/reasoning` accepts both
+  formats. In v1, symptoms are names reported present,
+  `confidence_percent` (0–100) is the calibrated confidence, and the
+  uncalibrated `experimental_reliability_score` is never used. An
+  `urgent_clinician_review` flag adds the rule
+  `upstream_urgent_clinician_review`, which gates the decision to
+  `caution`. On the 10 synthetic v1 fixtures from Component 1:
+  - 8 complete
+  - 2 have no symptoms, so they are correctly not analysed
+  - "heavy active bleeding" and "headache" are reported as unknown
+  - every case reaches Component 3 once it accepts a null confidence
+- **C2 → C3 handoff (`c2-to-c3/0.1.0`).** Follows the format agreed with
+  the Component 3 owner:
+  - `upstream`
+  - `ayurvedic_interpretation`
+  - medicinal candidates only, each with `display_name`, `botanical_name`
+    (as stated by the cited translation), `dose: null` (Component 2 never
+    prescribes), rank, score, a `{claim_id, text}` rationale and
+    evidence IDs
+
+  `POST /api/v1/c1/component3-handoff` returns it directly from a C1
+  payload.
 
 ### 2.5 Frontend (`ayurai-client`)
 
