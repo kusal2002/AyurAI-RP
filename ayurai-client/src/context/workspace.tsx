@@ -16,6 +16,7 @@ import type {
   SafetyAssessmentReport,
 } from "@/lib/api/types"
 import { c1View } from "@/lib/api/types"
+import { useAccess } from "@/lib/access"
 import { readSession, SESSION_KEYS, writeSession } from "@/lib/session-store"
 
 /**
@@ -153,9 +154,12 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
   }, [cases, activeId])
   const [knowledgeScope, setKnowledgeScope] = React.useState<KnowledgeScope>("approved")
   const scopeRef = React.useRef<KnowledgeScope>("approved")
+  // Only supervisors and researchers may include unverified (provisional) knowledge;
+  // practitioners' reasoning always uses approved knowledge only.
+  const { canUseTechnicalView } = useAccess()
   React.useEffect(() => {
-    scopeRef.current = knowledgeScope
-  }, [knowledgeScope])
+    scopeRef.current = canUseTechnicalView ? knowledgeScope : "approved"
+  }, [knowledgeScope, canUseTechnicalView])
   const controllers = React.useRef(new Map<string, AbortController>())
   const casesRef = React.useRef(cases)
   React.useEffect(() => {
