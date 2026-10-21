@@ -80,7 +80,7 @@ const capabilities: { area: string; status: StatusSpec; detail: string }[] = [
     area: "Client-side data handling",
     status: implemented,
     detail:
-      "This interface keeps case data in memory only (no localStorage/sessionStorage), never puts case data in URLs, and does not log request or response bodies. The Component 4 sign-in token is also kept in memory only.",
+      "This interface keeps case data and the Component 4 sign-in token in the browser tab's sessionStorage only (never localStorage): they survive a page refresh, are cleared when the tab is closed, and cannot be read by other tabs. An expired sign-in token is discarded and the user is signed out when it expires. Case data is never put in URLs, and request or response bodies are not logged.",
   },
 ]
 
