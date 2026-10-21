@@ -16,7 +16,10 @@ class CandidateItem(BaseModel):
 class C2CandidatePackage(BaseModel):
     case_id: str = Field(..., description="Unique case identifier, e.g., 'CASE-001'")
     anemia_risk_tier: str = Field(..., description="Anemia risk tier from C1: Low, Moderate, High")
-    anemia_confidence: float = Field(..., ge=0.0, le=1.0, description="C1 confidence score")
+    anemia_confidence: Optional[float] = Field(
+        None, ge=0.0, le=1.0,
+        description="C1 calibrated confidence score; null when Component 1 provides none",
+    )
     ayurvedic_interpretation: str = Field(..., description="Dosha/Dhatu mapping, e.g. 'Pittaja Pandu Roga'")
     symptom_summary: List[str] = Field(default_factory=list, description="Reported symptoms: fatigue, pallor, etc.")
     candidates: List[CandidateItem] = Field(..., description="List of candidate herbs or formulations from C2")
