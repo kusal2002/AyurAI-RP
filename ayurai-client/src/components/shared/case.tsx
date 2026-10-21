@@ -3,19 +3,10 @@ import { Link } from "react-router"
 import { FolderOpen, Info, Leaf, Play, Plus, Stethoscope } from "lucide-react"
 
 import { EmptyState, ErrorState, IdChip, LoadingState, Panel } from "@/components/shared/page"
-import { StatusBadge, demoSpec, serviceStateSpecs } from "@/components/shared/status"
 import { Button } from "@/components/ui/button"
 import { useWorkspace, type CaseRecord } from "@/context/workspace"
 import type { Component2Output } from "@/lib/api/types"
 import { formatDateTime } from "@/lib/labels"
-
-export function SourceBadge({ record }: { record: CaseRecord }) {
-  return record.source === "demo" ? (
-    <StatusBadge spec={demoSpec} />
-  ) : (
-    <StatusBadge spec={{ ...serviceStateSpecs.online, label: "Live service data" }} />
-  )
-}
 
 /** Active-case selector shown at the top of case-level screens. */
 export function CaseBar() {
@@ -43,7 +34,6 @@ export function CaseBar() {
       </div>
       {activeCase && (
         <div className="flex flex-wrap items-center gap-2">
-          <SourceBadge record={activeCase} />
           {activeCase.c2.status === "success" && (
             <span className="text-xs text-slate-500">
               C2 request <IdChip>{activeCase.c2.data.request_id}</IdChip>

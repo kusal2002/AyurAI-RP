@@ -15,8 +15,6 @@ import type {
   RiskTier,
   SafetyAssessmentReport,
 } from "@/lib/api/types"
-import { demoComponent2Output, demoSafetyReport } from "@/lib/demo/fixtures"
-import { env, type DataMode } from "@/lib/env"
 
 /**
  * Session workspace.
@@ -52,9 +50,9 @@ export type C1Summary = {
   symptom_ids: string[]
   /**
    * How this summary was obtained. No Component 1 model service exists yet:
-   * manual entry, a demo fixture, or an imported C1 screening payload.
+   * manual entry or an imported C1 screening payload.
    */
-  origin: "manual_entry" | "demo_fixture" | "c1_payload"
+  origin: "manual_entry" | "c1_payload"
   intake: AsyncState<{ status: string; message: string }>
   /** Imported Component 1 payload (held in this tab only). */
   payload?: C1ScreeningPayload
@@ -70,13 +68,11 @@ export type FeedbackRecord = {
   request: PractitionerFeedbackRequest
   outcome:
     | { status: "recorded"; response: PractitionerFeedbackResponse }
-    | { status: "demo_not_sent" }
     | { status: "error"; error: ErrorInfo }
 }
 
 export type CaseRecord = {
   id: string
-  source: DataMode
   caseRef: string
   createdAt: string
   screening: ScreeningInputs | null
@@ -88,12 +84,9 @@ export type CaseRecord = {
 }
 
 type WorkspaceContextValue = {
-  mode: DataMode
-  /** Data mode reported by the Component 2 service (live mode only). */
   /** Knowledge scope for the next reasoning run (approved by default; never stored). */
   knowledgeScope: KnowledgeScope
   setKnowledgeScope: (scope: KnowledgeScope) => void
-  setMode: (mode: DataMode) => void
   cases: CaseRecord[]
   activeCase: CaseRecord | null
   selectCase: (id: string) => void
@@ -127,45 +120,9 @@ function localId(prefix: string) {
   return `${prefix}-${random}`
 }
 
-const wait = (ms: number) => new Promise((resolve) => window.setTimeout(resolve, ms))
-
-function demoCase(): CaseRecord {
-  const now = new Date().toISOString()
-  return {
-    id: "demo-case-1",
-    source: "demo",
-    caseRef: "DEMO-CASE-001",
-    createdAt: now,
-    screening: {
-      ageGroup: "30-44",
-      sexAtBirth: "not-provided",
-      modalities: { conjunctiva: "demo-eye.jpg", tongue: "demo-tongue.jpg" },
-      questionnaire: { fatigue: "yes", dizziness: "not-answered", diet: "mixed" },
-    },
-    c1: {
-      risk_tier: demoComponent2Output.upstream.risk_tier,
-      calibrated_confidence: demoComponent2Output.upstream.calibrated_confidence,
-      symptom_ids: demoComponent2Output.input_symptom_ids,
-      origin: "demo_fixture",
-      intake: { status: "idle" },
-    },
-    c2: { status: "success", data: demoComponent2Output, receivedAt: now },
-    c3: { status: "success", data: demoSafetyReport, receivedAt: now },
-    c3Build: null,
-    feedback: [],
-  }
-}
-
-function initialCases(mode: DataMode): CaseRecord[] {
-  return mode === "demo" ? [demoCase()] : []
-}
-
 export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
-  const [mode, setModeState] = React.useState<DataMode>(env.defaultDataMode)
-  const [cases, setCases] = React.useState<CaseRecord[]>(() => initialCases(env.defaultDataMode))
-  const [activeId, setActiveId] = React.useState<string | null>(
-    () => initialCases(env.defaultDataMode)[0]?.id ?? null,
-  )
+  const [cases, setCases] = React.useState<CaseRecord[]>([])
+  const [activeId, setActiveId] = React.useState<string | null>(null)
   const [knowledgeScope, setKnowledgeScope] = React.useState<KnowledgeScope>("approved")
   const scopeRef = React.useRef<KnowledgeScope>("approved")
   React.useEffect(() => {
@@ -189,21 +146,11 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
     return controller
   }, [])
 
-  const setMode = React.useCallback((next: DataMode) => {
-    controllers.current.forEach((controller) => controller.abort())
-    controllers.current.clear()
-    const seeded = initialCases(next)
-    setModeState(next)
-    setCases(seeded)
-    setActiveId(seeded[0]?.id ?? null)
-  }, [])
-
   const createCase: WorkspaceContextValue["createCase"] = React.useCallback(
     ({ caseRef, screening, c1 }) => {
       const id = localId("case")
       const record: CaseRecord = {
         id,
-        source: mode,
         caseRef,
         createdAt: new Date().toISOString(),
         screening,
@@ -219,7 +166,7 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
       setActiveId(id)
       return id
     },
-    [mode],
+    [],
   )
 
   const findCase = React.useCallback(
@@ -235,10 +182,6 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
         updateCase(caseId, (current) =>
           current.c1 ? { ...current, c1: { ...current.c1, intake } } : current,
         )
-      if (record.source === "demo") {
-        setIntake({ status: "error", error: { kind: "unknown", message: "Demo mode: nothing is sent to a service.", details: [] } })
-        return
-      }
       setIntake({ status: "loading" })
       const controller = startRequest(`${caseId}:intake`)
       try {
@@ -274,15 +217,6 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
         c3: { status: "idle" },
         c3Build: null,
       }))
-
-      if (record.source === "demo") {
-        await wait(500)
-        updateCase(caseId, (current) => ({
-          ...current,
-          c2: { status: "success", data: demoComponent2Output, receivedAt: new Date().toISOString() },
-        }))
-        return
-      }
 
       const controller = startRequest(`${caseId}:c2`)
       if (record.c1.origin === "c1_payload" && record.c1.payload) {
@@ -353,7 +287,6 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
         const id = localId("case")
         const record: CaseRecord = {
           id,
-          source: mode,
           caseRef: payload.screening_id,
           createdAt: new Date().toISOString(),
           screening: null,
@@ -381,14 +314,14 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
       for (const id of ids) await runReasoning(id)
       return ids
     },
-    [mode, runReasoning],
+    [runReasoning],
   )
 
   const runSafety = React.useCallback(
     async (caseId: string, patient: PatientContext, candidateIds: string[]) => {
       const record = findCase(caseId)
       if (!record || record.c2.status !== "success") return
-      if (record.source !== "demo" && record.c2.data.upstream.calibrated_confidence === null) {
+      if (record.c2.data.upstream.calibrated_confidence === null) {
         updateCase(caseId, (current) => ({
           ...current,
           c3: {
@@ -404,19 +337,6 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
         return
       }
       updateCase(caseId, (current) => ({ ...current, c3: { status: "loading" } }))
-
-      if (record.source === "demo") {
-        await wait(500)
-        updateCase(caseId, (current) => ({
-          ...current,
-          c3: { status: "success", data: demoSafetyReport, receivedAt: new Date().toISOString() },
-          c3Build: {
-            notes: ["Demo mode: the fictional safety report fixture is shown; nothing was sent."],
-            excluded: [],
-          },
-        }))
-        return
-      }
 
       const build = buildC3Package(record.c2.data, { caseId: record.caseRef, candidateIds })
       updateCase(caseId, (current) => ({
@@ -458,38 +378,30 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
 
   const submitFeedback = React.useCallback(
     async (caseId: string, request: PractitionerFeedbackRequest): Promise<FeedbackRecord> => {
-      const record = findCase(caseId)
       const base = {
         localId: localId("fb"),
         submittedAt: new Date().toISOString(),
         request,
       }
       let entry: FeedbackRecord
-      if (!record || record.source === "demo") {
-        await wait(300)
-        entry = { ...base, outcome: { status: "demo_not_sent" } }
-      } else {
-        try {
-          const response = await component2Api.submitFeedback(request)
-          entry = { ...base, outcome: { status: "recorded", response } }
-        } catch (error) {
-          entry = { ...base, outcome: { status: "error", error: toErrorInfo(error) } }
-        }
+      try {
+        const response = await component2Api.submitFeedback(request)
+        entry = { ...base, outcome: { status: "recorded", response } }
+      } catch (error) {
+        entry = { ...base, outcome: { status: "error", error: toErrorInfo(error) } }
       }
       updateCase(caseId, (current) => ({ ...current, feedback: [entry, ...current.feedback] }))
       return entry
     },
-    [findCase, updateCase],
+    [updateCase],
   )
 
   const activeCase = cases.find((record) => record.id === activeId) ?? null
 
   const value = React.useMemo<WorkspaceContextValue>(
     () => ({
-      mode,
       knowledgeScope,
       setKnowledgeScope,
-      setMode,
       cases,
       activeCase,
       selectCase: setActiveId,
@@ -500,7 +412,7 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
       runSafety,
       submitFeedback,
     }),
-    [mode, knowledgeScope, setMode, cases, activeCase, createCase, validateIntake, runReasoning, importC1Payloads, runSafety, submitFeedback],
+    [knowledgeScope, cases, activeCase, createCase, validateIntake, runReasoning, importC1Payloads, runSafety, submitFeedback],
   )
 
   return <WorkspaceContext.Provider value={value}>{children}</WorkspaceContext.Provider>

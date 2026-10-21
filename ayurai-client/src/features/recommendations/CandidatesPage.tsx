@@ -27,7 +27,6 @@ function reviewStatus(record: CaseRecord, candidateId: string) {
   const latest = entries[0]
   const outcome = latest.request.review_outcome.replace(/_/g, " ")
   if (latest.outcome.status === "recorded") return `Feedback recorded: ${outcome}`
-  if (latest.outcome.status === "demo_not_sent") return `Demo feedback (not sent): ${outcome}`
   return "Feedback submission failed"
 }
 

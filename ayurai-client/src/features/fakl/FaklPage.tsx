@@ -5,7 +5,7 @@ import { ErrorState, KeyValueList, LoadingState, Notice, PageHeader, Panel } fro
 import { StatusBadge, type StatusSpec } from "@/components/shared/status"
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/context/auth"
-import { toErrorInfo, useWorkspace, type ErrorInfo } from "@/context/workspace"
+import { toErrorInfo, type ErrorInfo } from "@/context/workspace"
 import { isAbortError, isApiError } from "@/lib/api/client"
 import { component4Api, type FaklPrototype, type FaklStatus } from "@/lib/api/component4"
 import { C4SignInRequired } from "@/features/federation/shared"
@@ -218,7 +218,6 @@ function PrototypeResults() {
 
 export function FaklPage() {
   const { user } = useAuth()
-  const { mode } = useWorkspace()
 
   return (
     <>
@@ -259,7 +258,7 @@ export function FaklPage() {
         title="Prototype results"
         description="FAKL run on 3 simulated clinics: each clinic shares only per-claim agree / disagree counts, compared with pooling every clinic's feedback centrally."
       >
-        {mode !== "live" || !user ? <C4SignInRequired what="Prototype results" /> : <PrototypeResults />}
+        {!user ? <C4SignInRequired what="Prototype results" /> : <PrototypeResults />}
       </Panel>
 
       <div className="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]">
@@ -268,7 +267,7 @@ export function FaklPage() {
           description="Read-only check of Component 2's Neo4j graph. Only counts are returned — no claim or feedback content."
           actions={<Database aria-hidden className="size-4 text-slate-400" />}
         >
-          {mode !== "live" || !user ? <C4SignInRequired what="The readiness check" /> : <ReadinessCheck />}
+          {!user ? <C4SignInRequired what="The readiness check" /> : <ReadinessCheck />}
         </Panel>
 
         <Panel title="Plan">

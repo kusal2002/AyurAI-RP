@@ -4,7 +4,7 @@ import { Navigate, Route, Routes, useLocation } from "react-router"
 
 import { AppShell } from "@/components/layout/AppShell"
 import { useAuth } from "@/context/auth"
-import { useWorkspace } from "@/context/workspace"
+import { env } from "@/lib/env"
 
 const LoginPage = lazy(() =>
   import("@/features/auth/LoginPage").then((module) => ({
@@ -141,15 +141,11 @@ function withPageFallback(page: ReactNode) {
   return <Suspense fallback={<PageLoading />}>{page}</Suspense>
 }
 
-/**
- * Live mode works with real services, so it requires a Component 4 sign-in
- * (proposal FR6). Demo mode shows fictional fixtures and needs no account.
- */
+/** The workspace works with real services, so it requires a Component 4 sign-in (proposal FR6). */
 function RequireLiveAuth({ children }: { children: ReactNode }) {
   const { user } = useAuth()
-  const { mode } = useWorkspace()
   const location = useLocation()
-  if (mode === "live" && !user) {
+  if (!user && !env.authBypass) {
     return <Navigate to="/login" replace state={{ from: location.pathname }} />
   }
   return children

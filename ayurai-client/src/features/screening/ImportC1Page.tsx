@@ -73,14 +73,13 @@ function OutcomeBadge({ record }: { record: CaseRecord }) {
 }
 
 export function ImportC1Page() {
-  const { mode, cases, importC1Payloads, selectCase, knowledgeScope, setKnowledgeScope } = useWorkspace()
+  const { cases, importC1Payloads, selectCase, knowledgeScope, setKnowledgeScope } = useWorkspace()
   const navigate = useNavigate()
   const [text, setText] = React.useState("")
   const [sourceLabel, setSourceLabel] = React.useState("pasted JSON")
   const [parseError, setParseError] = React.useState<string | null>(null)
   const [running, setRunning] = React.useState(false)
   const [importedIds, setImportedIds] = React.useState<string[]>([])
-  const live = mode === "live"
 
   const parsed = React.useMemo(() => {
     if (!text.trim()) return null
@@ -158,17 +157,9 @@ export function ImportC1Page() {
         description="Send Component 1 screening payloads through the integration endpoint. The service maps symptom names to knowledge-graph symptoms without guessing, then runs Component 2 reasoning."
       />
 
-      {!live && (
-        <Notice tone="demo" title="Switch to live mode" className="mb-5">
-          Importing calls <code>POST /api/v1/c1/reasoning</code>. In demo mode nothing is sent.
-        </Notice>
-      )}
-
-      {live && (
-        <div className="mb-5">
-          <KnowledgeScopeToggle value={knowledgeScope} onChange={setKnowledgeScope} />
-        </div>
-      )}
+      <div className="mb-5">
+        <KnowledgeScopeToggle value={knowledgeScope} onChange={setKnowledgeScope} />
+      </div>
 
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_380px]">
         <Panel title="Payloads" description="One payload, a JSON array, a {payloads: [...]} file, or the scenario file">
@@ -226,7 +217,7 @@ export function ImportC1Page() {
             </p>
             <Button
               className="bg-emerald-700 hover:bg-emerald-800"
-              disabled={!live || running || !parsed?.payloads.length}
+              disabled={running || !parsed?.payloads.length}
               onClick={() => void run()}
             >
               <Play /> {running ? "Running…" : `Run ${parsed?.payloads.length ?? 0} through C1 → C2`}

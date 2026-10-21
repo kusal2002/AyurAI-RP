@@ -42,15 +42,12 @@ export const strategyStyle = {
   fedavg: { label: "FedAvg (baseline)", color: "#64748b", dash: "5 4" },
 } as const
 
-/**
- * Component 4 data is only shown to signed-in users in live mode.
- * Demo mode does not invent federated-learning results.
- */
+/** Component 4 data is only shown to signed-in users. */
 export function C4SignInRequired({ what }: { what: string }) {
   return (
     <Notice tone="neutral" icon={LogIn} title="Sign in to view Component 4 data">
       <p>
-        {what} come from the Component 4 service and are not simulated in demo mode. Sign in to switch to live mode.
+        {what} come from the Component 4 service. Sign in to view them.
       </p>
       <Button size="sm" className="mt-2 bg-emerald-700 hover:bg-emerald-800" render={<Link to="/login" />} nativeButton={false}>
         <LogIn /> Sign in

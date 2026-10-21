@@ -6,7 +6,6 @@ import {
   CircleHelp,
   CircleSlash,
   CloudOff,
-  FlaskConical,
   GitCompareArrows,
   Loader2,
   PauseCircle,
@@ -26,7 +25,7 @@ import { cn } from "@/lib/utils"
  * status is never communicated by colour alone.
  */
 
-export type Tone = "positive" | "caution" | "critical" | "neutral" | "info" | "demo"
+export type Tone = "positive" | "caution" | "critical" | "neutral" | "info"
 
 const toneStyles: Record<Tone, string> = {
   positive: "bg-emerald-50 text-emerald-800 ring-emerald-200",
@@ -34,7 +33,6 @@ const toneStyles: Record<Tone, string> = {
   critical: "bg-rose-50 text-rose-800 ring-rose-200",
   neutral: "bg-slate-100 text-slate-700 ring-slate-200",
   info: "bg-sky-50 text-sky-800 ring-sky-200",
-  demo: "bg-violet-50 text-violet-800 ring-violet-200",
 }
 
 export type StatusSpec = { label: string; tone: Tone; icon: LucideIcon; description?: string }
@@ -212,7 +210,5 @@ export const serviceStateSpecs = {
   degraded: { label: "Degraded", tone: "caution", icon: AlertTriangle },
   offline: { label: "Unavailable", tone: "critical", icon: CloudOff },
   missing: { label: "Not implemented", tone: "neutral", icon: XCircle },
-  demo: { label: "Demo data", tone: "demo", icon: FlaskConical },
 } satisfies Record<string, StatusSpec>
 
-export const demoSpec: StatusSpec = serviceStateSpecs.demo

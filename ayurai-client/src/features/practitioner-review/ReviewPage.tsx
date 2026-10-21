@@ -68,7 +68,7 @@ function CaseSummary({ output, record }: { output: Component2Output; record: Cas
             { label: "Risk tier", value: <span className="capitalize">{output.upstream.risk_tier}</span> },
             { label: "Calibrated confidence", value: formatScore(output.upstream.calibrated_confidence) },
             { label: "Symptoms mapped", value: `${output.symptom_mappings.filter((m) => m.found).length} of ${output.symptom_mappings.length}` },
-            { label: "Origin", value: record.c1?.origin === "demo_fixture" ? "Demo fixture" : "Manual entry" },
+            { label: "Origin", value: record.c1?.origin === "c1_payload" ? "Imported C1 payload" : "Manual entry" },
           ]}
         />
       </Panel>
@@ -249,7 +249,6 @@ function FeedbackForm({ output, record }: { output: Component2Output; record: Ca
         <Notice tone="info">
           Feedback is an append-only review record stored by Component 2 (<code>POST /api/v1/c2/feedback</code>). It never
           changes a claim or its verification status and does not approve anything.
-          {record.source === "demo" && " In demo mode nothing is sent."}
         </Notice>
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <MultiSelect
@@ -360,9 +359,7 @@ function FeedbackForm({ output, record }: { output: Component2Output; record: Ca
           <AlertDialogHeader>
             <AlertDialogTitle>Submit practitioner feedback?</AlertDialogTitle>
             <AlertDialogDescription>
-              {record.source === "demo"
-                ? "Demo mode: the feedback will be listed in this session only and not sent."
-                : "This creates a permanent, append-only feedback record in the Component 2 knowledge graph database for reasoning request " + output.request_id + "."}
+              {"This creates a permanent, append-only feedback record in the Component 2 knowledge graph database for reasoning request " + output.request_id + "."}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <KeyValueList
@@ -399,9 +396,6 @@ function FeedbackResult({ entry }: { entry: FeedbackRecord }) {
       </Notice>
     )
   }
-  if (entry.outcome.status === "demo_not_sent") {
-    return <Notice tone="demo" title="Demo feedback listed">Nothing was sent to the Component 2 service.</Notice>
-  }
   const response = entry.outcome.response
   return (
     <Notice tone="info" icon={CheckCircle2} title="Feedback recorded by Component 2">
@@ -429,7 +423,6 @@ function ReviewHistory({ record }: { record: CaseRecord }) {
           </p>
           <p className="mt-1 text-xs">
             {entry.outcome.status === "recorded" && <span className="text-emerald-800">Recorded as <IdChip>{entry.outcome.response.feedback_id}</IdChip></span>}
-            {entry.outcome.status === "demo_not_sent" && <span className="text-violet-800">Demo — not sent</span>}
             {entry.outcome.status === "error" && <span className="text-rose-700">Failed: {entry.outcome.error.message}</span>}
           </p>
         </li>
@@ -457,7 +450,7 @@ function DecisionPanel({ output, record }: { output: Component2Output; record: C
   const [submitting, setSubmitting] = React.useState(false)
   const [error, setError] = React.useState<string | null>(null)
 
-  const canDecide = record.source === "live" && user !== null && user.role !== "researcher"
+  const canDecide = user !== null && user.role !== "researcher"
   const needsRationale = choice !== null && choice !== "approve"
   const rationaleMissing = needsRationale && !rationale.trim()
 
@@ -501,11 +494,9 @@ function DecisionPanel({ output, record }: { output: Component2Output; record: C
     return (
       <div className="space-y-4">
         <Notice tone="neutral" icon={Lock} title="Decision recording needs a signed-in practitioner">
-          {record.source === "demo"
-            ? "This is a demo case. Sign in and work in live mode to record a final decision with Component 4."
-            : user?.role === "researcher"
-              ? "Researchers can view results but cannot approve, reject or request changes."
-              : "Sign in to record a decision."}{" "}
+          {user?.role === "researcher"
+            ? "Researchers can view results but cannot approve, reject or request changes."
+            : "Sign in to record a decision."}{" "}
           Nothing has been approved.
         </Notice>
         <div className="flex flex-wrap gap-2">

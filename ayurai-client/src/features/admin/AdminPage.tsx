@@ -1,10 +1,9 @@
 import type * as React from "react"
 import { RefreshCw, ShieldOff } from "lucide-react"
 
-import { EmptyState, KeyValueList, Notice, PageHeader, Panel } from "@/components/shared/page"
+import { KeyValueList, Notice, PageHeader, Panel } from "@/components/shared/page"
 import { StatusBadge, serviceStateSpecs } from "@/components/shared/status"
 import { Button } from "@/components/ui/button"
-import { useWorkspace } from "@/context/workspace"
 import { useC2Readiness, useServiceHealth, type ServiceState } from "@/lib/api/health"
 import type { ReadinessResponse } from "@/lib/api/types"
 import { env } from "@/lib/env"
@@ -117,12 +116,10 @@ function readinessRows(data: ReadinessResponse): StatusRow[] {
   ]
 }
 
-function C2SystemStatus({ live }: { live: boolean }) {
-  const { state, refresh } = useC2Readiness(live)
+function C2SystemStatus() {
+  const { state, refresh } = useC2Readiness(true)
   let body: React.ReactNode
-  if (!live) {
-    body = <EmptyState title="Status checks run in live mode" description="Switch to live mode to read GET /health/readiness." />
-  } else if (state.status === "error") {
+  if (state.status === "error") {
     body = (
       <Notice tone="critical" title="Readiness report unavailable">
         {state.message}
@@ -175,11 +172,9 @@ function C2SystemStatus({ live }: { live: boolean }) {
       description="Each concern is checked separately. A connected database does not mean the corpus is complete or that recommendations are valid."
       className="mt-6"
       actions={
-        live ? (
-          <Button variant="outline" size="sm" onClick={refresh}>
-            <RefreshCw /> Re-check
-          </Button>
-        ) : undefined
+        <Button variant="outline" size="sm" onClick={refresh}>
+          <RefreshCw /> Re-check
+        </Button>
       }
     >
       {body}
@@ -188,9 +183,7 @@ function C2SystemStatus({ live }: { live: boolean }) {
 }
 
 export function AdminPage() {
-  const { mode } = useWorkspace()
-  const live = mode === "live"
-  const { checks, refresh } = useServiceHealth(live)
+  const { checks, refresh } = useServiceHealth(true)
 
   return (
     <>
@@ -204,15 +197,12 @@ export function AdminPage() {
         <Panel
           title="Service health"
           actions={
-            live ? (
-              <Button variant="outline" size="sm" onClick={refresh}>
-                <RefreshCw /> Re-check
-              </Button>
-            ) : undefined
+            <Button variant="outline" size="sm" onClick={refresh}>
+              <RefreshCw /> Re-check
+            </Button>
           }
         >
-          {live ? (
-            <ul className="space-y-2">
+          <ul className="space-y-2">
               {checks.map((check) => (
                 <li key={check.key} className="rounded-lg border border-slate-200 px-3 py-2">
                   <div className="flex flex-wrap items-center justify-between gap-2">
@@ -226,15 +216,11 @@ export function AdminPage() {
                 </li>
               ))}
             </ul>
-          ) : (
-            <EmptyState title="Health checks run in live mode" description="Switch to live mode to check the configured services." />
-          )}
         </Panel>
 
         <Panel title="Client configuration">
           <KeyValueList
             items={[
-              { label: "Data mode", value: live ? "Live" : "Demo" },
               { label: "Component 2 base URL", value: <code className="text-xs">{env.c2BaseUrl}</code> },
               { label: "Component 3 base URL", value: <code className="text-xs">{env.c3BaseUrl}</code> },
               { label: "Default request timeout", value: `${env.timeoutMs / 1000} s` },
@@ -248,7 +234,7 @@ export function AdminPage() {
         </Panel>
       </div>
 
-      <C2SystemStatus live={live} />
+      <C2SystemStatus />
 
       <Panel title="Integrated endpoints" className="mt-6" bodyClassName="p-0">
         <div className="overflow-x-auto">
