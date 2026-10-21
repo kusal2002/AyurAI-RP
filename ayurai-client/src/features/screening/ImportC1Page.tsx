@@ -7,7 +7,7 @@ import { StatusBadge, decisionSpec, serviceStateSpecs, sufficiencySpec } from "@
 import { Button } from "@/components/ui/button"
 import { KnowledgeScopeToggle } from "@/components/shared/c2"
 import { useWorkspace, type CaseRecord } from "@/context/workspace"
-import type { C1ScreeningPayload } from "@/lib/api/types"
+import { c1View, type C1ScreeningPayload } from "@/lib/api/types"
 import { formatScore } from "@/lib/labels"
 import { cn } from "@/lib/utils"
 import scenarioFile from "@/lib/samples/c1_screening_scenarios.json"
@@ -46,7 +46,7 @@ function extractPayloads(parsed: unknown): { payloads: C1ScreeningPayload[]; rej
 }
 
 function symptomSummary(payload: C1ScreeningPayload) {
-  const present = payload.symptoms.filter((item) => item.present).map((item) => item.name)
+  const present = c1View(payload).symptoms.filter((item) => item.present).map((item) => item.name)
   return present.length ? present.join(", ") : "none present"
 }
 
@@ -278,7 +278,7 @@ export function ImportC1Page() {
                         <p className="mt-0.5 text-[11px] text-slate-400">{record.c1?.payloadSource}</p>
                       </td>
                       <td className="px-3 py-2.5 capitalize">{payload?.screening_result.risk_level}</td>
-                      <td className="px-3 py-2.5">{formatScore(payload?.screening_result.screening_confidence)}</td>
+                      <td className="px-3 py-2.5">{payload ? formatScore(c1View(payload).confidence) : "—"}</td>
                       <td className="px-3 py-2.5 text-xs text-slate-600">{payload ? symptomSummary(payload) : "—"}</td>
                       <td className="px-3 py-2.5 text-xs text-slate-600">
                         {mapping ? (

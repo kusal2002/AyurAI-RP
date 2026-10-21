@@ -169,6 +169,8 @@ export type Candidate = {
   candidate_id: string
   category: CandidateCategory
   name: string | null
+  /** Botanical name as stated by a cited translation; not verified. */
+  botanical_name?: string | null
   rank: number
   ranking: RankingBreakdown
   disposition: CandidateDisposition
@@ -343,7 +345,7 @@ export type HealthResponse = {
 // ---------------------------------------------------------------------------
 
 /** Provisional Component 1 output contract (component2/app/models/c1_screening_payload.py). */
-export type C1ScreeningPayload = {
+export type C1ScreeningPayloadProvisional = {
   screening_id: string
   session_id: string
   screening_result: {
@@ -368,6 +370,52 @@ export type C1ScreeningPayload = {
   recommendation: string
   model_version: string
   disclaimer: string
+}
+
+/** Component 1 output `c1.screening.v1` (component2/app/models/c1_screening_v1.py). */
+export type C1ScreeningPayloadV1 = {
+  schema_version: "c1.screening.v1"
+  screening_id: string
+  session_id: string
+  synthetic_fixture?: boolean
+  screening_result: {
+    risk_level: string
+    /** Calibrated confidence 0–100; null when none is available. */
+    confidence_percent: number | null
+    /** Not calibrated: never used as a confidence. */
+    experimental_reliability_score?: number | null
+    clinician_review_required?: boolean
+    contributing_factors?: string[]
+  }
+  /** Symptoms reported present. */
+  symptoms: string[]
+  questionnaire_status?: { urgent_clinician_review?: boolean }
+  missing_modalities?: string[]
+  [key: string]: unknown
+}
+
+export type C1ScreeningPayload = C1ScreeningPayloadProvisional | C1ScreeningPayloadV1
+
+/** The values Component 2 reads, from either Component 1 format. */
+export function c1View(payload: C1ScreeningPayload) {
+  if ("schema_version" in payload && payload.schema_version === "c1.screening.v1") {
+    const percent = payload.screening_result.confidence_percent
+    return {
+      riskLevel: payload.screening_result.risk_level,
+      confidence: percent === null || percent === undefined ? null : percent / 100,
+      symptoms: payload.symptoms.map((name) => ({ name: name.replace(/_/g, " "), present: true })),
+      urgentReview: payload.questionnaire_status?.urgent_clinician_review === true,
+      synthetic: payload.synthetic_fixture === true,
+    }
+  }
+  const legacy = payload as C1ScreeningPayloadProvisional
+  return {
+    riskLevel: legacy.screening_result.risk_level,
+    confidence: legacy.screening_result.screening_confidence,
+    symptoms: legacy.symptoms,
+    urgentReview: false,
+    synthetic: false,
+  }
 }
 
 export type C1SymptomMapping = {
@@ -445,7 +493,7 @@ export type C3CandidateItem = {
 export type C3CandidatePackage = {
   case_id: string
   anemia_risk_tier: string
-  anemia_confidence: number
+  anemia_confidence: number | null
   ayurvedic_interpretation: string
   symptom_summary: string[]
   candidates: C3CandidateItem[]
