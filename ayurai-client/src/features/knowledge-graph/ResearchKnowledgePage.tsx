@@ -1,5 +1,5 @@
 import * as React from "react"
-import { ArrowRight, FlaskConical, RefreshCw } from "lucide-react"
+import { ArrowRight, RefreshCw } from "lucide-react"
 
 import {
   EmptyState,
@@ -14,7 +14,7 @@ import {
 } from "@/components/shared/page"
 import { StatusBadge, evidenceRoleSpecs, provisionalSpec } from "@/components/shared/status"
 import { Button } from "@/components/ui/button"
-import { useWorkspace, type ErrorInfo } from "@/context/workspace"
+import type { ErrorInfo } from "@/context/workspace"
 import { isAbortError, isApiError } from "@/lib/api/client"
 import { component2Api } from "@/lib/api/component2"
 import type { ResearchClaimRow, ResearchEvidence, ResearchKnowledgeResponse } from "@/lib/api/types"
@@ -106,15 +106,12 @@ function ClaimRow({ row }: { row: ResearchClaimRow }) {
 }
 
 export function ResearchKnowledgePage() {
-  const { mode } = useWorkspace()
-  const live = mode === "live"
   const [state, setState] = React.useState<LoadState>({ status: "loading" })
   const [category, setCategory] = React.useState("all")
   const [query, setQuery] = React.useState("")
   const [tick, setTick] = React.useState(0)
 
   React.useEffect(() => {
-    if (!live) return
     const controller = new AbortController()
     component2Api
       .researchKnowledge(controller.signal)
@@ -124,7 +121,7 @@ export function ResearchKnowledgePage() {
         setState({ status: "error", error: toError(error) })
       })
     return () => controller.abort()
-  }, [live, tick])
+  }, [tick])
 
   const reload = () => {
     setState({ status: "loading" })
@@ -154,15 +151,9 @@ export function ResearchKnowledgePage() {
         title="Research knowledge (unverified)"
         description="Provisional claims drafted with AI assistance from classical Ayurvedic texts, each with its exact quoted passage. They are isolated from approved knowledge and are used only when reasoning runs in research scope."
         actions={
-          live && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={reload}
-            >
-              <RefreshCw /> Reload
-            </Button>
-          )
+          <Button variant="outline" size="sm" onClick={reload}>
+            <RefreshCw /> Reload
+          </Button>
         }
       />
 
@@ -172,13 +163,7 @@ export function ResearchKnowledgePage() {
           : "These records have not been reviewed by a practitioner. They are not approved knowledge and not clinical evidence of efficacy."}
       </Notice>
 
-      {!live ? (
-        <EmptyState
-          icon={FlaskConical}
-          title="Switch to live mode"
-          description="This view reads GET /api/v1/c2/research/knowledge from the Component 2 service. Demo mode sends nothing."
-        />
-      ) : state.status === "loading" || state.status === "idle" ? (
+      {state.status === "loading" || state.status === "idle" ? (
         <LoadingState label="Loading provisional knowledge" />
       ) : state.status === "error" ? (
         <ErrorState error={state.error} title="Could not load research knowledge" onRetry={reload} />

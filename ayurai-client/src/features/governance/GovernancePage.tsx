@@ -1,7 +1,6 @@
 import * as React from "react"
 import { CheckCircle2, CircleDashed, ExternalLink, Link2, RefreshCw, ShieldCheck, XCircle } from "lucide-react"
 
-import { SourceBadge } from "@/components/shared/case"
 import { EmptyState, IdChip, Notice, PageHeader, Panel } from "@/components/shared/page"
 import { StatusBadge, type StatusSpec } from "@/components/shared/status"
 import { Button } from "@/components/ui/button"
@@ -46,7 +45,7 @@ const capabilities: { area: string; status: StatusSpec; detail: string }[] = [
     area: "Authentication and role-based access",
     status: partial,
     detail:
-      "Component 4 issues JWTs (bcrypt-hashed passwords) and enforces practitioner / supervisor / researcher roles, limiting practitioners to their own clinic. Live mode requires sign-in. The Component 2 and Component 3 APIs still do not check tokens, and Component 2 reviewer roles remain self-declared.",
+      "Component 4 issues JWTs (bcrypt-hashed passwords) and enforces practitioner / supervisor / researcher roles, limiting practitioners to their own clinic. The workspace requires sign-in. The Component 2 and Component 3 APIs still do not check tokens, and Component 2 reviewer roles remain self-declared.",
   },
   {
     area: "Final decision / approval records",
@@ -81,7 +80,7 @@ const capabilities: { area: string; status: StatusSpec; detail: string }[] = [
     area: "Client-side data handling",
     status: implemented,
     detail:
-      "This interface keeps case data in memory only (no localStorage/sessionStorage), never puts case data in URLs, does not log request or response bodies, and separates demo fixtures from live service data. The Component 4 sign-in token is also kept in memory only.",
+      "This interface keeps case data and the Component 4 sign-in token in the browser tab's sessionStorage only (never localStorage): they survive a page refresh, are cleared when the tab is closed, and cannot be read by other tabs. An expired sign-in token is discarded and the user is signed out when it expires. Case data is never put in URLs, and request or response bodies are not logged.",
   },
 ]
 
@@ -98,14 +97,13 @@ const shortHash = (value: string | null) => (value ? `${value.slice(0, 10)}…` 
  */
 function BlockchainPanel() {
   const { user } = useAuth()
-  const { mode } = useWorkspace()
   const [anchors, setAnchors] = React.useState<Anchor[] | null>(null)
   const [verification, setVerification] = React.useState<AnchorVerification | null>(null)
   const [busy, setBusy] = React.useState<"anchor" | "verify" | null>(null)
   const [error, setError] = React.useState<string | null>(null)
   const [tick, setTick] = React.useState(0)
 
-  const enabled = mode === "live" && user?.role === "supervisor"
+  const enabled = user?.role === "supervisor"
 
   React.useEffect(() => {
     if (!enabled) return
@@ -136,7 +134,7 @@ function BlockchainPanel() {
     }
   }
 
-  if (mode !== "live" || !user) {
+  if (!user) {
     return <div className="p-5"><C4SignInRequired what="Blockchain anchors" /></div>
   }
   if (user.role !== "supervisor") {
@@ -232,14 +230,13 @@ function BlockchainPanel() {
 /** Live audit ledger from Component 4, with hash-chain verification for supervisors. */
 function AuditLedger() {
   const { user } = useAuth()
-  const { mode } = useWorkspace()
   const [entries, setEntries] = React.useState<AuditEntry[] | null>(null)
   const [error, setError] = React.useState<string | null>(null)
   const [chain, setChain] = React.useState<ChainStatus | null>(null)
   const [verifying, setVerifying] = React.useState(false)
   const [tick, setTick] = React.useState(0)
 
-  const enabled = mode === "live" && user !== null && user.role !== "researcher"
+  const enabled = user !== null && user.role !== "researcher"
 
   React.useEffect(() => {
     if (!enabled) return
@@ -268,7 +265,7 @@ function AuditLedger() {
     }
   }
 
-  if (mode !== "live" || !user) {
+  if (!user) {
     return <div className="p-5"><C4SignInRequired what="Audit log entries" /></div>
   }
   if (user.role === "researcher") {
@@ -357,9 +354,7 @@ export function GovernancePage() {
         event:
           entry.outcome.status === "recorded"
             ? "Practitioner feedback recorded by Component 2"
-            : entry.outcome.status === "demo_not_sent"
-              ? "Demo feedback (not sent)"
-              : "Practitioner feedback failed",
+            : "Practitioner feedback failed",
         ref: entry.outcome.status === "recorded" ? entry.outcome.response.feedback_id : null,
       })),
     ])
@@ -422,8 +417,7 @@ export function GovernancePage() {
                   <th className="px-5 py-3">Time</th>
                   <th className="px-4 py-3">Case</th>
                   <th className="px-4 py-3">Event</th>
-                  <th className="px-4 py-3">Service reference</th>
-                  <th className="px-5 py-3">Data</th>
+                  <th className="px-5 py-3">Service reference</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -432,8 +426,7 @@ export function GovernancePage() {
                     <td className="px-5 py-3 text-xs text-slate-500">{formatDateTime(item.at)}</td>
                     <td className="px-4 py-3 font-medium text-slate-800">{item.caseRef}</td>
                     <td className="px-4 py-3 text-slate-700">{item.event}</td>
-                    <td className="px-4 py-3">{item.ref ? <IdChip>{item.ref}</IdChip> : "—"}</td>
-                    <td className="px-5 py-3"><SourceBadge record={item.record} /></td>
+                    <td className="px-5 py-3">{item.ref ? <IdChip>{item.ref}</IdChip> : "—"}</td>
                   </tr>
                 ))}
               </tbody>

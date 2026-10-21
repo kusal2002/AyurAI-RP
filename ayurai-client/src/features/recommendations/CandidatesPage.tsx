@@ -1,6 +1,6 @@
 import * as React from "react"
 import { Link } from "react-router"
-import { ChevronDown, ChevronRight, CircleSlash, ListOrdered } from "lucide-react"
+import { BookOpen, ChevronDown, ChevronRight, CircleSlash, ExternalLink, ListOrdered, Pill } from "lucide-react"
 
 import { CaseBar, WithReasoning } from "@/components/shared/case"
 import { ClaimCard, ConceptPath, ExplanationList, FlagList, ScoreCaveat } from "@/components/shared/c2"
@@ -13,7 +13,11 @@ import {
   sufficiencySpec,
   verificationSpec,
 } from "@/components/shared/status"
+import { TechnicalViewSwitch } from "@/components/shared/technical-view"
 import type { CaseRecord } from "@/context/workspace"
+import { TypeMatch } from "@/features/ayurvedic-analysis/AnalysisSummary"
+import { CandidateList } from "@/features/recommendations/CandidateList"
+import { useTechnicalView } from "@/lib/access"
 import type { Candidate, Component2Output } from "@/lib/api/types"
 import { conceptNames } from "@/lib/c2-derive"
 import { formatScore, rankingComponentLabels } from "@/lib/labels"
@@ -27,7 +31,6 @@ function reviewStatus(record: CaseRecord, candidateId: string) {
   const latest = entries[0]
   const outcome = latest.request.review_outcome.replace(/_/g, " ")
   if (latest.outcome.status === "recorded") return `Feedback recorded: ${outcome}`
-  if (latest.outcome.status === "demo_not_sent") return `Demo feedback (not sent): ${outcome}`
   return "Feedback submission failed"
 }
 
@@ -87,11 +90,64 @@ function CandidateDetail({
           <p className="mt-2 text-[11px] text-slate-500">Sufficiency policy: {candidate.sufficiency.policy_id}</p>
         </section>
         <section>
-          <h4 className="mb-2 text-xs font-semibold tracking-wide text-slate-500 uppercase">Safety (Component 3)</h4>
+          <div className="flex items-center justify-between mb-2">
+            <h4 className="text-xs font-semibold tracking-wide text-slate-500 uppercase">Safety (Component 3)</h4>
+            <Link to="/safety" className="text-xs font-semibold text-emerald-700 hover:text-emerald-900 inline-flex items-center gap-1">
+              Safety Gate <ExternalLink className="size-3" />
+            </Link>
+          </div>
           {safety ? (
-            <div className="space-y-1">
-              <StatusBadge spec={safetySpec(safety.safety_tier)} />
-              <p className="text-xs text-slate-600">{safety.summary_warning}</p>
+            <div className="space-y-2">
+              <div className="flex flex-wrap items-center gap-2">
+                <StatusBadge spec={safetySpec(safety.safety_tier)} />
+                <span className="text-[11px] text-slate-500">Confidence: {formatScore(safety.confidence)}</span>
+              </div>
+              <p className="text-xs text-slate-700 leading-relaxed font-medium">{safety.summary_warning}</p>
+
+              {safety.interaction_findings.length > 0 && (
+                <div className="mt-2 rounded-lg border border-slate-200 bg-white p-2.5 space-y-2">
+                  <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-slate-500 border-b border-slate-100 pb-1.5">
+                    <span className="flex items-center gap-1">
+                      <BookOpen className="size-3 text-emerald-700" />
+                      Interaction Evidences ({safety.interaction_findings.length})
+                    </span>
+                    <span>PubMed / Monograph</span>
+                  </div>
+                  <ul className="space-y-1.5 text-xs">
+                    {safety.interaction_findings.map((finding, idx) => {
+                      const pmid = finding.source_refs[0]?.pmid_or_ref?.replace(/\D/g, "")
+                      return (
+                        <li key={idx} className="flex flex-wrap items-start justify-between gap-1.5 border-b border-slate-50 pb-1.5 last:border-0 last:pb-0">
+                          <div>
+                            <span className="font-semibold text-slate-900">{finding.herb_or_constituent}</span>
+                            <span className="text-slate-400 mx-1">⇄</span>
+                            <span className="font-medium text-indigo-900 inline-flex items-center gap-1">
+                              <Pill className="size-2.5 text-indigo-500" /> {finding.target_drug}
+                            </span>
+                            <span className="ml-1.5 text-[10px] px-1.5 py-0.2 rounded font-semibold bg-slate-100 text-slate-700">
+                              {finding.severity}
+                            </span>
+                          </div>
+                          {pmid ? (
+                            <a
+                              href={`https://pubmed.ncbi.nlm.nih.gov/${pmid}/`}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="inline-flex items-center gap-0.5 text-[11px] font-bold text-emerald-700 hover:text-emerald-900 bg-emerald-50 px-1.5 py-0.2 rounded border border-emerald-200"
+                            >
+                              PMID:{pmid} <ExternalLink className="size-2.5" />
+                            </a>
+                          ) : (
+                            <span className="text-[10px] text-slate-500 bg-slate-50 px-1.5 py-0.2 rounded border border-slate-100">
+                              {finding.source_refs[0]?.source_title || finding.evidence_strength}
+                            </span>
+                          )}
+                        </li>
+                      )
+                    })}
+                  </ul>
+                </div>
+              )}
             </div>
           ) : (
             <p className="text-xs text-slate-500">
@@ -121,6 +177,7 @@ function CandidateDetail({
 }
 
 function CandidateTable({ output, record }: { output: Component2Output; record: CaseRecord }) {
+  const names = React.useMemo(() => conceptNames(output), [output])
   const [filter, setFilter] = React.useState<Filter>("all")
   const [expanded, setExpanded] = React.useState<string | null>(output.candidates[0]?.candidate_id ?? null)
 
@@ -221,6 +278,9 @@ function CandidateTable({ output, record }: { output: Component2Output; record: 
                         <td className="px-3 py-3">
                           <p className="font-semibold text-slate-900">{candidate.name ?? candidate.candidate_id}</p>
                           <IdChip>{candidate.candidate_id}</IdChip>
+                          <div className="mt-1">
+                            <TypeMatch candidate={candidate} names={names} />
+                          </div>
                         </td>
                         <td className="px-3 py-3 text-xs text-slate-600">{candidate.category}</td>
                         <td className="px-3 py-3 font-mono text-xs">{formatScore(candidate.ranking.score)}</td>
@@ -271,15 +331,25 @@ function CandidateTable({ output, record }: { output: Component2Output; record: 
 }
 
 export function CandidatesPage() {
+  const [technical, setTechnical] = useTechnicalView()
   return (
     <>
       <PageHeader
-        eyebrow="Component 2 · Recommendation"
+        eyebrow="Ayurvedic reasoning"
         title="Recommendation candidates"
-        description="Ranked herb, formulation, diet and lifestyle candidates with their evidence, rationale, uncertainty and review status."
+        description={
+          technical
+            ? "Technical view: ranking scores, evidence counts, verification, claims and policies."
+            : "Herbs, formulations, diet and lifestyle options suggested for this case. Open one to see why."
+        }
+        actions={<TechnicalViewSwitch on={technical} onChange={setTechnical} />}
       />
       <CaseBar />
-      <WithReasoning>{(output, record) => <CandidateTable output={output} record={record} />}</WithReasoning>
+      <WithReasoning>
+        {(output, record) =>
+          technical ? <CandidateTable output={output} record={record} /> : <CandidateList output={output} record={record} />
+        }
+      </WithReasoning>
     </>
   )
 }

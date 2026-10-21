@@ -14,6 +14,319 @@
 
 export type RiskTier = "low" | "moderate" | "high"
 
+/** Component 1 API responses are preserved as raw JSON because the research
+ * report schema is owned by Component 1 and must not be reconstructed here. */
+export type Component1Json = Record<string, unknown>
+
+export type Component1HealthResponse = Component1Json
+export type Component1Session = Component1Json & {
+  session_id?: string
+  created_utc?: string | null
+  questionnaire_available?: boolean
+  image_count?: number
+  ppg_available?: boolean
+  record_saved?: boolean
+  risk_level?: string | null
+  workflow_state?: C1WorkflowState
+  analysis_outdated?: boolean
+}
+/** GET /api/c1/sessions wraps the list in an object. */
+export type Component1SessionsResponse = { sessions?: Component1Session[] }
+
+/** Component 1 clinical intake (fictional demo sessions only). */
+export type C1Question = {
+  id: string
+  prompt: string
+  type: string
+  options: string[] | null
+  section: string
+}
+
+export type C1QuestionSet = {
+  version: string
+  approval_status?: string
+  common: C1Question[]
+  pregnancy_safety: C1Question
+  safety_ids: string[]
+  ppg_comfort: C1Question[]
+}
+
+export type C1Profile = { age_months: number; sex: string; pregnancy_status: string }
+
+export type C1Answers = Record<string, string | number>
+
+export type C1QuestionnaireBody = {
+  profile: C1Profile
+  consent: boolean
+  consent_ppg: boolean
+  consent_images: boolean
+  guardian_permission: boolean
+  answers: C1Answers
+  medications: string
+  herbals: string
+  allergies: string
+  no_medications: boolean
+  no_allergies: boolean
+}
+
+export type C1CaptureStatus = {
+  image_acquisition_allowed?: boolean
+  ppg_acquisition_allowed?: boolean
+  ppg_pending_finger_comfort_check?: boolean
+  ppg_comfort_blocking_ids?: string[]
+  ppg_optical_obstruction_reported?: boolean
+  urgent_clinician_review?: boolean
+}
+
+export type C1CaptureCounts = Record<"conjunctiva" | "nails" | "tongue", number>
+
+export type C1SerialPorts = {
+  configured_port: string
+  configured_baud: number
+  ports: { device: string; description: string }[]
+  /** Windows lists the port. Says nothing about whether valid samples arrive. */
+  port_listed: boolean
+  /** False when the server does not record from a USB sensor (C1_SERIAL_ENABLED=false); absent on older APIs. */
+  serial_enabled?: boolean
+}
+
+/** Which PPG capture paths the Component 1 server offers. */
+export type C1PpgCaptureOptions = {
+  server_serial_enabled: boolean
+  /** Browser Web Serial capture + upload (C1_PPG_UPLOAD_ENABLED). */
+  browser_upload_enabled: boolean
+  baud: number
+  min_seconds: number
+  max_seconds: number
+}
+
+/** One browser-captured recording, in the CSV format of capture_live_ppg.py. */
+export type C1PpgUploadBody = {
+  upload_id: string
+  seconds: number
+  samples_csv: string
+  metrics_csv: string
+}
+
+export type C1RecordingResult = {
+  session_id: string
+  recording_id: number
+  recording_file: string
+  sample_count: number
+  quality_status: string
+  quality_passed: boolean
+  quality_reasons: string[]
+  observed_receive_rate_hz: number | null
+  metrics_count: number
+  finger_present_fraction: number | null
+  median_experimental_hr_bpm: number | null
+  median_experimental_spo2_percent: number | null
+  median_temperature_c: number | null
+  hb_model_applied: boolean
+}
+
+export type C1PpgJobState =
+  | "idle"
+  | "opening"
+  | "port_open"
+  | "receiving"
+  | "processing"
+  | "saved"
+  | "failed"
+  | "cancelled"
+  | "probe_ok"
+
+export type C1PpgJob = {
+  job_id?: string
+  kind?: "recording" | "probe"
+  state: C1PpgJobState
+  session_id?: string
+  seconds?: number
+  port?: string
+  samples?: number
+  metrics?: number
+  elapsed_s?: number
+  finger_present?: boolean | null
+  last_hr_bpm?: number | null
+  last_spo2_percent?: number | null
+  error_kind?: string
+  error?: string
+  result?: C1RecordingResult | { valid_rows: number; rows_per_second: number; metrics: number; saved: false }
+}
+
+export type C1PpgJobStatus = C1SerialPorts & { job: C1PpgJob }
+
+export type C1SavedRecording = {
+  recording_id: number
+  recording_file: string
+  sample_count: number
+  quality_status: string
+  observed_receive_rate_hz: number | null
+  saved_utc: string
+}
+
+export type C1WorkflowState =
+  | "created"
+  | "safety_referral"
+  | "images_in_progress"
+  | "ppg_in_progress"
+  | "ready_for_analysis"
+  | "completed"
+
+/** One active webcam image; image_id is a file name, never a filesystem path. */
+export type C1SavedImage = {
+  image_id: string
+  modality: keyof C1CaptureCounts
+  captured_utc: string | null
+  available: boolean
+}
+
+export type C1ImageChange = {
+  images: C1SavedImage[]
+  captures: C1CaptureCounts
+}
+
+export type C1IntakeState = {
+  session_id: string
+  created_utc: string | null
+  workflow_state: C1WorkflowState
+  questionnaire: null | {
+    profile: { age_months?: number; sex_reported_for_demo?: string; sex?: string; pregnancy_status?: string }
+    answers: Record<string, unknown>
+    status: C1CaptureStatus
+    completion_status: string
+  }
+  captures: C1CaptureCounts
+  images?: C1SavedImage[]
+  ppg_recordings: C1SavedRecording[]
+  record_saved: boolean
+}
+
+export type C1ReferralBody = {
+  profile: C1Profile
+  consent: boolean
+  consent_ppg: boolean
+  consent_images: boolean
+  guardian_permission: boolean
+  answers: C1Answers
+}
+
+/** Read-only view of GET /api/c1/sessions/{id}/report. All fields optional: render defensively. */
+export type C1EvidenceItem = {
+  modality: string
+  source: string
+  task: string
+  outputs: number
+  mean_output: number | null
+  evidence: number | null
+  technical_pass_ratio: number | null
+  performance_weight: number
+  reliability_weight: number
+  weight_basis: string
+  note?: string
+}
+
+export type C1FusionBlock = {
+  fusion_version?: string
+  experimental_risk_tier?: string
+  hb_threshold_g_dl?: number | null
+  hb_threshold_basis?: string
+  questionnaire_evidence?: {
+    answered_items: number
+    present_symptoms: string[]
+    absent_symptoms: string[]
+    symptom_fraction: number | null
+    usable: boolean
+  } | null
+  evidence_items?: C1EvidenceItem[]
+  conventional_fusion?: { method: string; votes: number; anaemia_vote_fraction: number | null; tier: string }
+  reliability_aware_fusion?: {
+    weighted_evidence_score: number | null
+    reliability_score: number
+    conflict_ratio: number
+    usable_physiological_modalities: string[]
+    excluded_sources: string[]
+    insufficient_reasons: string[]
+    tier: string
+  }
+  rationale?: string[]
+  safety_flags?: string[]
+  doctor_review_recommendations?: string[]
+}
+
+export type C1Region = {
+  captures?: number
+  technical_passes?: number
+  technical_pass_ratio?: number
+  cross_model_disagreement?: boolean
+  model_votes?: unknown[]
+  experimental_hb_estimates_g_dl?: unknown[]
+}
+
+export type Component1Report = {
+  schema_version?: string
+  session_id?: string
+  /** "screening" (normal) or "safety_referral" (urgent safety answer: referral-only, no risk tier). */
+  outcome?: "screening" | "safety_referral"
+  workflow_state?: C1WorkflowState
+  generated_utc?: string
+  patient?: { age_months?: number | null; sex?: string | null; pregnancy_status?: string | null; fictional_demo?: boolean }
+  workflow?: { key: string; label: string; status: string }[]
+  questionnaire?: {
+    available?: boolean
+    completion_status?: string | null
+    responses?: { question_id: string; question: string; section: string; answer: unknown }[]
+  }
+  referral?: {
+    urgent_response_ids: string[]
+    unresolved_safety_ids: string[]
+    /** Safety questions still unanswered when the clinician referred. */
+    not_asked_safety_ids?: string[]
+    referred_utc: string | null
+    reason: string
+  }
+  modalities?: {
+    images?: { image_count?: number; regions?: Record<string, C1Region> }
+    ppg?: {
+      available?: boolean
+      sample_count?: number
+      observed_receive_rate_hz?: number
+      quality_status?: string | null
+      quality_windows_passed?: number
+      quality_windows_checked?: number
+      median_experimental_hr_bpm?: number | null
+      median_experimental_spo2_percent?: number | null
+      hb_model_applied?: boolean
+    }
+  }
+  screening_result?: {
+    risk_level?: string | null
+    decision_status?: string
+    reliability_score?: number | null
+  }
+  fusion?: C1FusionBlock
+  missing_inputs?: string[]
+  /** Images were added, removed or replaced after the last fusion: results below are outdated. */
+  analysis_outdated?: boolean
+  storage?: {
+    folder: string
+    record_saved: boolean
+    record_saved_utc: string | null
+    files: string[]
+    image_files: number
+    saved_images?: C1CaptureCounts
+    ppg_recordings: number
+  }
+  doctor_report?: {
+    summary?: string
+    observations?: string[]
+    recommendations?: string[]
+    reliability_flags?: string[]
+    limitations?: string[]
+    clinical_action?: string
+  }
+}
+
 /** POST /api/v1/c1/screening-result (Component 2 service) - validation/echo only. */
 export type C1Input = {
   case_id: string
@@ -169,6 +482,8 @@ export type Candidate = {
   candidate_id: string
   category: CandidateCategory
   name: string | null
+  /** Botanical name as stated by a cited translation; not verified. */
+  botanical_name?: string | null
   rank: number
   ranking: RankingBreakdown
   disposition: CandidateDisposition
@@ -178,6 +493,12 @@ export type Candidate = {
   contradicting_evidence_ids: string[]
   verification_statuses: string[]
   conflict_flags: string[]
+  /**
+   * Added in c2-output/0.4.0: Roga types (e.g. Pittaja Pandu) matched from the
+   * patient's symptoms on this candidate's paths. Such candidates are listed
+   * before general remedies; the ranking score is unchanged. Absent in older outputs.
+   */
+  matched_subtypes?: string[]
   sufficiency: SufficiencyAssessment
   rationale: ExplanationStatement[]
 }
@@ -343,7 +664,7 @@ export type HealthResponse = {
 // ---------------------------------------------------------------------------
 
 /** Provisional Component 1 output contract (component2/app/models/c1_screening_payload.py). */
-export type C1ScreeningPayload = {
+export type C1ScreeningPayloadProvisional = {
   screening_id: string
   session_id: string
   screening_result: {
@@ -368,6 +689,52 @@ export type C1ScreeningPayload = {
   recommendation: string
   model_version: string
   disclaimer: string
+}
+
+/** Component 1 output `c1.screening.v1` (component2/app/models/c1_screening_v1.py). */
+export type C1ScreeningPayloadV1 = {
+  schema_version: "c1.screening.v1"
+  screening_id: string
+  session_id: string
+  synthetic_fixture?: boolean
+  screening_result: {
+    risk_level: string
+    /** Calibrated confidence 0–100; null when none is available. */
+    confidence_percent: number | null
+    /** Not calibrated: never used as a confidence. */
+    experimental_reliability_score?: number | null
+    clinician_review_required?: boolean
+    contributing_factors?: string[]
+  }
+  /** Symptoms reported present. */
+  symptoms: string[]
+  questionnaire_status?: { urgent_clinician_review?: boolean }
+  missing_modalities?: string[]
+  [key: string]: unknown
+}
+
+export type C1ScreeningPayload = C1ScreeningPayloadProvisional | C1ScreeningPayloadV1
+
+/** The values Component 2 reads, from either Component 1 format. */
+export function c1View(payload: C1ScreeningPayload) {
+  if ("schema_version" in payload && payload.schema_version === "c1.screening.v1") {
+    const percent = payload.screening_result.confidence_percent
+    return {
+      riskLevel: payload.screening_result.risk_level,
+      confidence: percent === null || percent === undefined ? null : percent / 100,
+      symptoms: payload.symptoms.map((name) => ({ name: name.replace(/_/g, " "), present: true })),
+      urgentReview: payload.questionnaire_status?.urgent_clinician_review === true,
+      synthetic: payload.synthetic_fixture === true,
+    }
+  }
+  const legacy = payload as C1ScreeningPayloadProvisional
+  return {
+    riskLevel: legacy.screening_result.risk_level,
+    confidence: legacy.screening_result.screening_confidence,
+    symptoms: legacy.symptoms,
+    urgentReview: false,
+    synthetic: false,
+  }
 }
 
 export type C1SymptomMapping = {
@@ -445,7 +812,7 @@ export type C3CandidateItem = {
 export type C3CandidatePackage = {
   case_id: string
   anemia_risk_tier: string
-  anemia_confidence: number
+  anemia_confidence: number | null
   ayurvedic_interpretation: string
   symptom_summary: string[]
   candidates: C3CandidateItem[]
@@ -494,6 +861,8 @@ export type EvidenceProvenance = {
   citation_type: string
   pmid_or_ref: string | null
   grade: EvidenceGrade
+  source_url?: string | null
+  excerpt?: string | null
 }
 
 export type InteractionFinding = {
@@ -505,6 +874,7 @@ export type InteractionFinding = {
   evidence_strength: EvidenceGrade
   prediction_confidence: number
   source_refs: EvidenceProvenance[]
+  clinical_action?: string | null
 }
 
 export type TitrationGuidance = {
@@ -584,6 +954,45 @@ export type C3CypPathway = {
   substrates: string[]
   inhibitors: string[]
   inducers: string[]
+}
+
+export type C3GraphNode = {
+  id: string
+  name: string
+  type: "Herb" | "Compound" | "Enzyme" | "Target" | "Drug" | "Condition"
+  category?: string
+  sanskrit_name?: string
+  botanical_name?: string
+  contraindications?: string[]
+  traditional_uses?: string[]
+  active_compounds?: string[]
+  narrow_therapeutic_index?: boolean
+  metabolizing_enzymes?: string[]
+  target_receptors?: string[]
+}
+
+export type C3GraphEdge = {
+  id: string
+  source: string
+  target: string
+  type: string
+  label: string
+  severity: "High" | "Moderate" | "Low" | "Safe" | "Info" | string
+  interaction_type?: string
+  mechanism?: string
+  evidence_level?: string
+  pmid?: string
+  citation?: string
+  recommended_action?: string
+}
+
+export type C3GraphResponse = {
+  mode: "live_neo4j" | "offline_fallback"
+  total_nodes: number
+  total_edges: number
+  nodes: C3GraphNode[]
+  edges: C3GraphEdge[]
+  stats?: Record<string, unknown>
 }
 
 // ---------------------------------------------------------------------------

@@ -1,0 +1,69 @@
+# CD: after CI passes on main, update the VPS over SSH (deploy/remote-deploy.sh).
+# Can also be started by hand: Actions tab -> Deploy -> Run workflow.
+#
+# Repository secrets (Settings -> Secrets and variables -> Actions):
+#   VPS_HOST         server IP or domain
+#   VPS_USER         SSH user, e.g. ubuntu
+#   VPS_SSH_KEY      private key of a deploy key whose public half is in the
+#                    server's ~/.ssh/authorized_keys
+#   VPS_KNOWN_HOSTS  output of:  ssh-keyscan -H <VPS_HOST>
+# Optional repository variables:
+#   VPS_PORT         SSH port (default 22)
+#   VPS_APP_DIR      repository folder on the server (default ~/ayurai)
+name: Deploy
+
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Never run two deploys at the same time; a newer one waits for the running one
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy to VPS
+    # Automatic runs: only after a successful CI run for a push to main
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' &&
+       github.event.workflow_run.event == 'push')
+    runs-on: ubuntu-latest
+    environment: production
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Set up SSH
+        env:
+          SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+          KNOWN_HOSTS: ${{ secrets.VPS_KNOWN_HOSTS }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
+
+      - name: Deploy
+        env:
+          HOST: ${{ secrets.VPS_HOST }}
+          USER: ${{ secrets.VPS_USER }}
+          PORT: ${{ vars.VPS_PORT || '22' }}
+          APP_DIR: ${{ vars.VPS_APP_DIR || '~/ayurai' }}
+        run: |
+          ssh -i ~/.ssh/deploy_key -p "$PORT" -o StrictHostKeyChecking=yes \
+            -o ServerAliveInterval=30 "$USER@$HOST" \
+            "bash -s -- $APP_DIR" < deploy/remote-deploy.sh
+
+      - name: Remove SSH key
+        if: always()
+        run: rm -f ~/.ssh/deploy_key

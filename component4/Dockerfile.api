@@ -1,0 +1,25 @@
+# Component 4 API (security & governance), production image.
+# The federated-learning image is the separate ./Dockerfile.
+FROM python:3.11-slim
+
+WORKDIR /app
+
+COPY requirements-api.txt .
+RUN pip install --no-cache-dir -r requirements-api.txt
+
+# The API imports its modules as top-level names (from database import ...),
+# so it runs from inside api/. federation_routes also reads federated/config.py,
+# and anchoring reads security/AuditAnchor.abi.json.
+COPY api/ api/
+COPY federated/config.py federated/config.py
+COPY security/AuditAnchor.abi.json security/AuditAnchor.abi.json
+# results/ is excluded by .dockerignore; compose mounts it read-only instead.
+RUN mkdir -p results
+
+ENV PYTHONUNBUFFERED=1
+WORKDIR /app/api
+
+EXPOSE 8004
+# Create the demo accounts first when C4_SEED_PASSWORD is set (existing accounts
+# are left as they are), then start the API. "exec" lets uvicorn receive stop signals.
+CMD ["sh", "-c", "python seed_users.py --if-configured && exec uvicorn main:app --host 0.0.0.0 --port 8004"]

@@ -1,0 +1,13 @@
+# Keep secrets, local environments and notebooks out of the image
+.env
+.env.*
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+notebooks/
+tests/
+Dockerfile
+.dockerignore
+*.log

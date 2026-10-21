@@ -7,7 +7,7 @@ import { StatusBadge, decisionSpec, serviceStateSpecs, sufficiencySpec } from "@
 import { Button } from "@/components/ui/button"
 import { KnowledgeScopeToggle } from "@/components/shared/c2"
 import { useWorkspace, type CaseRecord } from "@/context/workspace"
-import type { C1ScreeningPayload } from "@/lib/api/types"
+import { c1View, type C1ScreeningPayload } from "@/lib/api/types"
 import { formatScore } from "@/lib/labels"
 import { cn } from "@/lib/utils"
 import scenarioFile from "@/lib/samples/c1_screening_scenarios.json"
@@ -46,7 +46,7 @@ function extractPayloads(parsed: unknown): { payloads: C1ScreeningPayload[]; rej
 }
 
 function symptomSummary(payload: C1ScreeningPayload) {
-  const present = payload.symptoms.filter((item) => item.present).map((item) => item.name)
+  const present = c1View(payload).symptoms.filter((item) => item.present).map((item) => item.name)
   return present.length ? present.join(", ") : "none present"
 }
 
@@ -73,14 +73,13 @@ function OutcomeBadge({ record }: { record: CaseRecord }) {
 }
 
 export function ImportC1Page() {
-  const { mode, cases, importC1Payloads, selectCase, knowledgeScope, setKnowledgeScope } = useWorkspace()
+  const { cases, importC1Payloads, selectCase, knowledgeScope, setKnowledgeScope } = useWorkspace()
   const navigate = useNavigate()
   const [text, setText] = React.useState("")
   const [sourceLabel, setSourceLabel] = React.useState("pasted JSON")
   const [parseError, setParseError] = React.useState<string | null>(null)
   const [running, setRunning] = React.useState(false)
   const [importedIds, setImportedIds] = React.useState<string[]>([])
-  const live = mode === "live"
 
   const parsed = React.useMemo(() => {
     if (!text.trim()) return null
@@ -158,17 +157,9 @@ export function ImportC1Page() {
         description="Send Component 1 screening payloads through the integration endpoint. The service maps symptom names to knowledge-graph symptoms without guessing, then runs Component 2 reasoning."
       />
 
-      {!live && (
-        <Notice tone="demo" title="Switch to live mode" className="mb-5">
-          Importing calls <code>POST /api/v1/c1/reasoning</code>. In demo mode nothing is sent.
-        </Notice>
-      )}
-
-      {live && (
-        <div className="mb-5">
-          <KnowledgeScopeToggle value={knowledgeScope} onChange={setKnowledgeScope} />
-        </div>
-      )}
+      <div className="mb-5">
+        <KnowledgeScopeToggle value={knowledgeScope} onChange={setKnowledgeScope} />
+      </div>
 
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_380px]">
         <Panel title="Payloads" description="One payload, a JSON array, a {payloads: [...]} file, or the scenario file">
@@ -226,7 +217,7 @@ export function ImportC1Page() {
             </p>
             <Button
               className="bg-emerald-700 hover:bg-emerald-800"
-              disabled={!live || running || !parsed?.payloads.length}
+              disabled={running || !parsed?.payloads.length}
               onClick={() => void run()}
             >
               <Play /> {running ? "Running…" : `Run ${parsed?.payloads.length ?? 0} through C1 → C2`}
@@ -247,7 +238,7 @@ export function ImportC1Page() {
               resolve exactly by ID, name or alias. Unknown and ambiguous names are reported, never guessed.
             </li>
             <li>Haemoglobin, modality results and demographics are not used for reasoning.</li>
-            <li>Cases stay in this browser tab only and are cleared on reload.</li>
+            <li>Cases stay in this browser tab only: a refresh keeps them, closing the tab clears them.</li>
             <li>
               Synthetic scenarios are invented. NHANES reference-derived files (from{" "}
               <code>python -m app.integration.c1_reference_samples</code>) contain real de-identified survey data:
@@ -287,7 +278,7 @@ export function ImportC1Page() {
                         <p className="mt-0.5 text-[11px] text-slate-400">{record.c1?.payloadSource}</p>
                       </td>
                       <td className="px-3 py-2.5 capitalize">{payload?.screening_result.risk_level}</td>
-                      <td className="px-3 py-2.5">{formatScore(payload?.screening_result.screening_confidence)}</td>
+                      <td className="px-3 py-2.5">{payload ? formatScore(c1View(payload).confidence) : "—"}</td>
                       <td className="px-3 py-2.5 text-xs text-slate-600">{payload ? symptomSummary(payload) : "—"}</td>
                       <td className="px-3 py-2.5 text-xs text-slate-600">
                         {mapping ? (

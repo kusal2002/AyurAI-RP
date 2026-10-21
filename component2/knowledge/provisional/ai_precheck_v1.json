@@ -1,0 +1,515 @@
+{
+  "dataset_id": "pandu-provisional-v1",
+  "dataset_version": "1",
+  "checked_on": "2026-10-21",
+  "method": "AI-assisted pre-check: each claim compared with its exact quoted source passages (Caraka Ci.16, Astangahrdaya Ni.13, Susruta Utt.44, 1890 Kaviratna translation); selected formulation and symptom claims cross-checked against independent web sources.",
+  "notice": "NOT a practitioner review. This pre-check does not verify, approve or promote any claim; every claim stays 'unverified' until a qualified Ayurvedic practitioner reviews it.",
+  "summary": {
+    "needs_practitioner_check": 2,
+    "partly_supported": 2,
+    "supported": 45,
+    "supported_with_qualification": 1
+  },
+  "claims": [
+    {
+      "claim_key": "pallor-indicates-pandu",
+      "claim": "pallor INDICATES Pandu",
+      "category": "symptom_indication",
+      "statement": "The classical texts name Pandu after the pallor (pāṇḍu colour) that predominates among the skin discolourations it produces.",
+      "sources": "sarit-astangahrdaya:Ah.3.13.003a; sarit-susrutasamhita:Su.6.44.4; sarit-carakasamhita:Ca.6.16.11",
+      "ai_precheck": "supported",
+      "ai_note": "The quoted source passage states the claim.",
+      "web_corroboration": "https://www.jvwu.ac.in/documents/E NOTES BY DR. SUMAN PANDU ROGA PART 1.pdf"
+    },
+    {
+      "claim_key": "palpitation-indicates-pandu",
+      "claim": "palpitations INDICATES Pandu",
+      "category": "symptom_indication",
+      "statement": "Palpitation is listed among the premonitory signs (pūrvarūpa) of Pandu.",
+      "sources": "sarit-carakasamhita:Ca.6.16.12; sarit-astangahrdaya:Ah.3.13.008a; kaviratna-charaka-1890:translation",
+      "ai_precheck": "supported",
+      "ai_note": "The quoted source passage states the claim.",
+      "web_corroboration": "https://www.jvwu.ac.in/documents/E NOTES BY DR. SUMAN PANDU ROGA PART 1.pdf"
+    },
+    {
+      "claim_key": "dry-skin-indicates-pandu",
+      "claim": "dryness of the skin INDICATES Pandu",
+      "category": "symptom_indication",
+      "statement": "Dryness is listed among the premonitory signs of Pandu.",
+      "sources": "sarit-carakasamhita:Ca.6.16.12; sarit-astangahrdaya:Ah.3.13.008a",
+      "ai_precheck": "supported",
+      "ai_note": "The quoted source passage states the claim.",
+      "web_corroboration": "https://www.jvwu.ac.in/documents/E NOTES BY DR. SUMAN PANDU ROGA PART 1.pdf"
+    },
+    {
+      "claim_key": "absent-sweating-indicates-pandu",
+      "claim": "absence of sweating INDICATES Pandu",
+      "category": "symptom_indication",
+      "statement": "Absence of sweating is listed among the premonitory signs of Pandu.",
+      "sources": "sarit-carakasamhita:Ca.6.16.12; sarit-astangahrdaya:Ah.3.13.008a",
+      "ai_precheck": "supported",
+      "ai_note": "The quoted source passage states the claim.",
+      "web_corroboration": "https://www.jvwu.ac.in/documents/E NOTES BY DR. SUMAN PANDU ROGA PART 1.pdf"
+    },
+    {
+      "claim_key": "fatigue-indicates-pandu",
+      "claim": "fatigue INDICATES Pandu",
+      "category": "symptom_indication",
+      "statement": "Fatigue (śrama) is listed both as a premonitory sign and as a sign of manifest Pandu.",
+      "sources": "sarit-carakasamhita:Ca.6.16.13; sarit-astangahrdaya:Ah.3.13.007a; kaviratna-charaka-1890:translation",
+      "ai_precheck": "supported",
+      "ai_note": "The quoted source passage states the claim.",
+      "web_corroboration": "https://www.jvwu.ac.in/documents/E NOTES BY DR. SUMAN PANDU ROGA PART 1.pdf"
+    },
+    {
+      "claim_key": "weakness-indicates-pandu",
+      "claim": "general weakness INDICATES Pandu",
+      "category": "symptom_indication",
+      "statement": "General weakness (daurbalya) is listed among the signs of manifest Pandu.",
+      "sources": "sarit-carakasamhita:Ca.6.16.13; kaviratna-charaka-1890:translation",
+      "ai_precheck": "supported",
+      "ai_note": "The quoted source passage states the claim.",
+      "web_corroboration": "https://www.jvwu.ac.in/documents/E NOTES BY DR. SUMAN PANDU ROGA PART 1.pdf"
+    },
+    {
+      "claim_key": "dizziness-indicates-pandu",
+      "claim": "dizziness INDICATES Pandu",
+      "category": "symptom_indication",
+      "statement": "Giddiness (bhrama) is listed among the signs of manifest Pandu.",
+      "sources": "sarit-carakasamhita:Ca.6.16.13; sarit-astangahrdaya:Ah.3.13.007a",
+      "ai_precheck": "needs_practitioner_check",
+      "ai_note": "Quote supports bhrama (giddiness/vertigo) as a sign; mapping bhrama to the modern symptom 'dizziness' is a terminology decision.",
+      "web_corroboration": ""
+    },
+    {
+      "claim_key": "tinnitus-indicates-pandu",
+      "claim": "tinnitus INDICATES Pandu",
+      "category": "symptom_indication",
+      "statement": "Ringing in the ears (karṇakṣveḍa) is listed among the signs of manifest Pandu.",
+      "sources": "sarit-carakasamhita:Ca.6.16.13; sarit-astangahrdaya:Ah.3.13.007a; kaviratna-charaka-1890:translation",
+      "ai_precheck": "supported",
+      "ai_note": "The quoted source passage states the claim.",
+      "web_corroboration": "https://www.jvwu.ac.in/documents/E NOTES BY DR. SUMAN PANDU ROGA PART 1.pdf"
+    },
+    {
+      "claim_key": "anorexia-indicates-pandu",
+      "claim": "loss of appetite INDICATES Pandu",
+      "category": "symptom_indication",
+      "statement": "Aversion to food is listed among the signs of manifest Pandu.",
+      "sources": "sarit-carakasamhita:Ca.6.16.13; sarit-astangahrdaya:Ah.3.13.006a; kaviratna-charaka-1890:translation",
+      "ai_precheck": "supported",
+      "ai_note": "The quoted source passage states the claim.",
+      "web_corroboration": "https://www.jvwu.ac.in/documents/E NOTES BY DR. SUMAN PANDU ROGA PART 1.pdf"
+    },
+    {
+      "claim_key": "breathlessness-indicates-pandu",
+      "claim": "breathlessness INDICATES Pandu",
+      "category": "symptom_indication",
+      "statement": "Breathlessness (śvāsa) is listed among the signs of manifest Pandu.",
+      "sources": "sarit-carakasamhita:Ca.6.16.14; sarit-astangahrdaya:Ah.3.13.007a; kaviratna-charaka-1890:translation",
+      "ai_precheck": "supported",
+      "ai_note": "The quoted source passage states the claim.",
+      "web_corroboration": "https://www.jvwu.ac.in/documents/E NOTES BY DR. SUMAN PANDU ROGA PART 1.pdf"
+    },
+    {
+      "claim_key": "fever-indicates-pandu",
+      "claim": "fever INDICATES Pandu",
+      "category": "symptom_indication",
+      "statement": "Fever is listed among the signs of manifest Pandu.",
+      "sources": "sarit-carakasamhita:Ca.6.16.14; sarit-astangahrdaya:Ah.3.13.007a",
+      "ai_precheck": "supported",
+      "ai_note": "The quoted source passage states the claim.",
+      "web_corroboration": "https://www.jvwu.ac.in/documents/E NOTES BY DR. SUMAN PANDU ROGA PART 1.pdf"
+    },
+    {
+      "claim_key": "body-ache-indicates-pandu",
+      "claim": "body ache INDICATES Pandu",
+      "category": "symptom_indication",
+      "statement": "Pain in the limbs (gātraśūla) is listed among the signs of manifest Pandu.",
+      "sources": "sarit-carakasamhita:Ca.6.16.14; kaviratna-charaka-1890:translation",
+      "ai_precheck": "supported",
+      "ai_note": "The quoted source passage states the claim.",
+      "web_corroboration": "https://www.jvwu.ac.in/documents/E NOTES BY DR. SUMAN PANDU ROGA PART 1.pdf"
+    },
+    {
+      "claim_key": "periorbital-swelling-indicates-pandu",
+      "claim": "periorbital swelling INDICATES Pandu",
+      "category": "symptom_indication",
+      "statement": "Swelling around the eyes (śūnākṣikūṭa) is listed among the signs of manifest Pandu.",
+      "sources": "sarit-carakasamhita:Ca.6.16.15; sarit-astangahrdaya:Ah.3.13.006a; kaviratna-charaka-1890:translation",
+      "ai_precheck": "supported",
+      "ai_note": "The quoted source passage states the claim.",
+      "web_corroboration": "https://www.jvwu.ac.in/documents/E NOTES BY DR. SUMAN PANDU ROGA PART 1.pdf"
+    },
+    {
+      "claim_key": "pandu-pitta",
+      "claim": "Pandu ASSOCIATED_WITH_DOSHA Pitta",
+      "category": "dosha_association",
+      "statement": "In Pandu the vitiated doshas are described as pitta-predominant.",
+      "sources": "sarit-carakasamhita:Ca.6.16.4; sarit-astangahrdaya:Ah.3.13.001a",
+      "ai_precheck": "supported",
+      "ai_note": "The quoted source passage states the claim.",
+      "web_corroboration": ""
+    },
+    {
+      "claim_key": "pandu-vata",
+      "claim": "Pandu ASSOCIATED_WITH_DOSHA Vata",
+      "category": "dosha_association",
+      "statement": "A vātaja type is one of the five types of Pandu.",
+      "sources": "sarit-carakasamhita:Ca.6.16.3; sarit-carakasamhita:Ca.6.16.17; kaviratna-charaka-1890:translation",
+      "ai_precheck": "supported",
+      "ai_note": "The quoted source passage states the claim.",
+      "web_corroboration": ""
+    },
+    {
+      "claim_key": "pandu-kapha",
+      "claim": "Pandu ASSOCIATED_WITH_DOSHA Kapha",
+      "category": "dosha_association",
+      "statement": "A kaphaja type is one of the five types of Pandu.",
+      "sources": "sarit-carakasamhita:Ca.6.16.3; sarit-carakasamhita:Ca.6.16.23; kaviratna-charaka-1890:translation",
+      "ai_precheck": "supported",
+      "ai_note": "The quoted source passage states the claim.",
+      "web_corroboration": ""
+    },
+    {
+      "claim_key": "pandu-rakta",
+      "claim": "Pandu AFFECTS_DHATU Rakta dhatu",
+      "category": "dhatu_effect",
+      "statement": "The person with Pandu is described as having little blood (alpa-rakta); the doshas vitiate the blood.",
+      "sources": "sarit-carakasamhita:Ca.6.16.6; sarit-astangahrdaya:Ah.3.13.005a; sarit-susrutasamhita:Su.6.44.3; kaviratna-charaka-1890:translation",
+      "ai_precheck": "supported",
+      "ai_note": "The quoted source passage states the claim.",
+      "web_corroboration": ""
+    },
+    {
+      "claim_key": "pandu-medas",
+      "claim": "Pandu AFFECTS_DHATU Medas dhatu",
+      "category": "dhatu_effect",
+      "statement": "The person with Pandu is described as having little medas (alpa-medaska).",
+      "sources": "sarit-carakasamhita:Ca.6.16.6; sarit-astangahrdaya:Ah.3.13.005a",
+      "ai_precheck": "supported",
+      "ai_note": "The quoted source passage states the claim.",
+      "web_corroboration": ""
+    },
+    {
+      "claim_key": "pandu-suggests-snehana",
+      "claim": "Pandu SUGGESTS_PRINCIPLE Oleation with medicated ghee (snehana) in Pandu",
+      "category": "treatment_principle",
+      "statement": "Medicated ghee is given for oleation to persons with Pandu and Kamala.",
+      "sources": "sarit-carakasamhita:Ca.6.16.43; kaviratna-charaka-1890:translation",
+      "ai_precheck": "supported",
+      "ai_note": "The quoted source passage states the claim.",
+      "web_corroboration": ""
+    },
+    {
+      "claim_key": "pandu-suggests-samshodhana",
+      "claim": "Pandu SUGGESTS_PRINCIPLE Purification (saṃśodhana) with sharp emetic and purgative drugs after oleation, in Pandu",
+      "category": "treatment_principle",
+      "statement": "A person with Pandu, after oleation, is to be purified with sharp drugs acting upwards and downwards (emesis and purgation).",
+      "sources": "sarit-carakasamhita:Ca.6.16.40; sarit-susrutasamhita:Su.6.44.14; kaviratna-charaka-1890:translation",
+      "ai_precheck": "supported",
+      "ai_note": "The quoted source passage states the claim.",
+      "web_corroboration": ""
+    },
+    {
+      "claim_key": "pandu-suggests-pathya",
+      "claim": "Pandu SUGGESTS_PRINCIPLE Wholesome diet (pathya) after purification, in Pandu",
+      "category": "treatment_principle",
+      "statement": "After purification, wholesome foods are to be given.",
+      "sources": "sarit-carakasamhita:Ca.6.16.41",
+      "ai_precheck": "supported",
+      "ai_note": "The quoted source passage states the claim.",
+      "web_corroboration": ""
+    },
+    {
+      "claim_key": "pandu-suggests-yathadosha",
+      "claim": "Pandu SUGGESTS_PRINCIPLE Medication chosen according to the predominant dosha, in Pandu",
+      "category": "treatment_principle",
+      "statement": "Specific medicines are to be given according to the dosha involved.",
+      "sources": "sarit-carakasamhita:Ca.6.16.42; sarit-carakasamhita:Ca.6.16.123; kaviratna-charaka-1890:translation",
+      "ai_precheck": "supported",
+      "ai_note": "The quoted source passage states the claim.",
+      "web_corroboration": ""
+    },
+    {
+      "claim_key": "pathya-old-grains",
+      "claim": "Wholesome diet (pathya) after purification, in Pandu RECOMMENDS_DIET Old śāli rice, barley and wheat with soups",
+      "category": "diet",
+      "statement": "The wholesome diet consists of old śāli rice, barley and wheat taken with soups.",
+      "sources": "sarit-carakasamhita:Ca.6.16.41; kaviratna-charaka-1890:translation",
+      "ai_precheck": "supported",
+      "ai_note": "The quoted source passage states the claim.",
+      "web_corroboration": ""
+    },
+    {
+      "claim_key": "pathya-pulse-soups",
+      "claim": "Wholesome diet (pathya) after purification, in Pandu RECOMMENDS_DIET Soups of mung bean, pigeon pea and lentil",
+      "category": "diet",
+      "statement": "Soups of mung bean, pigeon pea and lentil are part of the wholesome diet.",
+      "sources": "sarit-carakasamhita:Ca.6.16.42; kaviratna-charaka-1890:translation",
+      "ai_precheck": "supported",
+      "ai_note": "The quoted source passage states the claim.",
+      "web_corroboration": ""
+    },
+    {
+      "claim_key": "pathya-jangala-meat",
+      "claim": "Wholesome diet (pathya) after purification, in Pandu RECOMMENDS_DIET Meat soups of dry-land (jāṅgala) animals",
+      "category": "diet",
+      "statement": "Meat soups of dry-land animals are described as beneficial in the wholesome diet.",
+      "sources": "sarit-carakasamhita:Ca.6.16.42; kaviratna-charaka-1890:translation",
+      "ai_precheck": "supported",
+      "ai_note": "The quoted source passage states the claim.",
+      "web_corroboration": ""
+    },
+    {
+      "claim_key": "pathya-sthiradi-water",
+      "claim": "Wholesome diet (pathya) after purification, in Pandu RECOMMENDS_DIET Water boiled with the sthirādi group of drugs, for drinking and cooking",
+      "category": "diet",
+      "statement": "Water boiled with the sthirādi drugs is praised for drinking and food for persons with Pandu (grape and āmalakī juice is given for Kamala in the same verse).",
+      "sources": "sarit-carakasamhita:Ca.6.16.114",
+      "ai_precheck": "needs_practitioner_check",
+      "ai_note": "Verse continues into Ca.6.16.115; which drink is meant for Pandu and which for Kamala depends on reading across the verse boundary.",
+      "web_corroboration": ""
+    },
+    {
+      "claim_key": "snehana-kalyanaka",
+      "claim": "Oleation with medicated ghee (snehana) in Pandu USES_FORMULATION Kalyāṇaka ghṛta",
+      "category": "formulation_use",
+      "statement": "Kalyāṇaka ghṛta is one of the ghees named for oleation in Pandu and Kamala.",
+      "sources": "sarit-carakasamhita:Ca.6.16.43; kaviratna-charaka-1890:translation",
+      "ai_precheck": "supported",
+      "ai_note": "The quoted source passage states the claim.",
+      "web_corroboration": ""
+    },
+    {
+      "claim_key": "snehana-panchagavya",
+      "claim": "Oleation with medicated ghee (snehana) in Pandu USES_FORMULATION Pañcagavya ghṛta",
+      "category": "formulation_use",
+      "statement": "Pañcagavya ghṛta is one of the ghees named for oleation in Pandu and Kamala.",
+      "sources": "sarit-carakasamhita:Ca.6.16.43",
+      "ai_precheck": "supported",
+      "ai_note": "The quoted source passage states the claim.",
+      "web_corroboration": ""
+    },
+    {
+      "claim_key": "snehana-mahatikta",
+      "claim": "Oleation with medicated ghee (snehana) in Pandu USES_FORMULATION Mahātikta ghṛta",
+      "category": "formulation_use",
+      "statement": "Mahātikta ghṛta is one of the ghees named for oleation in Pandu and Kamala.",
+      "sources": "sarit-carakasamhita:Ca.6.16.43",
+      "ai_precheck": "supported",
+      "ai_note": "The quoted source passage states the claim.",
+      "web_corroboration": ""
+    },
+    {
+      "claim_key": "snehana-dadimadya",
+      "claim": "Oleation with medicated ghee (snehana) in Pandu USES_FORMULATION Dāḍimādya ghṛta",
+      "category": "formulation_use",
+      "statement": "Dāḍimādya ghṛta is described as alleviating heart disease, Pandu, gulma, piles and spleen disorders.",
+      "sources": "sarit-carakasamhita:Ca.6.16.45; kaviratna-charaka-1890:translation",
+      "ai_precheck": "partly_supported",
+      "ai_note": "Quote supports Dadimadya ghrta as curative in Pandu; placing it under the oleation principle is an inference from context.",
+      "web_corroboration": ""
+    },
+    {
+      "claim_key": "samshodhana-trivrit",
+      "claim": "Purification (saṃśodhana) with sharp emetic and purgative drugs after oleation, in Pandu USES_HERB Trivṛt",
+      "category": "herb_use",
+      "statement": "Trivṛt powder with sugar is given as a purgative in pittaja Pandu.",
+      "sources": "sarit-carakasamhita:Ca.6.16.57; kaviratna-charaka-1890:translation",
+      "ai_precheck": "supported",
+      "ai_note": "The quoted source passage states the claim.",
+      "web_corroboration": ""
+    },
+    {
+      "claim_key": "samshodhana-haritaki",
+      "claim": "Purification (saṃśodhana) with sharp emetic and purgative drugs after oleation, in Pandu USES_HERB Harītakī",
+      "category": "herb_use",
+      "statement": "Harītakī soaked in cow's urine is given as a purgative in kaphaja Pandu.",
+      "sources": "sarit-carakasamhita:Ca.6.16.58; kaviratna-charaka-1890:translation",
+      "ai_precheck": "supported",
+      "ai_note": "The quoted source passage states the claim.",
+      "web_corroboration": ""
+    },
+    {
+      "claim_key": "yathadosha-navayasa",
+      "claim": "Medication chosen according to the predominant dosha, in Pandu USES_FORMULATION Navāyasa cūrṇa",
+      "category": "formulation_use",
+      "statement": "Navāyasa cūrṇa is described as removing Pandu, heart disease, skin disease, piles and Kamala.",
+      "sources": "sarit-carakasamhita:Ca.6.16.71; kaviratna-charaka-1890:translation",
+      "ai_precheck": "supported",
+      "ai_note": "The quoted source passage states the claim.",
+      "web_corroboration": "https://caps.ncbs.res.in/GRAYU/formulation/Navayasa%20Curna"
+    },
+    {
+      "claim_key": "yathadosha-mandura-vataka",
+      "claim": "Medication chosen according to the predominant dosha, in Pandu USES_FORMULATION Maṇḍūra vaṭaka",
+      "category": "formulation_use",
+      "statement": "Maṇḍūra vaṭaka are described as life-giving for persons with Pandu.",
+      "sources": "sarit-carakasamhita:Ca.6.16.76; kaviratna-charaka-1890:translation",
+      "ai_precheck": "supported",
+      "ai_note": "The quoted source passage states the claim.",
+      "web_corroboration": ""
+    },
+    {
+      "claim_key": "yathadosha-yogaraja",
+      "claim": "Medication chosen according to the predominant dosha, in Pandu USES_FORMULATION Yogarāja",
+      "category": "formulation_use",
+      "statement": "Yogarāja is described as removing Pandu among many other disorders.",
+      "sources": "sarit-carakasamhita:Ca.6.16.86",
+      "ai_precheck": "supported",
+      "ai_note": "The quoted source passage states the claim.",
+      "web_corroboration": ""
+    },
+    {
+      "claim_key": "yathadosha-shilajatu",
+      "claim": "Medication chosen according to the predominant dosha, in Pandu USES_FORMULATION Śilājatu vaṭaka",
+      "category": "formulation_use",
+      "statement": "Śilājatu vaṭaka are described as removing Pandu, skin disease, fever and spleen disorders.",
+      "sources": "sarit-carakasamhita:Ca.6.16.91",
+      "ai_precheck": "supported",
+      "ai_note": "The quoted source passage states the claim.",
+      "web_corroboration": ""
+    },
+    {
+      "claim_key": "yathadosha-punarnava-mandura",
+      "claim": "Medication chosen according to the predominant dosha, in Pandu USES_FORMULATION Punarnavā maṇḍūra",
+      "category": "formulation_use",
+      "statement": "Punarnavā maṇḍūra pills are described as removing Pandu, spleen disorders, piles and intermittent fever.",
+      "sources": "sarit-carakasamhita:Ca.6.16.96; kaviratna-charaka-1890:translation",
+      "ai_precheck": "supported",
+      "ai_note": "The quoted source passage states the claim.",
+      "web_corroboration": "https://mars.1mg.com/otc/dhootapapeshwar-punarnava-mandoora-otc369292"
+    },
+    {
+      "claim_key": "yathadosha-dhatri-avaleha",
+      "claim": "Medication chosen according to the predominant dosha, in Pandu USES_FORMULATION Dhātrī avaleha",
+      "category": "formulation_use",
+      "statement": "Dhātrī avaleha is described as removing Kamala, Pandu, cough and halīmaka.",
+      "sources": "sarit-carakasamhita:Ca.6.16.102; kaviratna-charaka-1890:translation",
+      "ai_precheck": "supported",
+      "ai_note": "The quoted source passage states the claim.",
+      "web_corroboration": ""
+    },
+    {
+      "claim_key": "yathadosha-dhatri-arishta",
+      "claim": "Medication chosen according to the predominant dosha, in Pandu USES_FORMULATION Dhātrī ariṣṭa",
+      "category": "formulation_use",
+      "statement": "Dhātrī ariṣṭa is described as removing Kamala, Pandu and heart disease.",
+      "sources": "sarit-carakasamhita:Ca.6.16.113",
+      "ai_precheck": "supported",
+      "ai_note": "The quoted source passage states the claim.",
+      "web_corroboration": ""
+    },
+    {
+      "claim_key": "yathadosha-bijaka-arishta",
+      "claim": "Medication chosen according to the predominant dosha, in Pandu USES_FORMULATION Bījaka ariṣṭa",
+      "category": "formulation_use",
+      "statement": "Bījaka ariṣṭa is described as removing grahaṇī, Pandu, piles, swelling and gulma.",
+      "sources": "sarit-carakasamhita:Ca.6.16.110",
+      "ai_precheck": "supported",
+      "ai_note": "The quoted source passage states the claim.",
+      "web_corroboration": ""
+    },
+    {
+      "claim_key": "yathadosha-ayorajas",
+      "claim": "Medication chosen according to the predominant dosha, in Pandu USES_FORMULATION Iron powder macerated in cow's urine, given with milk (ayorajas)",
+      "category": "formulation_use",
+      "statement": "Iron powder macerated for seven nights in cow's urine is given with milk for the alleviation of Pandu.",
+      "sources": "sarit-carakasamhita:Ca.6.16.69; kaviratna-charaka-1890:translation",
+      "ai_precheck": "supported_with_qualification",
+      "ai_note": "Quote supports the classical preparation; modern evidence that milk inhibits non-heme iron absorption is kept as a qualification.",
+      "web_corroboration": ""
+    },
+    {
+      "claim_key": "navayasa-contains-musta",
+      "claim": "Navāyasa cūrṇa CONTAINS_INGREDIENT Musta",
+      "category": "formulation_ingredient",
+      "statement": "Navāyasa cūrṇa contains musta (with the three pungents, triphalā, viḍaṅga, citraka and iron powder).",
+      "sources": "sarit-carakasamhita:Ca.6.16.70; kaviratna-charaka-1890:translation",
+      "ai_precheck": "supported",
+      "ai_note": "The quoted source passage states the claim.",
+      "web_corroboration": "https://caps.ncbs.res.in/GRAYU/formulation/Navayasa%20Curna"
+    },
+    {
+      "claim_key": "navayasa-contains-vidanga",
+      "claim": "Navāyasa cūrṇa CONTAINS_INGREDIENT Viḍaṅga",
+      "category": "formulation_ingredient",
+      "statement": "Navāyasa cūrṇa contains viḍaṅga.",
+      "sources": "sarit-carakasamhita:Ca.6.16.70",
+      "ai_precheck": "supported",
+      "ai_note": "The quoted source passage states the claim.",
+      "web_corroboration": "https://caps.ncbs.res.in/GRAYU/formulation/Navayasa%20Curna"
+    },
+    {
+      "claim_key": "navayasa-contains-chitraka",
+      "claim": "Navāyasa cūrṇa CONTAINS_INGREDIENT Citraka",
+      "category": "formulation_ingredient",
+      "statement": "Navāyasa cūrṇa contains citraka.",
+      "sources": "sarit-carakasamhita:Ca.6.16.70",
+      "ai_precheck": "supported",
+      "ai_note": "The quoted source passage states the claim.",
+      "web_corroboration": "https://caps.ncbs.res.in/GRAYU/formulation/Navayasa%20Curna"
+    },
+    {
+      "claim_key": "punarnava-mandura-contains-punarnava",
+      "claim": "Punarnavā maṇḍūra CONTAINS_INGREDIENT Punarnavā",
+      "category": "formulation_ingredient",
+      "statement": "Punarnavā maṇḍūra contains punarnavā.",
+      "sources": "sarit-carakasamhita:Ca.6.16.93; kaviratna-charaka-1890:translation",
+      "ai_precheck": "supported",
+      "ai_note": "The quoted source passage states the claim.",
+      "web_corroboration": "https://mars.1mg.com/otc/dhootapapeshwar-punarnava-mandoora-otc369292"
+    },
+    {
+      "claim_key": "punarnava-mandura-contains-trivrit",
+      "claim": "Punarnavā maṇḍūra CONTAINS_INGREDIENT Trivṛt",
+      "category": "formulation_ingredient",
+      "statement": "Punarnavā maṇḍūra contains trivṛt.",
+      "sources": "sarit-carakasamhita:Ca.6.16.93",
+      "ai_precheck": "supported",
+      "ai_note": "The quoted source passage states the claim.",
+      "web_corroboration": "https://mars.1mg.com/otc/dhootapapeshwar-punarnava-mandoora-otc369292"
+    },
+    {
+      "claim_key": "punarnava-mandura-contains-vidanga",
+      "claim": "Punarnavā maṇḍūra CONTAINS_INGREDIENT Viḍaṅga",
+      "category": "formulation_ingredient",
+      "statement": "Punarnavā maṇḍūra contains viḍaṅga.",
+      "sources": "sarit-carakasamhita:Ca.6.16.93",
+      "ai_precheck": "supported",
+      "ai_note": "The quoted source passage states the claim.",
+      "web_corroboration": "https://mars.1mg.com/otc/dhootapapeshwar-punarnava-mandoora-otc369292"
+    },
+    {
+      "claim_key": "punarnava-mandura-contains-chitraka",
+      "claim": "Punarnavā maṇḍūra CONTAINS_INGREDIENT Citraka",
+      "category": "formulation_ingredient",
+      "statement": "Punarnavā maṇḍūra contains citraka.",
+      "sources": "sarit-carakasamhita:Ca.6.16.93",
+      "ai_precheck": "supported",
+      "ai_note": "The quoted source passage states the claim.",
+      "web_corroboration": "https://mars.1mg.com/otc/dhootapapeshwar-punarnava-mandoora-otc369292"
+    },
+    {
+      "claim_key": "punarnava-mandura-contains-haridra",
+      "claim": "Punarnavā maṇḍūra CONTAINS_INGREDIENT Haridrā",
+      "category": "formulation_ingredient",
+      "statement": "Punarnavā maṇḍūra contains the two haridrās.",
+      "sources": "sarit-carakasamhita:Ca.6.16.94",
+      "ai_precheck": "partly_supported",
+      "ai_note": "Quote names 'the two haridras' (haridra and daruharidra); only haridra is modelled.",
+      "web_corroboration": ""
+    },
+    {
+      "claim_key": "punarnava-mandura-contains-musta",
+      "claim": "Punarnavā maṇḍūra CONTAINS_INGREDIENT Musta",
+      "category": "formulation_ingredient",
+      "statement": "Punarnavā maṇḍūra contains musta.",
+      "sources": "sarit-carakasamhita:Ca.6.16.94",
+      "ai_precheck": "supported",
+      "ai_note": "The quoted source passage states the claim.",
+      "web_corroboration": "https://mars.1mg.com/otc/dhootapapeshwar-punarnava-mandoora-otc369292"
+    }
+  ]
+}

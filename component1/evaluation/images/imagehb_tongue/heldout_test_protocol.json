@@ -1,0 +1,9 @@
+{
+  "source": "imagehb_sample",
+  "modality": "tongue",
+  "selected_checkpoint_epoch": 6,
+  "selected_by": "validation MAE",
+  "test_participants": 5,
+  "test_evaluated": true,
+  "note": "Exploratory evaluation using five participants."
+}

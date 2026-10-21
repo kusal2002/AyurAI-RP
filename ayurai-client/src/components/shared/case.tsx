@@ -3,23 +3,16 @@ import { Link } from "react-router"
 import { FolderOpen, Info, Leaf, Play, Plus, Stethoscope } from "lucide-react"
 
 import { EmptyState, ErrorState, IdChip, LoadingState, Panel } from "@/components/shared/page"
-import { StatusBadge, demoSpec, serviceStateSpecs } from "@/components/shared/status"
 import { Button } from "@/components/ui/button"
 import { useWorkspace, type CaseRecord } from "@/context/workspace"
-import type { Component2Output } from "@/lib/api/types"
+import { useTechnicalView } from "@/lib/access"
+import { c1View, type Component2Output } from "@/lib/api/types"
 import { formatDateTime } from "@/lib/labels"
-
-export function SourceBadge({ record }: { record: CaseRecord }) {
-  return record.source === "demo" ? (
-    <StatusBadge spec={demoSpec} />
-  ) : (
-    <StatusBadge spec={{ ...serviceStateSpecs.online, label: "Live service data" }} />
-  )
-}
 
 /** Active-case selector shown at the top of case-level screens. */
 export function CaseBar() {
   const { cases, activeCase, selectCase } = useWorkspace()
+  const [technical] = useTechnicalView()
   if (cases.length === 0) return null
 
   return (
@@ -41,9 +34,8 @@ export function CaseBar() {
           </select>
         </label>
       </div>
-      {activeCase && (
+      {activeCase && technical && (
         <div className="flex flex-wrap items-center gap-2">
-          <SourceBadge record={activeCase} />
           {activeCase.c2.status === "success" && (
             <span className="text-xs text-slate-500">
               C2 request <IdChip>{activeCase.c2.data.request_id}</IdChip>
@@ -162,7 +154,7 @@ function NotAnalysed({ record }: { record: CaseRecord }) {
   const mapping = record.c1?.mapping
   const payload = record.c1?.payload
   if (!mapping) return null
-  const reported = payload?.symptoms ?? []
+  const reported = payload ? c1View(payload).symptoms : []
   const present = reported.filter((symptom) => symptom.present)
   const unknown = mapping.unresolved_symptoms.filter((item) => item.status === "not_found")
   const unclear = mapping.unresolved_symptoms.filter((item) => item.status === "ambiguous")

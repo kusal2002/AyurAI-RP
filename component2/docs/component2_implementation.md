@@ -333,7 +333,7 @@ python -m pytest -q
 ```
 
 Unit tests run offline: an in-memory `FakeGraph` replaces Neo4j and a
-test-only `KeywordEncoder` replaces the model (`c2_test_support.py`).
+test-only `KeywordEncoder` replaces the model (`tests/c2_test_support.py`).
 One test (`test_invalid_model_path_raises_clear_error`) is skipped if
 sentence-transformers is not installed.
 

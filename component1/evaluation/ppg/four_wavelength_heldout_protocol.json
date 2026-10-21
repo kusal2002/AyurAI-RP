@@ -1,0 +1,14 @@
+{
+  "dataset": "Hb_PPG_FourWavelength",
+  "model": "Ridge",
+  "selected_by": "validation_MAE",
+  "channels_nm": [
+    660,
+    940
+  ],
+  "train_participants": 160,
+  "test_participants": 51,
+  "test_evaluated": true,
+  "model_retrained_on_test": false,
+  "note": "This evaluates the saved validation-selected model on previously held-out participants."
+}

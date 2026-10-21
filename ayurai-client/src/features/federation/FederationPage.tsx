@@ -17,7 +17,6 @@ import {
 import { EmptyState, ErrorState, FilterChips, KeyValueList, LoadingState, Notice, PageHeader, Panel } from "@/components/shared/page"
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/context/auth"
-import { useWorkspace } from "@/context/workspace"
 import type { FederationRun } from "@/lib/api/component4"
 import { C4SignInRequired, RealDataNotice, meanByRound, strategyStyle, useFederationData } from "./shared"
 
@@ -106,7 +105,6 @@ function ClinicDistribution({ clinics }: { clinics: { clinic_id: number; name: s
 
 export function FederationPage() {
   const { user } = useAuth()
-  const { mode } = useWorkspace()
   const { state, reload } = useFederationData()
   const [epsilon, setEpsilon] = React.useState<string>("2")
 
@@ -115,11 +113,11 @@ export function FederationPage() {
       eyebrow="Component 4 · Federated learning"
       title="Federated training"
       description="Three simulated clinic nodes train one anemia risk model without sharing raw data. FedProx (proposed) is compared with FedAvg (baseline) under the same non-IID split and differential-privacy budget."
-      actions={user && mode === "live" ? <Button variant="outline" size="sm" onClick={reload}><RefreshCw /> Refresh</Button> : undefined}
+      actions={user ? <Button variant="outline" size="sm" onClick={reload}><RefreshCw /> Refresh</Button> : undefined}
     />
   )
 
-  if (mode !== "live" || !user) return <>{header}<C4SignInRequired what="Federated training results" /></>
+  if (!user) return <>{header}<C4SignInRequired what="Federated training results" /></>
   if (state.status === "loading") return <>{header}<LoadingState label="Loading federated training results…" /></>
   if (state.status === "error") return <>{header}<ErrorState error={state.error} onRetry={reload} /></>
 

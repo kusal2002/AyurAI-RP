@@ -28,7 +28,10 @@ from app.models.c1_input import RiskTier
 # `risk_context` (Recommend / Caution / Abstain, FR9). Additive only.
 # 0.3.0 (2026-10-20): adds `knowledge_scope` and per-claim/evidence
 # `knowledge_status` for the provisional research pathway. Additive only.
-OUTPUT_SCHEMA_VERSION = "c2-output/0.3.0"
+# 0.4.0 (2026-10-22): adds candidate `matched_subtypes`; within a disposition,
+# candidates reached through a matched Roga type (e.g. Pittaja Pandu) are
+# listed before general remedies. Scores are unchanged. Additive only.
+OUTPUT_SCHEMA_VERSION = "c2-output/0.4.0"
 
 SCORE_SEMANTICS = {
     "upstream.calibrated_confidence": (
@@ -82,6 +85,7 @@ class RiskRule(str, Enum):
     HIGH_TIER = "upstream_high_risk"
     CONFIDENCE_MISSING = "upstream_confidence_missing"
     LOW_CONFIDENCE = "upstream_low_confidence"
+    URGENT_REVIEW = "upstream_urgent_clinician_review"
 
 
 class CandidateCategory(str, Enum):
@@ -199,6 +203,13 @@ class Candidate(BaseModel):
     candidate_id: str
     category: CandidateCategory
     name: str | None
+    botanical_name: str | None = Field(
+        default=None,
+        description=(
+            "Botanical name as stated by the cited translation; not "
+            "taxonomically verified. Null when the source gives none."
+        ),
+    )
     rank: int
     ranking: RankingBreakdown
     disposition: CandidateDisposition
@@ -208,6 +219,15 @@ class Candidate(BaseModel):
     contradicting_evidence_ids: list[str]
     verification_statuses: list[str]
     conflict_flags: list[str] = Field(default_factory=list)
+    matched_subtypes: list[str] = Field(
+        default_factory=list,
+        description=(
+            "Roga types (concepts with subtype_of, e.g. Pittaja Pandu) on this "
+            "candidate's paths, reached from the patient's symptoms. Within the "
+            "same disposition, candidates with a matched type are listed before "
+            "general remedies; the ranking score itself is not changed."
+        ),
+    )
     sufficiency: SufficiencyAssessment
     rationale: list[ExplanationStatement] = Field(default_factory=list)
 

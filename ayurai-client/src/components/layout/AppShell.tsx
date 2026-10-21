@@ -1,29 +1,21 @@
 import * as React from "react"
-import { NavLink, Outlet, useLocation, useNavigate } from "react-router"
-import { FlaskConical, Leaf, LogIn, LogOut, Menu, Plus, Radio, ShieldCheck, UserRound, X } from "lucide-react"
+import { NavLink, Outlet, useLocation } from "react-router"
+import { Leaf, LogIn, LogOut, Menu, Plus, ShieldCheck, UserRound, X } from "lucide-react"
 
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button"
-import { navGroups, navItemFor } from "@/components/layout/nav"
+import { navGroupsFor, navItemFor } from "@/components/layout/nav"
 import { roleLabels, useAuth } from "@/context/auth"
-import { useWorkspace } from "@/context/workspace"
-import type { DataMode } from "@/lib/env"
+import { useAccess } from "@/lib/access"
+import { env } from "@/lib/env"
 import { cn } from "@/lib/utils"
 
 function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
+  const { allows, isPractitioner } = useAccess()
+  const groups = navGroupsFor(allows)
   return (
     <>
       <nav aria-label="Main navigation" className="flex-1 space-y-6 overflow-y-auto px-3 py-5">
-        {navGroups.map((group) => (
+        {groups.map((group) => (
           <div key={group.title}>
             <p className="mb-1.5 px-3 text-[10px] font-bold tracking-[0.15em] text-slate-400 uppercase">
               {group.title}
@@ -53,7 +45,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
                           className={isActive ? "text-emerald-700" : "text-slate-400"}
                         />
                         <span className="flex-1 truncate">{label}</span>
-                        {component && (
+                        {component && !isPractitioner && (
                           <span
                             className={cn(
                               "rounded px-1 text-[9px] font-bold tracking-wide",
@@ -106,87 +98,6 @@ function Brand() {
   )
 }
 
-function ModeSwitch() {
-  const { mode, setMode, cases } = useWorkspace()
-  const [pending, setPending] = React.useState<DataMode | null>(null)
-  const navigate = useNavigate()
-
-  function request(next: DataMode) {
-    if (next === mode) return
-    setPending(next)
-  }
-
-  const liveCases = cases.filter((record) => record.source === "live").length
-
-  return (
-    <>
-      <div
-        role="radiogroup"
-        aria-label="Data mode"
-        className="flex items-center rounded-xl border border-slate-200 bg-slate-50 p-0.5"
-      >
-        {(
-          [
-            { value: "demo", label: "Demo", icon: FlaskConical },
-            { value: "live", label: "Live", icon: Radio },
-          ] as const
-        ).map(({ value, label, icon: Icon }) => {
-          const selected = mode === value
-          return (
-            <button
-              key={value}
-              type="button"
-              role="radio"
-              aria-checked={selected}
-              onClick={() => request(value)}
-              className={cn(
-                "inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-semibold transition",
-                selected
-                  ? value === "demo"
-                    ? "bg-violet-600 text-white shadow-sm"
-                    : "bg-emerald-700 text-white shadow-sm"
-                  : "text-slate-500 hover:text-slate-800",
-              )}
-            >
-              <Icon aria-hidden className="size-3.5" />
-              {label}
-            </button>
-          )
-        })}
-      </div>
-
-      <AlertDialog open={pending !== null} onOpenChange={(open) => !open && setPending(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>
-              Switch to {pending === "demo" ? "demo" : "live"} mode?
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              {pending === "demo"
-                ? "Demo mode shows fictional fixtures only. Nothing is sent to any service."
-                : "Live mode calls the configured Component 2 and Component 3 services. Use synthetic or properly de-identified data only."}{" "}
-              Switching clears the cases in this session so demo and live records are never mixed
-              {liveCases > 0 ? ` (${liveCases} live case${liveCases === 1 ? "" : "s"} will be cleared)` : ""}.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => {
-                if (pending) setMode(pending)
-                setPending(null)
-                navigate("/")
-              }}
-            >
-              Switch mode
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </>
-  )
-}
-
 /** Signed-in Component 4 user (name, role, clinic) with sign-out, or a sign-in link. */
 function UserMenu() {
   const { user, signOut } = useAuth()
@@ -216,7 +127,7 @@ export function AppShell() {
   const [mobileOpen, setMobileOpen] = React.useState(false)
   const location = useLocation()
   const current = navItemFor(location.pathname)
-  const { mode } = useWorkspace()
+  const { user } = useAuth()
 
   React.useEffect(() => {
     if (!mobileOpen) return
@@ -284,7 +195,6 @@ export function AppShell() {
             </div>
           </div>
           <div className="flex shrink-0 items-center gap-2">
-            <ModeSwitch />
             <UserMenu />
             <Button
               size="sm"
@@ -297,13 +207,10 @@ export function AppShell() {
           </div>
         </header>
 
-        {mode === "demo" && (
-          <div className="border-b border-violet-200 bg-violet-50 px-4 py-2 text-xs text-violet-900 sm:px-6">
-            <span className="inline-flex items-center gap-1.5 font-semibold">
-              <FlaskConical aria-hidden className="size-3.5" /> Demo mode:
-            </span>{" "}
-            every record, result and figure shown is fictional. No service is called and nothing you
-            enter leaves this browser.
+        {env.authBypass && !user && (
+          <div role="status" className="border-b border-amber-300 bg-amber-50 px-4 py-2 text-xs text-amber-900 sm:px-6">
+            <strong>Sign-in bypassed (development only).</strong> Component 4 pages and decision recording still need a
+            real sign-in. Remove <code>VITE_AUTH_BYPASS</code> from <code>.env.local</code> to turn this off.
           </div>
         )}
 

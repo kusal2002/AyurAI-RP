@@ -33,7 +33,7 @@ from app.models.c2_output import (
     SymptomMapping,
     UpstreamScreeningMetadata,
 )
-from app.reasoning.candidates import concept_name, extract_candidate_paths
+from app.reasoning.candidates import concept_botanical_name, concept_name, extract_candidate_paths
 from app.reasoning.explanation import (
     explain_abstention,
     explain_caution,
@@ -168,6 +168,24 @@ def _indicates_statuses(symptom_reasoning, mappings):
             yield mapping, claim.get("knowledge_status", "approved")
 
 
+def candidate_order_key(candidate: dict[str, Any]) -> tuple:
+    """Order of candidates in the output (rank 1 first).
+
+    1. Forwarded candidates first: ranking never overrides sufficiency.
+    2. Then candidates reached through a matched Roga type (for example
+       Pittaja Pandu from burning and thirst) before the general remedies of
+       the parent Roga, so the patient's type shapes the list.
+    3. Then the experimental ranking score, which this order never changes.
+    """
+    return (
+        candidate["disposition"] != CandidateDisposition.FORWARD_FOR_SAFETY_ASSESSMENT,
+        not candidate.get("matched_subtypes"),
+        -candidate["ranking"].score,
+        candidate["category"].value,
+        candidate["candidate_id"],
+    )
+
+
 def run_component2_reasoning(
     request: Component2ReasoningRequest,
     driver: Driver | None = None,
@@ -241,6 +259,13 @@ def run_component2_reasoning(
         else 1.0
     )
 
+    # Roga types (e.g. Pittaja Pandu) reached from the patient's symptoms.
+    subtype_ids = {
+        concept_id
+        for concept_id, entry in concepts.items()
+        if (entry.get("properties") or {}).get("subtype_of")
+    }
+
     # 6-8. Ranking and sufficiency per candidate.
     unranked = []
     for candidate_id, paths in candidate_paths.items():
@@ -270,6 +295,7 @@ def run_component2_reasoning(
                 candidate_id=candidate_id,
                 category=category,
                 name=concept_name(concepts, candidate_id),
+                botanical_name=concept_botanical_name(concepts, candidate_id),
                 ranking=ranking,
                 disposition=disposition,
                 paths=paths,
@@ -292,19 +318,14 @@ def run_component2_reasoning(
                     {c.verification_status for c in steps.values()}
                 ),
                 conflict_flags=conflict_flags,
+                matched_subtypes=sorted(
+                    {cid for p in paths for cid in p.concept_ids if cid in subtype_ids}
+                ),
                 sufficiency=sufficiency,
             )
         )
 
-    # Forwarded candidates first; ranking never overrides sufficiency.
-    unranked.sort(
-        key=lambda c: (
-            c["disposition"] != CandidateDisposition.FORWARD_FOR_SAFETY_ASSESSMENT,
-            -c["ranking"].score,
-            c["category"].value,
-            c["candidate_id"],
-        )
-    )
+    unranked.sort(key=candidate_order_key)
     candidates = []
     for rank, data in enumerate(unranked, start=1):
         candidate = Candidate(rank=rank, **data)
@@ -337,7 +358,10 @@ def run_component2_reasoning(
     # Request-level decision (FR9): evidence status gated by upstream risk.
     # Ranking, candidate sufficiency and dispositions are already final.
     risk_context = evaluate_risk_context(
-        request.risk_tier, request.calibrated_confidence, risk_policy
+        request.risk_tier,
+        request.calibrated_confidence,
+        risk_policy,
+        urgent_clinician_review=request.urgent_clinician_review,
     )
     decision, decision_reasons = decide(status, risk_context, risk_policy)
     provisional_used = any(
