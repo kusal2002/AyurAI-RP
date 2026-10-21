@@ -1,0 +1,6 @@
+node_modules/
+dist/
+# .env.local may hold VITE_AUTH_BYPASS and other local-only values
+.env
+.env.*
+*.log

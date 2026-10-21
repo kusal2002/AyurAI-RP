@@ -1,0 +1,13 @@
+# Keep secrets, local environments and the large corpus out of the image
+.env
+.env.*
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+corpus/
+eval/
+tests/
+docs/
+*.log

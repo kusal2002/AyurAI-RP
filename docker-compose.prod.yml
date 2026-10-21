@@ -1,0 +1,94 @@
+# AyurAI production stack for the VPS. See deploy/README.md.
+#
+#   docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --build
+#
+# Only nginx is reachable from the internet (ports 80/443). The APIs and
+# PostgreSQL are on the internal compose network only.
+# Neo4j is not here: Components 2 and 3 use Neo4j AuraDB (cloud).
+
+services:
+  # ---------- Website + reverse proxy ----------
+  nginx:
+    build: ./ayurai-client
+    image: ayurai-web
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      DOMAIN: ${DOMAIN:-_}
+    volumes:
+      # http = before a certificate exists, https = after (set NGINX_CONF in .env.prod)
+      - ./deploy/nginx/${NGINX_CONF:-http}.conf.template:/etc/nginx/templates/default.conf.template:ro
+      - ./deploy/nginx/snippets:/etc/nginx/snippets:ro
+      - certbot_www:/var/www/certbot:ro
+      - letsencrypt:/etc/letsencrypt:ro
+    depends_on: [c2, c3, c4-api]
+
+  # ---------- Component 2: KG reasoning ----------
+  c2:
+    build: ./component2
+    image: ayurai-c2
+    restart: unless-stopped
+    env_file: ./component2/.env
+    volumes:
+      - hf_models:/models           # downloaded embedding models survive rebuilds
+    expose: ["8000"]
+
+  # ---------- Component 3: safety assessment ----------
+  c3:
+    build: ./component3
+    image: ayurai-c3
+    restart: unless-stopped
+    env_file: ./component3/.env
+    environment:
+      DEBUG: "false"
+    expose: ["8003"]
+
+  # ---------- Component 4: security & governance API ----------
+  c4-api:
+    build:
+      context: ./component4
+      dockerfile: Dockerfile.api
+    image: ayurai-c4-api
+    restart: unless-stopped
+    env_file: ./component4/.env
+    environment:
+      # Overrides the localhost URL in component4/.env: "postgres" is the container below
+      DATABASE_URL: postgresql+psycopg2://${POSTGRES_USER:-ayurai}:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env.prod}@postgres:5432/${POSTGRES_DB:-ayurai_audit}
+    volumes:
+      - ./component4/results:/app/results:ro   # federated/FAKL result CSVs shown on the dashboard
+    expose: ["8004"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-ayurai}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env.prod}
+      POSTGRES_DB: ${POSTGRES_DB:-ayurai_audit}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # ---------- HTTPS certificates (Let's Encrypt) ----------
+  # Not started by "up": run it by hand, see deploy/README.md.
+  certbot:
+    image: certbot/certbot:latest
+    profiles: ["certbot"]
+    volumes:
+      - certbot_www:/var/www/certbot
+      - letsencrypt:/etc/letsencrypt
+
+volumes:
+  pgdata:
+  hf_models:
+  certbot_www:
+  letsencrypt:
