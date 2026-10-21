@@ -1,0 +1,30 @@
+{
+  "experiment": "yakimov_hb_2024/whole_frame_ft",
+  "description": "Experiment A: conservative whole-frame fine-tuning of the existing Yakimov nail-bed Hb EfficientNet-B0 (no nail cropping).",
+  "seed": 42,
+  "source_checkpoint": "yakimov_hb_2024/efficientnet_b0_best.pth",
+  "architecture": "efficientnet_b0",
+  "unfreeze_feature_blocks": [7, 8],
+  "keep_batchnorm_running_stats_frozen": true,
+  "optimizer": "AdamW",
+  "lr_backbone": 1e-05,
+  "lr_head": 0.0001,
+  "weight_decay": 0.0001,
+  "loss": "SmoothL1Loss on train-normalised Hb (same as original training)",
+  "batch_size": 16,
+  "max_epochs": 12,
+  "early_stopping": {"monitor": "val_mae_g_dl", "mode": "min", "patience": 3, "min_delta": 0.0},
+  "grad_clip_norm": 1.0,
+  "augmentation": {
+    "applied_to": "training images only, after the production preprocessing",
+    "horizontal_flip_p": 0.5,
+    "rotation_degrees": 8,
+    "translate_fraction": 0.04,
+    "scale_range": [0.95, 1.05],
+    "fill": "white (matches production padding colour)",
+    "colour_changes": "none (nail-bed colour is the Hb evidence)"
+  },
+  "preprocessing": "Identical to production: EXIF transpose -> RGBA composited on white -> RGB -> ImageOps.pad to 224x224 (bilinear, white) -> ToTensor -> ImageNet normalisation",
+  "output_root": "trained_model_artifacts/experiments/yakimov_hb_2024",
+  "run_name_prefix": "whole_frame_ft_v"
+}

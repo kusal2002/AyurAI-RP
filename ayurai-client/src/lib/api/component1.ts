@@ -3,11 +3,15 @@ import type {
   C1Answers,
   C1CaptureCounts,
   C1CaptureStatus,
-  C1PpgSummary,
+  C1ImageChange,
+  C1IntakeState,
+  C1PpgJob,
+  C1PpgJobStatus,
   C1Profile,
   C1Question,
   C1QuestionnaireBody,
   C1QuestionSet,
+  C1ReferralBody,
   C1SerialPorts,
   Component1HealthResponse,
   Component1Json,
@@ -37,13 +41,16 @@ function c1Message(status: number, body: unknown): string {
 }
 
 /** Intake requests: JSON or multipart, longer timeout (PPG recording and model inference take seconds). */
-async function intake<T>(path: string, init: { json?: unknown; form?: FormData; timeoutMs?: number } = {}): Promise<T> {
+async function intake<T>(
+  path: string,
+  init: { json?: unknown; form?: FormData; timeoutMs?: number; method?: "POST" | "DELETE" } = {},
+): Promise<T> {
   const controller = new AbortController()
   const timer = window.setTimeout(() => controller.abort(), init.timeoutMs ?? 120_000)
   let response: Response
   try {
     response = await fetch(`${env.c1BaseUrl}${path}`, {
-      method: "POST",
+      method: init.method ?? "POST",
       headers: init.json !== undefined ? { Accept: "application/json", "Content-Type": "application/json" } : { Accept: "application/json" },
       body: init.form ?? JSON.stringify(init.json ?? {}),
       signal: controller.signal,
@@ -65,12 +72,13 @@ export const component1Api = {
   sessions: (signal?: AbortSignal) =>
     component1Client.get<Component1SessionsResponse>("/api/c1/sessions", { signal }),
 
-  /** Re-runs session fusion on existing evidence; does not capture or upload. */
+  /** Re-runs session fusion on existing evidence; does not capture or upload.
+   *  Longer timeout: after an image change the backend re-runs the image models before fusion. */
   refresh: (sessionId: string, signal?: AbortSignal) =>
     component1Client.post<Component1Report>(
       `/api/c1/sessions/${encodeSessionId(sessionId)}/refresh`,
       {},
-      { signal },
+      { signal, timeoutMs: 120_000 },
     ),
 
   c2Payload: (sessionId: string, signal?: AbortSignal) =>
@@ -107,14 +115,23 @@ export const component1Api = {
       { json: body },
     ),
 
-  uploadImage: (sessionId: string, modality: keyof C1CaptureCounts, image: Blob) => {
+  /** `replaces`: the original image is retired by the server only after this upload is saved. */
+  uploadImage: (sessionId: string, modality: keyof C1CaptureCounts, image: Blob, replaces?: string) => {
     const form = new FormData()
     form.append("image", image, `${modality}.png`)
-    return intake<{ captures: C1CaptureCounts }>(
-      `/api/c1/sessions/${encodeSessionId(sessionId)}/images?modality=${modality}`,
-      { form },
-    )
+    const query = `modality=${modality}${replaces ? `&replaces=${encodeURIComponent(replaces)}` : ""}`
+    return intake<C1ImageChange>(`/api/c1/sessions/${encodeSessionId(sessionId)}/images?${query}`, { form })
   },
+
+  /** Removes one image from active evidence (the server keeps an audit copy). */
+  deleteImage: (sessionId: string, imageId: string) =>
+    intake<C1ImageChange>(
+      `/api/c1/sessions/${encodeSessionId(sessionId)}/images/${encodeURIComponent(imageId)}`,
+      { method: "DELETE" },
+    ),
+
+  imageUrl: (sessionId: string, imageId: string) =>
+    `${env.c1BaseUrl}/api/c1/sessions/${encodeSessionId(sessionId)}/images/${encodeURIComponent(imageId)}`,
 
   comfortCheck: (sessionId: string, answers: Record<string, string>) =>
     intake<{ status: C1CaptureStatus }>(`/api/c1/sessions/${encodeSessionId(sessionId)}/ppg/comfort`, {
@@ -124,11 +141,23 @@ export const component1Api = {
   serialPorts: (signal?: AbortSignal) =>
     component1Client.get<C1SerialPorts>("/api/c1/hardware/serial-ports", { signal }),
 
+  /** Starts a background recording on the backend (single serial owner); poll ppgJob() for progress. */
   recordPpg: (sessionId: string, seconds: number) =>
-    intake<C1PpgSummary>(`/api/c1/sessions/${encodeSessionId(sessionId)}/ppg/record`, {
-      json: { seconds },
-      timeoutMs: (seconds + 60) * 1000,
-    }),
+    intake<C1PpgJob>(`/api/c1/sessions/${encodeSessionId(sessionId)}/ppg/record`, { json: { seconds } }),
+
+  /** ~4 s live-signal check; nothing is saved. */
+  probePpg: () => intake<C1PpgJob>("/api/c1/hardware/ppg-probe"),
+
+  ppgJob: (signal?: AbortSignal) => component1Client.get<C1PpgJobStatus>("/api/c1/hardware/ppg-job", { signal }),
+
+  cancelPpg: () => intake<{ cancel_requested: boolean }>("/api/c1/hardware/ppg-job/cancel"),
+
+  intakeState: (sessionId: string, signal?: AbortSignal) =>
+    component1Client.get<C1IntakeState>(`/api/c1/sessions/${encodeSessionId(sessionId)}/intake-state`, { signal }),
+
+  /** Stop and refer: saves the answers given so far as a referral-only record (no risk tier). */
+  referral: (sessionId: string, body: C1ReferralBody) =>
+    intake<Component1Report>(`/api/c1/sessions/${encodeSessionId(sessionId)}/referral`, { json: body }),
 
   analyze: (sessionId: string) =>
     intake<Component1Report>(`/api/c1/sessions/${encodeSessionId(sessionId)}/analyze`, { timeoutMs: 300_000 }),
