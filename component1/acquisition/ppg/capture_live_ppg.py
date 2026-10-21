@@ -146,9 +146,6 @@ def record(port, seconds, session, baud, on_progress=None, stop_event=None):
         "%Y%m%dT%H%M%SZ"
     )
 
-    csv_path = output_dir / f"ppg_red_ir_{stamp}.csv"
-    metrics_path = output_dir / f"ppg_metrics_{stamp}.csv"
-    figure_path = output_dir / f"ppg_waveform_{stamp}.png"
 
     print("AYURAI - LIVE MAX30102 USB CAPTURE")
     print(f"COM port: {port}")
@@ -255,6 +252,24 @@ def record(port, seconds, session, baud, on_progress=None, stop_event=None):
             "No RED/IR data received. "
             "Check the Arduino sketch and baud rate."
         )
+
+    return save_recording(output_dir, session, rows, metrics_rows, stamp, bad_lines)
+
+
+def save_recording(output_dir, session, rows, metrics_rows, stamp, bad_lines=0):
+    """Save one recording exactly as the USB recorder does; returns the RED/IR CSV path.
+
+    rows: (host_elapsed_s, esp32_readout_ms, red, ir); metrics_rows: (time_ms, hr_bpm, spo2_percent,
+    temperature_c, finger_present). Used by record() and by the browser (Web Serial) upload in the API.
+    Never overwrites an existing recording.
+    """
+
+    csv_path = output_dir / f"ppg_red_ir_{stamp}.csv"
+    metrics_path = output_dir / f"ppg_metrics_{stamp}.csv"
+    figure_path = output_dir / f"ppg_waveform_{stamp}.png"
+
+    if csv_path.exists() or metrics_path.exists():
+        raise FileExistsError(f"Recording already exists: {csv_path.name}")
 
     output_dir.mkdir(
         parents=True,

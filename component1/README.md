@@ -516,3 +516,41 @@ Streamlit serves on its own port (8501 by default), so it doesn't clash with por
 - **Webcam.** `capture_webcam.py` and the browser cannot use the same camera at the same time.
 - **Storage.** Legacy tools write to the same `screening_sessions.sqlite3` and `live_sessions` folder. Sessions created that way, for example by webcam-only capture without a questionnaire, appear in **Screening records**, but they don't have the full intake record.
 - **Model checkpoints.** The command-line evaluation scripts load the same checkpoint files read-only; they don't conflict.
+
+---
+
+## 13. PPG on a deployed website (browser Web Serial)
+
+On a server (VPS) the API cannot open the laptop's COM port, so a deployed site shows "COM11 … port not found". For that case the PPG step can read the ESP32 **in the browser** (Web Serial, desktop Chrome or Edge over HTTPS) and upload the finished recording. The server saves it in the session's `ppg/` folder in exactly the USB recorder's format (`capture_live_ppg.save_recording`) and runs the **unchanged** quality check (`assess_live_ppg`), SQLite registration and fusion. No firmware change.
+
+| Setting (environment, or `component1\.env`) | Default | Deployed site |
+|---|---|---|
+| `C1_SERIAL_ENABLED` | `true` (the API opens its own COM port) | `false` (no "COM11 not found"; server port controls hidden) |
+| `C1_PPG_UPLOAD_ENABLED` | `false` (upload route returns 503) | `true` **only when `/c1-api` is behind a login** (see below) |
+
+**Security blocker (must be fixed before enabling uploads):** the Component 1 API has no user authentication of its own, and on 2026-10-21 `https://www.ayurai.org/c1-api/api/c1/sessions` answered without any sign-in. Before setting `C1_PPG_UPLOAD_ENABLED=true`, put `/c1-api` behind authenticated access at the reverse proxy (for example nginx `auth_basic`, or an IP allow-list for the clinic laptops). Same-origin browser requests then carry the login automatically. Integrating Component 4 sign-in needs a shared-code change (`component4.ts` / `auth.tsx`) and is not done.
+
+Other proxy settings: the upload is a JSON body of up to about 0.5 MB (`client_max_body_size` of at least 1m; 12m is already needed for webcam photos) and processing takes a few seconds (`proxy_read_timeout` of at least 120s).
+
+**Upload endpoint:** `POST /api/c1/sessions/{session_id}/ppg/upload` (201). Body: `upload_id` (32 hex characters, one per captured recording), `seconds` (5–60), `samples_csv` (`host_elapsed_s,esp32_readout_ms,red,ir`, at most 400 kB) and `metrics_csv` (`time_ms,hr_bpm,spo2_percent,temperature_c,finger_present`, optional).
+- **Same rules as `/ppg/record`:** demo session only, safety-referral sessions refused, PPG consent and a passed finger-comfort check required.
+- **Validation:** exact columns; numeric values; RED/IR within 0–262143; time never going backwards; at least 50 samples; duration within 75%–(100% + 2 s) of `seconds`; a plausible 5–150 rows/s.
+- **Idempotent:** retrying with the same `upload_id` returns the saved recording (`"duplicate": true`) instead of creating a second one. A recording that fails processing leaves no files and no SQLite rows.
+- `GET /api/c1/ppg/capture-options` tells the PPG step which capture paths the server offers.
+
+**In the browser:**
+1. **Connect ESP32** opens the browser's port chooser; it never runs automatically.
+2. **Test live signal** runs for 4 s and saves nothing.
+3. **Record PPG** shows progress and offers **Cancel**, which saves nothing.
+4. When the recording finishes, the page uploads it. A failed upload keeps the recording in the page; use **Retry upload**.
+- The reader mirrors the Python recorder: same line rules, a 2 s ESP32 start-up wait, and host receive times. Lines that arrive in one USB read get evenly spread receive times, so the sample rate the quality check derives stays correct.
+- Unsupported browsers get a clear message.
+
+**Test with the real ESP32 (NOT TESTED yet on the VPS):**
+1. Deploy with the two settings above and the proxy login.
+2. Open `https://www.ayurai.org/screening/new` in Chrome or Edge on the laptop with the ESP32 plugged in, and close Arduino Serial Monitor.
+3. Create a test session with PPG consent, then save the comfort check.
+4. Click **Connect ESP32** and choose the Espressif device (`303A:1001`).
+5. Click **Test live signal**; expect about 25 rows/s.
+6. Record 20 s; expect "Recording saved", about 500 samples and about 25 Hz.
+7. Click **Analyse** and check that PPG is listed as available.

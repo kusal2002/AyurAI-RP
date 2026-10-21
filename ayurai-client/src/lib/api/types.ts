@@ -86,6 +86,26 @@ export type C1SerialPorts = {
   ports: { device: string; description: string }[]
   /** Windows lists the port. Says nothing about whether valid samples arrive. */
   port_listed: boolean
+  /** False when the server does not record from a USB sensor (C1_SERIAL_ENABLED=false); absent on older APIs. */
+  serial_enabled?: boolean
+}
+
+/** Which PPG capture paths the Component 1 server offers. */
+export type C1PpgCaptureOptions = {
+  server_serial_enabled: boolean
+  /** Browser Web Serial capture + upload (C1_PPG_UPLOAD_ENABLED). */
+  browser_upload_enabled: boolean
+  baud: number
+  min_seconds: number
+  max_seconds: number
+}
+
+/** One browser-captured recording, in the CSV format of capture_live_ppg.py. */
+export type C1PpgUploadBody = {
+  upload_id: string
+  seconds: number
+  samples_csv: string
+  metrics_csv: string
 }
 
 export type C1RecordingResult = {
@@ -841,6 +861,8 @@ export type EvidenceProvenance = {
   citation_type: string
   pmid_or_ref: string | null
   grade: EvidenceGrade
+  source_url?: string | null
+  excerpt?: string | null
 }
 
 export type InteractionFinding = {
@@ -852,6 +874,7 @@ export type InteractionFinding = {
   evidence_strength: EvidenceGrade
   prediction_confidence: number
   source_refs: EvidenceProvenance[]
+  clinical_action?: string | null
 }
 
 export type TitrationGuidance = {
@@ -931,6 +954,45 @@ export type C3CypPathway = {
   substrates: string[]
   inhibitors: string[]
   inducers: string[]
+}
+
+export type C3GraphNode = {
+  id: string
+  name: string
+  type: "Herb" | "Compound" | "Enzyme" | "Target" | "Drug" | "Condition"
+  category?: string
+  sanskrit_name?: string
+  botanical_name?: string
+  contraindications?: string[]
+  traditional_uses?: string[]
+  active_compounds?: string[]
+  narrow_therapeutic_index?: boolean
+  metabolizing_enzymes?: string[]
+  target_receptors?: string[]
+}
+
+export type C3GraphEdge = {
+  id: string
+  source: string
+  target: string
+  type: string
+  label: string
+  severity: "High" | "Moderate" | "Low" | "Safe" | "Info" | string
+  interaction_type?: string
+  mechanism?: string
+  evidence_level?: string
+  pmid?: string
+  citation?: string
+  recommended_action?: string
+}
+
+export type C3GraphResponse = {
+  mode: "live_neo4j" | "offline_fallback"
+  total_nodes: number
+  total_edges: number
+  nodes: C3GraphNode[]
+  edges: C3GraphEdge[]
+  stats?: Record<string, unknown>
 }
 
 // ---------------------------------------------------------------------------
