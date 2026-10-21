@@ -5,7 +5,7 @@ import { AlertTriangle, ArrowRight, ChevronDown, CircleSlash } from "lucide-reac
 import { EmptyState, FilterChips } from "@/components/shared/page"
 import { StatusBadge, safetySpec, sufficiencySpec } from "@/components/shared/status"
 import type { CaseRecord } from "@/context/workspace"
-import { CandidateStatus } from "@/features/ayurvedic-analysis/AnalysisSummary"
+import { CandidateStatus, TypeMatch } from "@/features/ayurvedic-analysis/AnalysisSummary"
 import type { Candidate, Component2Output } from "@/lib/api/types"
 import { conceptNames } from "@/lib/c2-derive"
 import { describeFlag, humanizeCode } from "@/lib/labels"
@@ -160,7 +160,10 @@ export function CandidateList({ output, record }: { output: Component2Output; re
                             <span className="ml-1.5 font-normal text-slate-500 italic">{candidate.botanical_name}</span>
                           )}
                         </span>
-                        <span className="block text-xs text-slate-500">{candidate.category}</span>
+                        <span className="flex flex-wrap items-center gap-1.5 text-xs text-slate-500">
+                          {candidate.category}
+                          <TypeMatch candidate={candidate} names={names} />
+                        </span>
                       </span>
                     </span>
                     <span className="flex flex-wrap items-center gap-2">

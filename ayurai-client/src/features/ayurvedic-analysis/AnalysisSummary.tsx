@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/button"
 import type { CaseRecord } from "@/context/workspace"
 import { useAccess } from "@/lib/access"
 import type { Candidate, Component2Output, SafetyAssessmentReport } from "@/lib/api/types"
+import { conceptNames } from "@/lib/c2-derive"
 import { formatDateTime, humanizeCode } from "@/lib/labels"
 import { cn } from "@/lib/utils"
 
@@ -223,6 +224,17 @@ function safetyFor(report: SafetyAssessmentReport | null, candidateId: string) {
   return report?.evaluations.find((evaluation) => evaluation.candidate_id === candidateId)
 }
 
+/** "Matches Pittaja Pandu": why a candidate is listed before the general remedies. */
+export function TypeMatch({ candidate, names }: { candidate: Candidate; names: Map<string, string> }) {
+  const matched = candidate.matched_subtypes ?? []
+  if (matched.length === 0) return null
+  return (
+    <span className="inline-flex items-center gap-1 rounded-md bg-emerald-50 px-1.5 py-0.5 text-[11px] font-medium text-emerald-800 ring-1 ring-emerald-100">
+      Matches {matched.map((id) => names.get(id) ?? humanizeCode(id)).join(", ")}
+    </span>
+  )
+}
+
 export function CandidateStatus({ candidate }: { candidate: Candidate }) {
   return candidate.disposition === "withheld_pending_review" ? (
     <span className="text-xs font-medium text-amber-800">Needs your review</span>
@@ -235,6 +247,7 @@ function OptionsCard({ output, record }: { output: Component2Output; record: Cas
   const report = record.c3.status === "success" ? record.c3.data : null
   const shown = output.candidates.slice(0, SUMMARY_CANDIDATES)
   const abstained = output.abstention.abstain
+  const names = React.useMemo(() => conceptNames(output), [output])
 
   return (
     <Card
@@ -268,7 +281,10 @@ function OptionsCard({ output, record }: { output: Component2Output; record: Cas
                         <span className="ml-1.5 font-normal text-slate-500 italic">{candidate.botanical_name}</span>
                       )}
                     </p>
-                    <p className="text-xs text-slate-500">{categoryLabels[candidate.category] ?? candidate.category}</p>
+                    <p className="flex flex-wrap items-center gap-1.5 text-xs text-slate-500">
+                      {categoryLabels[candidate.category] ?? candidate.category}
+                      <TypeMatch candidate={candidate} names={names} />
+                    </p>
                   </div>
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
