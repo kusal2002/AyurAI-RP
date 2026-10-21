@@ -23,17 +23,13 @@ _CONCEPT_MATCH = " OR ".join(
 
 _CLAIMS_FOR_CONCEPT = f"""
 MATCH (concept) WHERE {_CONCEPT_MATCH}
-CALL {{
-  WITH concept
+CALL (concept) {{
   MATCH (concept)-[:SUBJECT_OF]->(c:Claim) RETURN c, 'subject' AS role, 'approved' AS ks
   UNION
-  WITH concept
   MATCH (c:Claim)-[:OBJECT_OF]->(concept) RETURN c, 'object' AS role, 'approved' AS ks
   UNION
-  WITH concept
   MATCH (concept)-[:PROVISIONAL_SUBJECT_OF]->(c:ProvisionalClaim) RETURN c, 'subject' AS role, 'provisional' AS ks
   UNION
-  WITH concept
   MATCH (c:ProvisionalClaim)-[:PROVISIONAL_OBJECT_OF]->(concept) RETURN c, 'object' AS role, 'provisional' AS ks
 }}
 RETURN properties(c) AS claim, role, ks,
