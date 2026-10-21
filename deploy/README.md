@@ -4,7 +4,8 @@ One `docker compose` stack runs the whole site:
 
 | Container | What it is | Reachable from |
 |-----------|------------|----------------|
-| `nginx` | Built dashboard (`ayurai-client`) + reverse proxy for `/c2-api`, `/c3-api`, `/c4-api` | Internet (80, 443) |
+| `nginx` | Built dashboard (`ayurai-client`) + reverse proxy for `/c1-api` … `/c4-api` | Internet (80, 443) |
+| `c1` | Component 1 API, port 8001 | Other containers only |
 | `c2` | Component 2 API, port 8000 | Other containers only |
 | `c3` | Component 3 API, port 8003 | Other containers only |
 | `c4-api` | Component 4 API, port 8004 | Other containers only |
@@ -14,14 +15,15 @@ Neo4j is not in the stack: Components 2 and 3 connect to Neo4j AuraDB using the
 `NEO4J_*` values in their `.env` files. The federated-learning containers
 (`component4/docker-compose.yml`) are for experiments and are not deployed.
 
-Component 1 is not deployed either. Its API reads sessions from a `datasets`
-folder next to the repository and records PPG from an ESP32 sensor on a local USB
-port, which a VPS does not have. nginx answers `/c1-api` with a 503 JSON error,
-so the Component 1 screens show the service as unavailable.
+Component 1 on a VPS: the questionnaire, browser webcam captures and image
+analysis work. **PPG recording does not**: it reads the ESP32 + MAX30102 sensor
+on a local USB port, which a server does not have, so that step returns an error.
+Component 1 has **no sign-in** and is meant for fictional demo sessions only;
+anyone who can open the site can create sessions and upload images.
 
 Files: [`docker-compose.prod.yml`](../docker-compose.prod.yml),
 [`.env.prod.example`](../.env.prod.example), [`nginx/`](nginx/), and a
-`Dockerfile` in `component2/`, `component3/`, `ayurai-client/`, plus
+`Dockerfile` in `component1/`, `component2/`, `component3/`, `ayurai-client/`, plus
 `component4/Dockerfile.api`.
 
 ## 1. Server preparation (once)
@@ -72,6 +74,38 @@ Each `.env` must contain at least the variables in its `.env.example`
 - `DATABASE_URL` and the `POSTGRES_*` / `NEO4J_PASSWORD` lines are not used here:
   compose builds `DATABASE_URL` from `.env.prod` and points it at the `postgres` container.
 
+### Component 1 model weights
+
+Component 1 keeps its data in a `datasets` folder **next to** the repository
+(`~/datasets` for a repo in `~/ayurai`), the same layout as on a laptop. The API
+creates `live_sessions/` and `screening_sessions.sqlite3` there by itself, but the
+trained models must be copied in. They are not in git; get them from the
+Component 1 owner. Expected files:
+
+```
+~/datasets/trained_model_artifacts/
+├── efficientnet_b0_best.pth
+├── ghana_conjunctiva/resnet_50_best.pth
+├── ghana_fingernail/resnet_50_best.pth
+├── yakimov_hb_2024/efficientnet_b0_best.pth
+└── imagehb_tongue/efficientnet_b0_best.pth
+```
+
+Create the folder on the server, then copy from the PC (PowerShell, adjust the source path):
+
+```bash
+mkdir -p ~/datasets
+```
+
+```powershell
+scp -r C:\path\to\datasets\trained_model_artifacts ubuntu@VPS_IP:~/datasets/
+```
+
+Without these files the API still starts, but image analysis fails.
+To use another folder, set `C1_DATASETS_DIR` in `.env.prod`.
+
+### Stack settings
+
 Then create the stack settings:
 
 ```bash
@@ -94,7 +128,7 @@ docker compose -f docker-compose.prod.yml --env-file .env.prod ps
 ```
 
 ```bash
-curl http://localhost/c2-api/health && curl http://localhost/c3-api/health && curl http://localhost/c4-api/health
+curl http://localhost/c1-api/api/c1/health && curl http://localhost/c2-api/health && curl http://localhost/c3-api/health && curl http://localhost/c4-api/health
 ```
 
 Create the Component 4 demo accounts once:
@@ -138,6 +172,7 @@ cd ~/ayurai && git pull && docker compose -f docker-compose.prod.yml --env-file 
 - Restart one service: `... restart c3`
 - Stop everything (data in volumes is kept): `... down`
 - Database backup: `... exec postgres pg_dump -U ayurai ayurai_audit > backup.sql`
+- Component 1 sessions live in `~/datasets` (back up that folder)
 
 ## Notes
 

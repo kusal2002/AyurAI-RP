@@ -23,7 +23,21 @@ services:
       - ./deploy/nginx/snippets:/etc/nginx/snippets:ro
       - certbot_www:/var/www/certbot:ro
       - letsencrypt:/etc/letsencrypt:ro
-    depends_on: [c2, c3, c4-api]
+    depends_on: [c1, c2, c3, c4-api]
+
+  # ---------- Component 1: screening intake ----------
+  # Questionnaire, webcam images and image analysis. PPG recording needs the
+  # ESP32 sensor on a local USB port, so it does not work on the VPS.
+  c1:
+    build: ./component1
+    image: ayurai-c1
+    restart: unless-stopped
+    volumes:
+      # Same layout as on a laptop: a "datasets" folder next to the repository.
+      #   trained_model_artifacts/  model weights (copy from the Component 1 owner)
+      #   live_sessions/, screening_sessions.sqlite3  created by the API
+      - ${C1_DATASETS_DIR:-../datasets}:/datasets
+    expose: ["8001"]
 
   # ---------- Component 2: KG reasoning ----------
   c2:
