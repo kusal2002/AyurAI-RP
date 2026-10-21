@@ -18,6 +18,12 @@ const FederationPage = lazy(() =>
   })),
 )
 
+const FaklPage = lazy(() =>
+  import("@/features/fakl/FaklPage").then((module) => ({
+    default: module.FaklPage,
+  })),
+)
+
 const PrivacyPage = lazy(() =>
   import("@/features/federation/PrivacyPage").then((module) => ({
     default: module.PrivacyPage,
@@ -202,6 +208,7 @@ export function App() {
           element={withPageFallback(<FederationPage />)}
         />
         <Route path="privacy" element={withPageFallback(<PrivacyPage />)} />
+        <Route path="fakl" element={withPageFallback(<FaklPage />)} />
         <Route path="admin" element={withPageFallback(<AdminPage />)} />
         <Route path="*" element={withPageFallback(<NotFoundPage />)} />
       </Route>

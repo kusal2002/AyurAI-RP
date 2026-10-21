@@ -19,7 +19,7 @@ import { Button } from "@/components/ui/button"
 import { useAuth } from "@/context/auth"
 import { useWorkspace } from "@/context/workspace"
 import type { FederationRun } from "@/lib/api/component4"
-import { C4SignInRequired, meanByRound, strategyStyle, useFederationData } from "./shared"
+import { C4SignInRequired, RealDataNotice, meanByRound, strategyStyle, useFederationData } from "./shared"
 
 /** Merge FedAvg and FedProx per-round means into one array for a chart. */
 function chartRows(runs: FederationRun[], epsilon: number) {
@@ -30,6 +30,7 @@ function chartRows(runs: FederationRun[], epsilon: number) {
     for (const row of series.rounds) {
       const entry = rounds.get(row.round) ?? { round: row.round }
       entry[`${key}_accuracy`] = row.accuracy
+      entry[`${key}_f1`] = row.macro_f1
       entry[`${key}_loss`] = row.loss
       entry[`${key}_eps`] = row.epsilon_spent
       rounds.set(row.round, entry)
@@ -48,7 +49,7 @@ function MetricChart({
   target,
 }: {
   rows: Record<string, number | null>[]
-  metric: "accuracy" | "loss" | "eps"
+  metric: "accuracy" | "f1" | "loss" | "eps"
   label: string
   target?: number
 }) {
@@ -130,10 +131,12 @@ export function FederationPage() {
   return (
     <>
       {header}
-      {dataSource?.startsWith("PLACEHOLDER") && (
+      {config.real_data ? (
+        <RealDataNotice config={config} />
+      ) : (
         <Notice tone="caution" className="mb-5" title="Placeholder training data">
-          These runs use placeholder features ({dataSource}). The pipeline, privacy accounting and aggregation are real,
-          but accuracy values are not meaningful until the Component 1 dataset is connected.
+          These runs use placeholder features{dataSource ? ` (${dataSource})` : ""}. The pipeline, privacy accounting
+          and aggregation are real, but accuracy values are not meaningful until the Component 1 dataset is connected.
         </Notice>
       )}
 
@@ -144,6 +147,7 @@ export function FederationPage() {
               { label: "Clinic nodes", value: config.num_clinics },
               { label: "Federated rounds", value: config.num_rounds },
               { label: "Local epochs per round", value: config.local_epochs },
+              { label: "Learning rate", value: config.learning_rate },
               { label: "FedProx proximal term μ", value: config.proximal_mu },
               { label: "DP failure probability δ", value: config.delta.toExponential(0) },
               { label: "Gradient clipping bound C", value: config.max_grad_norm },
@@ -171,10 +175,16 @@ export function FederationPage() {
         {rows.length === 0 ? (
           <EmptyState icon={Network} title="No runs for this ε yet" description="Run component4/federated/sweep.py to generate results." />
         ) : (
-          <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
+          <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
             <div>
               <h3 className="mb-2 text-xs font-semibold tracking-wide text-slate-500 uppercase">Global accuracy</h3>
               <MetricChart rows={rows} metric="accuracy" label="Accuracy" />
+            </div>
+            <div>
+              <h3 className="mb-2 text-xs font-semibold tracking-wide text-slate-500 uppercase">
+                Global macro-F1 (all tiers weighted equally)
+              </h3>
+              <MetricChart rows={rows} metric="f1" label="Macro-F1" />
             </div>
             <div>
               <h3 className="mb-2 text-xs font-semibold tracking-wide text-slate-500 uppercase">Global loss</h3>

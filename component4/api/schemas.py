@@ -1,12 +1,25 @@
 """Request / response shapes (Pydantic). FastAPI validates every request against these."""
 
-from datetime import datetime
-from typing import Literal
+from datetime import datetime, timezone
+from typing import Annotated, Literal
 
-from pydantic import BaseModel, Field, model_validator
+from pydantic import AfterValidator, BaseModel, Field, model_validator
 
 # Same identifier rule as Component 2, so IDs pass between services unchanged
 ID_PATTERN = r"^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
+
+
+def _as_utc(value: datetime) -> datetime:
+    """All times are stored in UTC. SQLite drops the timezone when reading them back,
+    so mark naive values as UTC; the JSON then ends in +00:00 and the browser
+    converts it to the user's local time (otherwise UTC was shown as local time)."""
+    if value.tzinfo is None:
+        return value.replace(tzinfo=timezone.utc)
+    return value.astimezone(timezone.utc)
+
+
+# Use for every datetime the API returns
+UTCDateTime = Annotated[datetime, AfterValidator(_as_utc)]
 
 
 class LoginRequest(BaseModel):
@@ -50,12 +63,12 @@ class DecisionOut(BaseModel):
     rationale: str
     reviewer: str
     clinic_id: str | None
-    created_at: datetime
+    created_at: UTCDateTime
 
 
 class AuditEntryOut(BaseModel):
     id: int
-    timestamp: datetime
+    timestamp: UTCDateTime
     actor: str
     role: str
     clinic_id: str | None
@@ -71,6 +84,36 @@ class ChainStatus(BaseModel):
     entries_checked: int
     first_invalid_id: int | None
     head_hash: str | None
+
+
+class AnchorOut(BaseModel):
+    id: int
+    created_at: UTCDateTime
+    head_entry_id: int
+    head_hash: str
+    onchain_id: int
+    tx_hash: str
+    block_number: int
+    contract_address: str
+    anchored_by: str
+    explorer_url: str      # Etherscan page for the transaction
+
+
+class AnchorCheck(BaseModel):
+    """Result of comparing one anchor with the blockchain and the current database."""
+    anchor_id: int
+    onchain_id: int
+    head_entry_id: int
+    onchain_hash: str            # what the contract stores
+    current_db_hash: str | None  # what the database holds for that entry today
+    matches: bool
+
+
+class AnchorVerification(BaseModel):
+    local_chain_valid: bool          # recomputing the hash chain inside the database
+    anchors_checked: int
+    all_anchors_match: bool          # every on-chain hash equals the database today
+    checks: list[AnchorCheck]
 
 
 class ServiceEvent(BaseModel):
