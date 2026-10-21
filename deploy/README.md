@@ -14,6 +14,11 @@ Neo4j is not in the stack: Components 2 and 3 connect to Neo4j AuraDB using the
 `NEO4J_*` values in their `.env` files. The federated-learning containers
 (`component4/docker-compose.yml`) are for experiments and are not deployed.
 
+Component 1 is not deployed either. Its API reads sessions from a `datasets`
+folder next to the repository and records PPG from an ESP32 sensor on a local USB
+port, which a VPS does not have. nginx answers `/c1-api` with a 503 JSON error,
+so the Component 1 screens show the service as unavailable.
+
 Files: [`docker-compose.prod.yml`](../docker-compose.prod.yml),
 [`.env.prod.example`](../.env.prod.example), [`nginx/`](nginx/), and a
 `Dockerfile` in `component2/`, `component3/`, `ayurai-client/`, plus
@@ -52,10 +57,20 @@ scp D:\Research\AyurAI-RP\component3\.env ubuntu@VPS_IP:~/ayurai/component3/.env
 scp D:\Research\AyurAI-RP\component4\.env ubuntu@VPS_IP:~/ayurai/component4/.env
 ```
 
-On the server, check `component4/.env`:
+Windows saves these files with CRLF line endings. Convert them on the server so
+no value ends with a hidden `\r` (for example in a password):
+
+```bash
+sed -i 's/\r$//' ~/ayurai/component2/.env ~/ayurai/component3/.env ~/ayurai/component4/.env
+```
+
+Each `.env` must contain at least the variables in its `.env.example`
+(`component2/`, `component3/`, `component4/`). On the server, check `component4/.env`:
 - `JWT_SECRET` and `C4_SERVICE_API_KEY` must be set to long random values
   (`openssl rand -hex 32`). Without `JWT_SECRET` everyone is logged out on every restart.
-- `DATABASE_URL` is ignored here: compose points it at the `postgres` container.
+- `C2_NEO4J_*` give the FAKL page read access to Component 2's AuraDB.
+- `DATABASE_URL` and the `POSTGRES_*` / `NEO4J_PASSWORD` lines are not used here:
+  compose builds `DATABASE_URL` from `.env.prod` and points it at the `postgres` container.
 
 Then create the stack settings:
 

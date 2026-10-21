@@ -11,7 +11,8 @@ RUN npm ci
 
 COPY . .
 # Browser-side API paths: same-origin, handled by nginx
-ENV VITE_C2_API_BASE_URL=/c2-api \
+ENV VITE_C1_API_BASE_URL=/c1-api \
+    VITE_C2_API_BASE_URL=/c2-api \
     VITE_C3_API_BASE_URL=/c3-api \
     VITE_C4_API_BASE_URL=/c4-api \
     VITE_API_TIMEOUT_MS=20000 \
