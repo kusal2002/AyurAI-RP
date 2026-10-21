@@ -7,6 +7,7 @@ clinic sharing its feedback records.
 How it works
 1. Each claim's current confidence acts like PRIOR_STRENGTH earlier votes:
    confidence 0.7 with strength 10 counts as 7 "agree" and 3 "disagree".
+   Claims without a confidence (Component 2's default) start at a neutral 0.5.
 2. Local step (at each clinic): count its practitioners' agree / disagree votes
    per claim. Only these two counts per claim leave the clinic.
 3. Privacy (at each clinic, before sharing):
@@ -24,6 +25,11 @@ little accuracy for protection, which run_fakl.py measures.
 import numpy as np
 
 PRIOR_STRENGTH = 10   # how many votes the existing confidence is worth
+
+# Component 2 creates claims WITHOUT a confidence value (confidence=None). Such a
+# claim has not been judged yet, so FAKL starts it at a neutral 0.5 and lets
+# practitioner feedback move it: FAKL is what gives these claims a confidence.
+NEUTRAL_PRIOR = 0.5
 
 
 def count_votes(feedback):
@@ -66,7 +72,10 @@ def local_update(feedback, min_votes=0, epsilon=None, rng=None):
 
 
 def updated_confidence(prior, agree, disagree, strength=PRIOR_STRENGTH):
-    """Prior confidence acts as `strength` votes; add the new votes; return the new share of agrees."""
+    """Prior confidence acts as `strength` votes; add the new votes; return the new share of agrees.
+    A missing prior (None, as Component 2 creates claims) counts as NEUTRAL_PRIOR."""
+    if prior is None:
+        prior = NEUTRAL_PRIOR
     return (prior * strength + agree) / (strength + agree + disagree)
 
 

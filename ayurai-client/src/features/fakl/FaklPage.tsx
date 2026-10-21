@@ -77,9 +77,11 @@ function ReadinessCheck() {
       detail: data.connected ? "Connected with a read-only session; nothing is written." : data.error ?? "Not connected.",
     },
     {
-      label: "Claims with a confidence value",
-      ok: counts ? counts.claims_with_confidence > 0 : null,
-      detail: counts ? `${counts.claims_with_confidence} of ${counts.claims} claims have a confidence value.` : "—",
+      label: "Claims in the knowledge graph",
+      ok: counts ? counts.claims > 0 : null,
+      detail: counts
+        ? `${counts.claims} claims (${counts.claims_with_confidence} with a confidence value; claims without one start at a neutral 0.5 in FAKL).`
+        : "—",
     },
     {
       label: "Practitioner feedback linked to claims",

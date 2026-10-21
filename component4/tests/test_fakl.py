@@ -53,6 +53,14 @@ class FaklTests(unittest.TestCase):
         result = federated_update({"CL-X": 0.42}, [{}, {}, {}])
         self.assertAlmostEqual(result["CL-X"], 0.42)
 
+    def test_claim_without_confidence_starts_neutral(self):
+        """Component 2 creates claims with confidence=None; FAKL starts them at 0.5."""
+        self.assertAlmostEqual(federated_update({"CL-NEW": None}, [{}])["CL-NEW"], 0.5)
+        agrees = local_update([vote("CL-NEW", "agree")] * 6)
+        self.assertGreater(federated_update({"CL-NEW": None}, [agrees])["CL-NEW"], 0.5)
+        central = centralised_update({"CL-NEW": None}, [vote("CL-NEW", "agree")] * 6)
+        self.assertAlmostEqual(central["CL-NEW"], federated_update({"CL-NEW": None}, [agrees])["CL-NEW"])
+
     def test_neutral_feedback_does_not_move_confidence(self):
         share = local_update([vote("CL-X", "uncertain"), vote("CL-X", "needs_more_evidence")])
         self.assertAlmostEqual(federated_update({"CL-X": 0.42}, [share])["CL-X"], 0.42)
