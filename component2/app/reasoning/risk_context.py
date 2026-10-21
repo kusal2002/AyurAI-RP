@@ -45,6 +45,10 @@ ESCALATION_TEXT = {
         "Component 1 screening confidence is low; the risk tier may be "
         "unreliable; interpret with caution."
     ),
+    RiskRule.URGENT_REVIEW: (
+        "Component 1 flagged urgent clinician review: conventional clinical "
+        "care must not be delayed; any Ayurvedic candidate is secondary."
+    ),
 }
 
 
@@ -63,8 +67,11 @@ def evaluate_risk_context(
     risk_tier: RiskTier,
     calibrated_confidence: float | None,
     policy: RiskContextPolicy,
+    urgent_clinician_review: bool = False,
 ) -> RiskContext:
     rules: list[RiskRule] = []
+    if urgent_clinician_review:
+        rules.append(RiskRule.URGENT_REVIEW)
     if policy.caution_on_high_tier and risk_tier == RiskTier.HIGH:
         rules.append(RiskRule.HIGH_TIER)
     if calibrated_confidence is None:

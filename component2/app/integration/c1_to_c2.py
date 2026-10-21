@@ -5,20 +5,22 @@ from neo4j import Driver
 
 from app.db.repository import resolve_symptom_reference
 from app.models.c1_input import Component2ReasoningRequest, RiskTier
-from app.models.c1_screening_payload import C1ScreeningPayload
+from app.models.c1_screening_v1 import AnyC1Payload, screening_inputs
 
 
 def prepare_c2_request(
-    payload: C1ScreeningPayload,
+    payload: AnyC1Payload,
     driver: Driver,
 ) -> dict[str, Any]:
     """Map an approved C1 screening payload into a C2 request.
 
-    Only explicitly present, unambiguously resolved symptoms are forwarded.
-    Unknown or ambiguous symptoms are reported, never guessed.
+    Accepts the provisional contract and `c1.screening.v1`. Only explicitly
+    present, unambiguously resolved symptoms are forwarded. Unknown or
+    ambiguous symptoms are reported, never guessed.
     """
 
-    risk_value = payload.screening_result.risk_level.strip().lower()
+    inputs = screening_inputs(payload)
+    risk_value = inputs["risk_level"].strip().lower()
 
     try:
         risk_tier = RiskTier(risk_value)
@@ -36,11 +38,8 @@ def prepare_c2_request(
     symptom_ids: list[str] = []
     seen_ids: set[str] = set()
 
-    for symptom in payload.symptoms:
-        if not symptom.present:
-            continue
-
-        result = resolve_symptom_reference(symptom.name, driver)
+    for name in inputs["present_symptoms"]:
+        result = resolve_symptom_reference(name, driver)
         status = result["status"]
 
         if status == "resolved":
@@ -50,7 +49,7 @@ def prepare_c2_request(
             if not isinstance(symptom_id, str) or not symptom_id.strip():
                 unresolved_symptoms.append(
                     {
-                        "input_name": symptom.name,
+                        "input_name": name,
                         "status": "invalid_graph_record",
                     }
                 )
@@ -64,15 +63,15 @@ def prepare_c2_request(
 
             resolved_symptoms.append(
                 {
-                    "input_name": symptom.name,
+                    "input_name": name,
                     "symptom_id": symptom_id,
-                    "canonical_name": str(record.get("name") or symptom.name),
+                    "canonical_name": str(record.get("name") or name),
                 }
             )
         else:
             unresolved_symptoms.append(
                 {
-                    "input_name": symptom.name,
+                    "input_name": name,
                     "status": status,
                     "candidate_ids": [
                         str(candidate["symptom_id"])
@@ -95,10 +94,9 @@ def prepare_c2_request(
 
     request = Component2ReasoningRequest(
         risk_tier=risk_tier,
-        calibrated_confidence=(
-            payload.screening_result.screening_confidence
-        ),
+        calibrated_confidence=inputs["calibrated_confidence"],
         symptom_ids=symptom_ids,
+        urgent_clinician_review=inputs["urgent_clinician_review"],
     )
 
     return {

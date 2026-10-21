@@ -82,6 +82,7 @@ class RiskRule(str, Enum):
     HIGH_TIER = "upstream_high_risk"
     CONFIDENCE_MISSING = "upstream_confidence_missing"
     LOW_CONFIDENCE = "upstream_low_confidence"
+    URGENT_REVIEW = "upstream_urgent_clinician_review"
 
 
 class CandidateCategory(str, Enum):
@@ -199,6 +200,13 @@ class Candidate(BaseModel):
     candidate_id: str
     category: CandidateCategory
     name: str | None
+    botanical_name: str | None = Field(
+        default=None,
+        description=(
+            "Botanical name as stated by the cited translation; not "
+            "taxonomically verified. Null when the source gives none."
+        ),
+    )
     rank: int
     ranking: RankingBreakdown
     disposition: CandidateDisposition

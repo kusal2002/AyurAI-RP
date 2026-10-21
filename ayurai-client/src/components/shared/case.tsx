@@ -5,7 +5,7 @@ import { FolderOpen, Info, Leaf, Play, Plus, Stethoscope } from "lucide-react"
 import { EmptyState, ErrorState, IdChip, LoadingState, Panel } from "@/components/shared/page"
 import { Button } from "@/components/ui/button"
 import { useWorkspace, type CaseRecord } from "@/context/workspace"
-import type { Component2Output } from "@/lib/api/types"
+import { c1View, type Component2Output } from "@/lib/api/types"
 import { formatDateTime } from "@/lib/labels"
 
 /** Active-case selector shown at the top of case-level screens. */
@@ -152,7 +152,7 @@ function NotAnalysed({ record }: { record: CaseRecord }) {
   const mapping = record.c1?.mapping
   const payload = record.c1?.payload
   if (!mapping) return null
-  const reported = payload?.symptoms ?? []
+  const reported = payload ? c1View(payload).symptoms : []
   const present = reported.filter((symptom) => symptom.present)
   const unknown = mapping.unresolved_symptoms.filter((item) => item.status === "not_found")
   const unclear = mapping.unresolved_symptoms.filter((item) => item.status === "ambiguous")

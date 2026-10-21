@@ -148,13 +148,16 @@ def research_knowledge(
 @router.post("/reasoning/component3-handoff", response_model=Component3Handoff)
 def reason_for_component3(
     request: Component2ReasoningRequest,
+    knowledge_scope: KnowledgeScopeParam = KNOWLEDGE_SCOPE_QUERY,
+    research_service: EvidenceRetrievalService = Depends(get_research_service),
     driver: Driver = Depends(get_driver),
     retrieval_service: EvidenceRetrievalService = Depends(
         get_retrieval_service
     ),
 ) -> Component3Handoff:
     return build_component3_handoff(
-        _run(request, driver, retrieval_service)
+        _run(request, driver, retrieval_service, knowledge_scope, research_service),
+        urgent_clinician_review=request.urgent_clinician_review,
     )
 
 

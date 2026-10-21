@@ -15,6 +15,7 @@ import type {
   RiskTier,
   SafetyAssessmentReport,
 } from "@/lib/api/types"
+import { c1View } from "@/lib/api/types"
 
 /**
  * Session workspace.
@@ -283,7 +284,8 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
     async (payloads: C1ScreeningPayload[], payloadSource: string) => {
       const ids: string[] = []
       for (const payload of payloads) {
-        const tier = payload.screening_result.risk_level.trim().toLowerCase()
+        const view = c1View(payload)
+        const tier = view.riskLevel.trim().toLowerCase()
         const id = localId("case")
         const record: CaseRecord = {
           id,
@@ -293,7 +295,7 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
           c1: {
             // An unsupported tier is still sent: the service reports it as blocked.
             risk_tier: tier as RiskTier,
-            calibrated_confidence: payload.screening_result.screening_confidence,
+            calibrated_confidence: view.confidence,
             symptom_ids: [],
             origin: "c1_payload",
             intake: { status: "idle" },
@@ -321,21 +323,6 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
     async (caseId: string, patient: PatientContext, candidateIds: string[]) => {
       const record = findCase(caseId)
       if (!record || record.c2.status !== "success") return
-      if (record.c2.data.upstream.calibrated_confidence === null) {
-        updateCase(caseId, (current) => ({
-          ...current,
-          c3: {
-            status: "error",
-            error: {
-              kind: "validation",
-              message:
-                "Not sent to Component 3: its contract requires a Component 1 confidence score, and this case has none. No value is substituted.",
-              details: [],
-            },
-          },
-        }))
-        return
-      }
       updateCase(caseId, (current) => ({ ...current, c3: { status: "loading" } }))
 
       const build = buildC3Package(record.c2.data, { caseId: record.caseRef, candidateIds })
