@@ -473,6 +473,12 @@ export type Candidate = {
   contradicting_evidence_ids: string[]
   verification_statuses: string[]
   conflict_flags: string[]
+  /**
+   * Added in c2-output/0.4.0: Roga types (e.g. Pittaja Pandu) matched from the
+   * patient's symptoms on this candidate's paths. Such candidates are listed
+   * before general remedies; the ranking score is unchanged. Absent in older outputs.
+   */
+  matched_subtypes?: string[]
   sufficiency: SufficiencyAssessment
   rationale: ExplanationStatement[]
 }

@@ -109,6 +109,20 @@ def explain_candidate(candidate: Candidate) -> list[ExplanationStatement]:
             )
         )
 
+    if candidate.matched_subtypes:
+        statements.append(
+            ExplanationStatement(
+                kind="subtype_match",
+                text=(
+                    f"{label} is listed before the general remedies because its path "
+                    f"passes through {', '.join(candidate.matched_subtypes)}, a type "
+                    "matched from the patient's symptoms. Its ranking score is unchanged."
+                ),
+                claim_ids=[],
+                evidence_ids=[],
+            )
+        )
+
     for claim in {
         claim.claim_id: claim
         for path in candidate.paths

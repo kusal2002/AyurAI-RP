@@ -290,8 +290,19 @@ def plan_dataset(dataset_path: str | Path, extracted_dir: str | Path) -> Provisi
                 "botanical_name_as_stated": concept.get("botanical_name_as_stated"),
                 "botanical_name_source": concept.get("botanical_name_source"),
                 "botanical_name_verified": False if concept.get("botanical_name_as_stated") else None,
+                # A Roga type (e.g. Vātaja Pandu) names its parent Roga; reasoning lists
+                # remedies reached through a matched type before the parent's general ones.
+                "subtype_of": concept.get("subtype_of") if concept["type"] == "Roga" else None,
             }),
         }
+
+    for concept_id, concept in list(plan.concepts.items()):
+        parent = concept["properties"].get("subtype_of")
+        if parent is None:
+            continue
+        if parent == concept_id or plan.concepts.get(parent, {}).get("label") != "Roga":
+            plan.rejected.append({"item": concept_id, "reason": f"subtype_of {parent} is not another Roga in the dataset"})
+            del plan.concepts[concept_id]
 
     def add_evidence(item: dict, role: str, owner: str) -> str | None:
         bundle = sources.get(item["source_id"])

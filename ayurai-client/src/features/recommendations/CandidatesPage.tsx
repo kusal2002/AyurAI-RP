@@ -15,6 +15,7 @@ import {
 } from "@/components/shared/status"
 import { TechnicalViewSwitch } from "@/components/shared/technical-view"
 import type { CaseRecord } from "@/context/workspace"
+import { TypeMatch } from "@/features/ayurvedic-analysis/AnalysisSummary"
 import { CandidateList } from "@/features/recommendations/CandidateList"
 import { useTechnicalView } from "@/lib/access"
 import type { Candidate, Component2Output } from "@/lib/api/types"
@@ -123,6 +124,7 @@ function CandidateDetail({
 }
 
 function CandidateTable({ output, record }: { output: Component2Output; record: CaseRecord }) {
+  const names = React.useMemo(() => conceptNames(output), [output])
   const [filter, setFilter] = React.useState<Filter>("all")
   const [expanded, setExpanded] = React.useState<string | null>(output.candidates[0]?.candidate_id ?? null)
 
@@ -223,6 +225,9 @@ function CandidateTable({ output, record }: { output: Component2Output; record: 
                         <td className="px-3 py-3">
                           <p className="font-semibold text-slate-900">{candidate.name ?? candidate.candidate_id}</p>
                           <IdChip>{candidate.candidate_id}</IdChip>
+                          <div className="mt-1">
+                            <TypeMatch candidate={candidate} names={names} />
+                          </div>
                         </td>
                         <td className="px-3 py-3 text-xs text-slate-600">{candidate.category}</td>
                         <td className="px-3 py-3 font-mono text-xs">{formatScore(candidate.ranking.score)}</td>
