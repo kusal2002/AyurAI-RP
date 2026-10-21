@@ -720,6 +720,8 @@ export type EvidenceProvenance = {
   citation_type: string
   pmid_or_ref: string | null
   grade: EvidenceGrade
+  source_url?: string | null
+  excerpt?: string | null
 }
 
 export type InteractionFinding = {
@@ -731,6 +733,7 @@ export type InteractionFinding = {
   evidence_strength: EvidenceGrade
   prediction_confidence: number
   source_refs: EvidenceProvenance[]
+  clinical_action?: string | null
 }
 
 export type TitrationGuidance = {
