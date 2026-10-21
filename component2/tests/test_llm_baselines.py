@@ -27,7 +27,7 @@ from app.models.c1_screening_payload import C1ScreeningPayload
 from c2_test_support import KeywordEncoder
 from memory_graph_test_support import load_synthetic_graph, memory_environment
 
-SCENARIOS = Path(__file__).parent / "samples" / "c1_screening_scenarios.json"
+SCENARIOS = Path(__file__).resolve().parents[1] / "samples" / "c1_screening_scenarios.json"
 SETTINGS = LLMSettings(provider="anthropic", model="claude-opus-5-5", api_key="sk-test", max_retries=0)
 
 

@@ -12,7 +12,7 @@ from typing import Any
 
 from app.db.schema import NODE_IDENTIFIERS
 
-SYNTHETIC_GRAPH = Path(__file__).parent / "tests" / "fixtures" / "synthetic_graph_v1.json"
+SYNTHETIC_GRAPH = Path(__file__).parent / "fixtures" / "synthetic_graph_v1.json"
 
 
 def load_synthetic_graph(path: Path = SYNTHETIC_GRAPH) -> "InMemoryGraph":

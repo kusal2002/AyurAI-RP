@@ -1072,7 +1072,7 @@ These are engineering safeguards and have not been calibrated on real books.
 
 ```bash
 cd component2
-.venv/Scripts/python -m pytest -q test_knowledge_extraction.py test_knowledge_manifest.py test_knowledge_chunking.py test_source_chunk_embeddings.py test_knowledge_candidates.py test_stage_e_promotion.py test_knowledge_tei.py test_source_registry.py test_dataset_to_api.py test_graph_health.py
+.venv/Scripts/python -m pytest -q tests/test_knowledge_extraction.py tests/test_knowledge_manifest.py tests/test_knowledge_chunking.py tests/test_source_chunk_embeddings.py tests/test_knowledge_candidates.py tests/test_stage_e_promotion.py tests/test_knowledge_tei.py tests/test_source_registry.py tests/test_dataset_to_api.py tests/test_graph_health.py
 ```
 
 - `test_knowledge_tei.py`: the TEI and JATS readers, verse IDs, editorial
@@ -1097,7 +1097,7 @@ cd component2
   queries).
 
 - The tests build synthetic PDF, DOCX, EPUB, TXT and Markdown files in
-  temporary directories (`ingestion_test_support.py`).
+  temporary directories (`tests/ingestion_test_support.py`).
 - No real books, network access or Neo4j connection are needed.
   `test_neo4j_connection.py`, `test_neo4j_schema.py`,
   `test_neo4j_repository.py` and `test_neo4j_pipeline.py` are manual

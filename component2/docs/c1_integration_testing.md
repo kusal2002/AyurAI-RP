@@ -84,7 +84,7 @@ The service always reads the live AuraDB graph. The synthetic sandbox
 server (`app.dev.sandbox`), its `X-AyurAI-Data-Mode` header and the
 `data_mode` health field were removed on 2026-10-20. The synthetic graph
 now lives only in the tests (`tests/fixtures/synthetic_graph_v1.json`,
-loaded by `memory_graph_test_support.py`), where it still exercises every
+loaded by `tests/memory_graph_test_support.py`), where it still exercises every
 candidate status offline. The sandbox results below are kept as a
 historical record.
 
