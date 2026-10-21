@@ -3,16 +3,19 @@ import { NavLink, Outlet, useLocation } from "react-router"
 import { Leaf, LogIn, LogOut, Menu, Plus, ShieldCheck, UserRound, X } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
-import { navGroups, navItemFor } from "@/components/layout/nav"
+import { navGroupsFor, navItemFor } from "@/components/layout/nav"
 import { roleLabels, useAuth } from "@/context/auth"
+import { useAccess } from "@/lib/access"
 import { env } from "@/lib/env"
 import { cn } from "@/lib/utils"
 
 function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
+  const { allows, isPractitioner } = useAccess()
+  const groups = navGroupsFor(allows)
   return (
     <>
       <nav aria-label="Main navigation" className="flex-1 space-y-6 overflow-y-auto px-3 py-5">
-        {navGroups.map((group) => (
+        {groups.map((group) => (
           <div key={group.title}>
             <p className="mb-1.5 px-3 text-[10px] font-bold tracking-[0.15em] text-slate-400 uppercase">
               {group.title}
@@ -42,7 +45,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
                           className={isActive ? "text-emerald-700" : "text-slate-400"}
                         />
                         <span className="flex-1 truncate">{label}</span>
-                        {component && (
+                        {component && !isPractitioner && (
                           <span
                             className={cn(
                               "rounded px-1 text-[9px] font-bold tracking-wide",

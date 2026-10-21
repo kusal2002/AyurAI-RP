@@ -13,7 +13,10 @@ import {
   sufficiencySpec,
   verificationSpec,
 } from "@/components/shared/status"
+import { TechnicalViewSwitch } from "@/components/shared/technical-view"
 import type { CaseRecord } from "@/context/workspace"
+import { CandidateList } from "@/features/recommendations/CandidateList"
+import { useTechnicalView } from "@/lib/access"
 import type { Candidate, Component2Output } from "@/lib/api/types"
 import { conceptNames } from "@/lib/c2-derive"
 import { formatScore, rankingComponentLabels } from "@/lib/labels"
@@ -270,15 +273,25 @@ function CandidateTable({ output, record }: { output: Component2Output; record: 
 }
 
 export function CandidatesPage() {
+  const [technical, setTechnical] = useTechnicalView()
   return (
     <>
       <PageHeader
-        eyebrow="Component 2 · Recommendation"
+        eyebrow="Ayurvedic reasoning"
         title="Recommendation candidates"
-        description="Ranked herb, formulation, diet and lifestyle candidates with their evidence, rationale, uncertainty and review status."
+        description={
+          technical
+            ? "Technical view: ranking scores, evidence counts, verification, claims and policies."
+            : "Herbs, formulations, diet and lifestyle options suggested for this case. Open one to see why."
+        }
+        actions={<TechnicalViewSwitch on={technical} onChange={setTechnical} />}
       />
       <CaseBar />
-      <WithReasoning>{(output, record) => <CandidateTable output={output} record={record} />}</WithReasoning>
+      <WithReasoning>
+        {(output, record) =>
+          technical ? <CandidateTable output={output} record={record} /> : <CandidateList output={output} record={record} />
+        }
+      </WithReasoning>
     </>
   )
 }

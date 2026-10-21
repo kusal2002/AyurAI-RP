@@ -1,9 +1,14 @@
 
 import { lazy, Suspense, type ReactNode } from "react"
-import { Navigate, Route, Routes, useLocation } from "react-router"
+import { Link, Navigate, Outlet, Route, Routes, useLocation } from "react-router"
+import { LockKeyhole } from "lucide-react"
 
 import { AppShell } from "@/components/layout/AppShell"
-import { useAuth } from "@/context/auth"
+import { rolesForPath } from "@/components/layout/nav"
+import { EmptyState, Panel } from "@/components/shared/page"
+import { Button } from "@/components/ui/button"
+import { roleLabels, useAuth } from "@/context/auth"
+import { useAccess } from "@/lib/access"
 import { env } from "@/lib/env"
 
 const LoginPage = lazy(() =>
@@ -151,6 +156,27 @@ function RequireLiveAuth({ children }: { children: ReactNode }) {
   return children
 }
 
+/** Shows a page only to the roles listed for it in the navigation (components/layout/nav.ts). */
+function RoleGate() {
+  const { allows, role } = useAccess()
+  const location = useLocation()
+  if (allows(rolesForPath(location.pathname))) return <Outlet />
+  return (
+    <Panel>
+      <EmptyState
+        icon={LockKeyhole}
+        title="This page is not available for your role"
+        description={`You are signed in as ${role ? roleLabels[role] : "a user without a role"}. This page is for other staff roles, such as supervisors or researchers.`}
+        action={
+          <Button variant="outline" render={<Link to="/" />} nativeButton={false}>
+            Back to overview
+          </Button>
+        }
+      />
+    </Panel>
+  )
+}
+
 export function App() {
   return (
     <Routes>
@@ -162,6 +188,7 @@ export function App() {
           </RequireLiveAuth>
         }
       >
+        <Route element={<RoleGate />}>
         <Route index element={withPageFallback(<OverviewPage />)} />
         <Route
           path="screening/new"
@@ -207,6 +234,7 @@ export function App() {
         <Route path="fakl" element={withPageFallback(<FaklPage />)} />
         <Route path="admin" element={withPageFallback(<AdminPage />)} />
         <Route path="*" element={withPageFallback(<NotFoundPage />)} />
+        </Route>
       </Route>
     </Routes>
   )
