@@ -5,8 +5,11 @@ import type {
   C1CaptureStatus,
   C1ImageChange,
   C1IntakeState,
+  C1PpgCaptureOptions,
   C1PpgJob,
   C1PpgJobStatus,
+  C1PpgUploadBody,
+  C1RecordingResult,
   C1Profile,
   C1Question,
   C1QuestionnaireBody,
@@ -151,6 +154,16 @@ export const component1Api = {
   ppgJob: (signal?: AbortSignal) => component1Client.get<C1PpgJobStatus>("/api/c1/hardware/ppg-job", { signal }),
 
   cancelPpg: () => intake<{ cancel_requested: boolean }>("/api/c1/hardware/ppg-job/cancel"),
+
+  ppgCaptureOptions: (signal?: AbortSignal) =>
+    component1Client.get<C1PpgCaptureOptions>("/api/c1/ppg/capture-options", { signal }),
+
+  /** Uploads a recording captured in this browser (Web Serial); retrying with the same upload_id never duplicates it. */
+  uploadPpg: (sessionId: string, body: C1PpgUploadBody) =>
+    intake<C1RecordingResult & { duplicate: boolean }>(`/api/c1/sessions/${encodeSessionId(sessionId)}/ppg/upload`, {
+      json: body,
+      timeoutMs: 120_000,
+    }),
 
   intakeState: (sessionId: string, signal?: AbortSignal) =>
     component1Client.get<C1IntakeState>(`/api/c1/sessions/${encodeSessionId(sessionId)}/intake-state`, { signal }),

@@ -86,6 +86,26 @@ export type C1SerialPorts = {
   ports: { device: string; description: string }[]
   /** Windows lists the port. Says nothing about whether valid samples arrive. */
   port_listed: boolean
+  /** False when the server does not record from a USB sensor (C1_SERIAL_ENABLED=false); absent on older APIs. */
+  serial_enabled?: boolean
+}
+
+/** Which PPG capture paths the Component 1 server offers. */
+export type C1PpgCaptureOptions = {
+  server_serial_enabled: boolean
+  /** Browser Web Serial capture + upload (C1_PPG_UPLOAD_ENABLED). */
+  browser_upload_enabled: boolean
+  baud: number
+  min_seconds: number
+  max_seconds: number
+}
+
+/** One browser-captured recording, in the CSV format of capture_live_ppg.py. */
+export type C1PpgUploadBody = {
+  upload_id: string
+  seconds: number
+  samples_csv: string
+  metrics_csv: string
 }
 
 export type C1RecordingResult = {
