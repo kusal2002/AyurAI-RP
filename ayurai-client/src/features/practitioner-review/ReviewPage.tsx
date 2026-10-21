@@ -98,6 +98,13 @@ function CaseSummary({ output, record }: { output: Component2Output; record: Cas
                 { label: "Candidates evaluated", value: record.c3.data.evaluations.length },
                 { label: "Escalations", value: record.c3.data.evaluations.filter((e) => e.escalate_to_practitioner).length },
                 {
+                  label: "Evidence records",
+                  value: record.c3.data.evaluations.reduce(
+                    (sum, e) => sum + e.interaction_findings.reduce((s, f) => s + Math.max(1, f.source_refs.length), 0),
+                    0
+                  ),
+                },
+                {
                   label: "Contraindications",
                   value: record.c3.data.evaluations.reduce((sum, e) => sum + e.contraindications_triggered.length, 0),
                 },

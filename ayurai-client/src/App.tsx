@@ -96,6 +96,12 @@ const SafetyPage = lazy(() =>
   })),
 )
 
+const SafetyKnowledgeGraphPage = lazy(() =>
+  import("@/features/safety/SafetyKnowledgeGraphPage").then((module) => ({
+    default: module.SafetyKnowledgeGraphPage,
+  })),
+)
+
 const NewScreeningPage = lazy(() =>
   import("@/features/screening/NewScreeningPage").then((module) => ({
     default: module.NewScreeningPage,
@@ -194,6 +200,10 @@ export function App() {
           element={withPageFallback(<CandidatesPage />)}
         />
         <Route path="safety" element={withPageFallback(<SafetyPage />)} />
+        <Route
+          path="safety-graph"
+          element={withPageFallback(<SafetyKnowledgeGraphPage />)}
+        />
         <Route path="review" element={withPageFallback(<ReviewPage />)} />
         <Route
           path="governance"
