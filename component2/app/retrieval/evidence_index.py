@@ -42,6 +42,11 @@ class EvidenceChunk(BaseModel):
     page: str | None = None
     citation: str | None = None
     source_url: str | None = None
+    # Provenance of promoted evidence (Source and source-text chunk IDs).
+    source_id: str | None = None
+    source_chunk_id: str | None = None
+    knowledge_status: str | None = None
+    evidence_role: str | None = None
     practitioner_verified: bool = False
 
 
@@ -94,6 +99,11 @@ def _fingerprint(record: dict[str, Any]) -> str:
     payload = {
         "text": record.get("text"),
         **{field: record.get(field) for field in PROVENANCE_FIELDS},
+        # Changed provenance links must refresh the stored chunk metadata.
+        "source_id": record.get("source_id"),
+        "chunk_id": record.get("chunk_id"),
+        "knowledge_status": record.get("knowledge_status"),
+        "evidence_role": record.get("evidence_role"),
     }
     encoded = json.dumps(payload, sort_keys=True, default=str)
     return hashlib.sha256(encoded.encode("utf-8")).hexdigest()
@@ -149,6 +159,14 @@ class EvidenceIndex:
                 metadata[field] = bool(value)
             elif value is not None:
                 metadata[field] = str(value)
+
+        if record.get("source_id") is not None:
+            metadata["source_id"] = str(record["source_id"])
+        if record.get("chunk_id") is not None:
+            metadata["source_chunk_id"] = str(record["chunk_id"])
+        for key in ("knowledge_status", "evidence_role"):
+            if record.get(key) is not None:
+                metadata[key] = str(record[key])
 
         return [
             EvidenceChunk(

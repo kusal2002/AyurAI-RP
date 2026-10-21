@@ -57,10 +57,18 @@ def test_accepts_integer_confidence_bounds():
     assert make(calibrated_confidence=1).calibrated_confidence == 1.0
 
 
-@pytest.mark.parametrize("value", [True, False, "0.5", None, -0.01, 1.01])
+@pytest.mark.parametrize(
+    "value",
+    [True, False, "0.5", -0.01, 1.01],
+)
 def test_rejects_invalid_confidence(value):
     with pytest.raises(ValidationError):
         make(calibrated_confidence=value)
+
+
+def test_accepts_missing_confidence():
+    request = make(calibrated_confidence=None)
+    assert request.calibrated_confidence is None
 
 
 @pytest.mark.parametrize("tier", ["critical", "", "HIGH ", 3, None])

@@ -516,6 +516,62 @@ def get_symptom(
 
     return record["symptom"] if record else None
 
+def resolve_symptom_reference(
+    reference: str,
+    driver: Driver | None = None,
+) -> dict[str, Any]:
+    """Resolve a canonical symptom ID, name, or alias without guessing.
+
+    Returns:
+        {"status": "resolved", "symptom": {...}, "candidates": [...]}
+        {"status": "not_found", "symptom": None, "candidates": []}
+        {"status": "ambiguous", "symptom": None, "candidates": [...]}
+    """
+    if not isinstance(reference, str) or not reference.strip():
+        raise ValueError("reference must not be empty.")
+
+    normalized_reference = reference.strip()
+    db = _get_driver(driver)
+
+    query = """
+    MATCH (s:Symptom)
+    WHERE s.symptom_id = $reference
+       OR toLower(trim(coalesce(s.name, ''))) = $normalized_reference
+       OR any(
+           alias IN coalesce(s.aliases, [])
+           WHERE toLower(trim(alias)) = $normalized_reference
+       )
+    RETURN collect(DISTINCT properties(s)) AS symptoms
+    """
+
+    with db.session() as session:
+        record = session.run(
+            query,
+            reference=normalized_reference,
+            normalized_reference=normalized_reference.casefold(),
+        ).single()
+
+    candidates = record["symptoms"] if record else []
+
+    if len(candidates) == 1:
+        return {
+            "status": "resolved",
+            "symptom": candidates[0],
+            "candidates": candidates,
+        }
+
+    if len(candidates) > 1:
+        return {
+            "status": "ambiguous",
+            "symptom": None,
+            "candidates": candidates,
+        }
+
+    return {
+        "status": "not_found",
+        "symptom": None,
+        "candidates": [],
+    }
 
 def get_concepts(
     concept_ids: list[str],

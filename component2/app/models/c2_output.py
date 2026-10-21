@@ -24,7 +24,11 @@ from pydantic import BaseModel, Field
 from app.models.c1_input import RiskTier
 
 
-OUTPUT_SCHEMA_VERSION = "c2-output/0.1.0"
+# 0.2.0 (2026-10-20): adds `decision`, `decision_reasons` and
+# `risk_context` (Recommend / Caution / Abstain, FR9). Additive only.
+# 0.3.0 (2026-10-20): adds `knowledge_scope` and per-claim/evidence
+# `knowledge_status` for the provisional research pathway. Additive only.
+OUTPUT_SCHEMA_VERSION = "c2-output/0.3.0"
 
 SCORE_SEMANTICS = {
     "upstream.calibrated_confidence": (
@@ -66,6 +70,20 @@ class SufficiencyStatus(str, Enum):
     OUT_OF_SCOPE = "out_of_scope"
 
 
+class Decision(str, Enum):
+    """Request-level decision (FR9). Always a decision *for practitioner review*."""
+
+    RECOMMEND_FOR_REVIEW = "recommend_for_review"
+    CAUTION = "caution"
+    ABSTAIN = "abstain"
+
+
+class RiskRule(str, Enum):
+    HIGH_TIER = "upstream_high_risk"
+    CONFIDENCE_MISSING = "upstream_confidence_missing"
+    LOW_CONFIDENCE = "upstream_low_confidence"
+
+
 class CandidateCategory(str, Enum):
     HERB = "Herb"
     FORMULATION = "Formulation"
@@ -80,8 +98,9 @@ class CandidateDisposition(str, Enum):
 
 class UpstreamScreeningMetadata(BaseModel):
     risk_tier: RiskTier
-    calibrated_confidence: float = Field(
-        description=SCORE_SEMANTICS["upstream.calibrated_confidence"]
+    calibrated_confidence: float | None = Field(
+        default=None,
+        description=SCORE_SEMANTICS["upstream.calibrated_confidence"],
     )
 
 
@@ -95,6 +114,14 @@ class EvidenceReference(BaseModel):
     page: str | None = None
     citation: str | None = None
     source_url: str | None = None
+    # Set for evidence promoted from the source corpus: the Source and the
+    # source-text chunk the quoted sentence came from (Stage E).
+    source_id: str | None = None
+    source_chunk_id: str | None = None
+    # "approved" or "provisional" (unverified, practitioner review pending).
+    knowledge_status: str | None = None
+    # claim_support | translation_support | modern_reference (provisional records).
+    evidence_role: str | None = None
     practitioner_verified: bool = False
     provenance_complete: bool
     missing_provenance: list[str] = Field(default_factory=list)
@@ -117,6 +144,16 @@ class ClaimStep(BaseModel):
         default_factory=list
     )
     evidence_lookup_failed: bool = False
+    knowledge_status: Literal["approved", "provisional"] = Field(
+        default="approved",
+        description="provisional = unverified research record, practitioner review pending.",
+    )
+    claim_category: str | None = None
+    uncertainty_notes: list[str] = Field(default_factory=list)
+    qualifying_evidence: list[EvidenceReference] = Field(
+        default_factory=list,
+        description="Evidence that qualifies (not contradicts) the claim, e.g. modern findings.",
+    )
     retrieval_similarity: float | None = Field(
         default=None,
         description=(
@@ -219,6 +256,10 @@ class RetrievedEvidenceItem(BaseModel):
     page: str | None = None
     citation: str | None = None
     source_url: str | None = None
+    source_id: str | None = None
+    source_chunk_id: str | None = None
+    knowledge_status: str | None = None
+    evidence_role: str | None = None
 
 
 class RetrievalInfo(BaseModel):
@@ -237,9 +278,37 @@ class Abstention(BaseModel):
     explanation: str | None = None
 
 
+class RiskContext(BaseModel):
+    """Upstream risk information and the gating rules it triggered.
+
+    It gates the request-level decision only. It never changes ranking,
+    candidate sufficiency or dispositions.
+    """
+
+    risk_tier: RiskTier
+    calibrated_confidence: float | None
+    rules_triggered: list[RiskRule] = Field(default_factory=list)
+    escalation: list[str] = Field(
+        default_factory=list,
+        description="Plain-language escalation and caution notes, in rule order.",
+    )
+    policy_id: str
+
+
+KnowledgeScope = Literal["approved", "approved_and_provisional"]
+
+
 class Component2Output(BaseModel):
     schema_version: str = OUTPUT_SCHEMA_VERSION
     request_id: str
+    knowledge_scope: KnowledgeScope = Field(
+        default="approved",
+        description=(
+            "approved: only human-approved claims. approved_and_provisional: "
+            "research mode that also reads unverified, AI-assisted draft claims; "
+            "such claims can never make a candidate sufficient."
+        ),
+    )
     generated_at: datetime = Field(
         default_factory=lambda: datetime.now(timezone.utc)
     )
@@ -254,6 +323,12 @@ class Component2Output(BaseModel):
         default_factory=list
     )
     sufficiency_status: SufficiencyStatus
+    decision: Decision = Field(description=(
+        "recommend_for_review, caution or abstain. Combines the evidence "
+        "status with upstream risk rules; never a clinical decision."
+    ))
+    decision_reasons: list[str] = Field(default_factory=list)
+    risk_context: RiskContext
     uncertainty_flags: list[str] = Field(default_factory=list)
     evidence_gaps: list[str] = Field(default_factory=list)
     review_required: bool

@@ -143,10 +143,18 @@ class FakeGraph:
         return results
 
     def get_connected_knowledge(self, concept_id, driver=None):
-        return [
-            {"claim": dict(item["claim"])}
-            for item in self.get_claims_for_concept(concept_id)
-        ]
+        """Same shape as the repository query: claims with their evidence."""
+        self.connected_calls = getattr(self, "connected_calls", 0) + 1
+        records = []
+        for item in self.get_claims_for_concept(concept_id):
+            claim_id = item["claim"]["claim_id"]
+            linked = [(e, rel) for e, c, rel in self.links if c == claim_id and e in self.evidence]
+            records.append({
+                "claim": dict(item["claim"]),
+                "supporting_evidence": [dict(self.evidence[e]) for e, rel in linked if rel == "SUPPORTS"],
+                "contradicting_evidence": [dict(self.evidence[e]) for e, rel in linked if rel == "CONTRADICTS"],
+            })
+        return records
 
     def get_evidence_for_claim(self, claim_id, driver=None):
         claim = self.claims.get(claim_id)

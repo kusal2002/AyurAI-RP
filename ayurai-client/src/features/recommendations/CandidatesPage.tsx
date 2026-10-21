@@ -143,6 +143,20 @@ function CandidateTable({ output, record }: { output: Component2Output; record: 
           </p>
         </Notice>
       )}
+      {output.decision === "caution" && (
+        <Notice tone="caution" title="Decision: caution">
+          {output.risk_context.escalation.length > 0 ? (
+            <ul className="list-disc space-y-1 pl-5">
+              {output.risk_context.escalation.map((note) => (
+                <li key={note}>{note}</li>
+              ))}
+            </ul>
+          ) : (
+            <p>Some evidence is conflicting or unverified. Review the withheld candidates and their evidence.</p>
+          )}
+          <p className="mt-1.5 text-xs">The order and dispositions below are not changed by risk rules.</p>
+        </Notice>
+      )}
       <Notice tone="neutral">
         These are system-generated candidates, not practitioner-approved recommendations. No dosage, treatment
         instruction or efficacy estimate is produced. The ranking score is an experimental engineering score from
@@ -205,7 +219,7 @@ function CandidateTable({ output, record }: { output: Component2Output; record: 
                         </td>
                         <td className="px-3 py-3 font-semibold text-slate-800">#{candidate.rank}</td>
                         <td className="px-3 py-3">
-                          <p className="font-semibold text-slate-900">{candidate.name ?? "Name not supplied"}</p>
+                          <p className="font-semibold text-slate-900">{candidate.name ?? candidate.candidate_id}</p>
                           <IdChip>{candidate.candidate_id}</IdChip>
                         </td>
                         <td className="px-3 py-3 text-xs text-slate-600">{candidate.category}</td>

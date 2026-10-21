@@ -1,7 +1,9 @@
 import {
   Activity,
   ClipboardCheck,
+  FileInput,
   FileSearch,
+  FlaskConical,
   FolderOpen,
   GitMerge,
   LayoutDashboard,
@@ -31,6 +33,7 @@ export const navGroups: { title: string; items: NavItem[] }[] = [
     items: [
       { label: "Overview", to: "/", icon: LayoutDashboard },
       { label: "New screening", to: "/screening/new", icon: Stethoscope, component: "C1" },
+      { label: "Import C1 output", to: "/screening/import", icon: FileInput, component: "C2" },
       { label: "Screening records", to: "/screenings", icon: Activity, component: "C1" },
       { label: "Patient cases", to: "/cases", icon: FolderOpen },
     ],
@@ -41,6 +44,7 @@ export const navGroups: { title: string; items: NavItem[] }[] = [
       { label: "Ayurvedic analysis", to: "/analysis", icon: Leaf, component: "C2" },
       { label: "Knowledge graph", to: "/knowledge-graph", icon: Network, component: "C2" },
       { label: "Evidence explorer", to: "/evidence", icon: FileSearch, component: "C2" },
+      { label: "Research knowledge (unverified)", to: "/research-knowledge", icon: FlaskConical, component: "C2" },
       { label: "Recommendation candidates", to: "/candidates", icon: ListOrdered, component: "C2" },
     ],
   },

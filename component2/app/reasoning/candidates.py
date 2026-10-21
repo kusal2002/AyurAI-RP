@@ -60,6 +60,10 @@ def build_evidence_reference(
         page=_text(summary.get("page")),
         citation=_text(summary.get("citation")),
         source_url=_text(summary.get("source_url")),
+        source_id=_text(summary.get("source_id")),
+        source_chunk_id=_text(summary.get("chunk_id")),
+        knowledge_status=_text(summary.get("knowledge_status")),
+        evidence_role=_text(summary.get("evidence_role")),
         practitioner_verified=bool(summary.get("practitioner_verified")),
         provenance_complete=not missing,
         missing_provenance=missing,
@@ -128,6 +132,16 @@ def build_claim_step(
         supporting_evidence=supporting,
         contradicting_evidence=contradicting,
         evidence_lookup_failed=evaluation is None,
+        knowledge_status=(
+            "provisional" if claim.get("knowledge_status") == "provisional" else "approved"
+        ),
+        claim_category=_text(claim.get("claim_category")),
+        uncertainty_notes=[str(n) for n in claim.get("uncertainty_notes") or []],
+        qualifying_evidence=[
+            build_evidence_reference(item, "SUPPORTS")
+            for item in claim.get("qualifying_evidence") or []
+            if item.get("evidence_id")
+        ],
     )
 
 

@@ -16,6 +16,7 @@ import {
 import { Notice, PageHeader, Panel, fieldClass } from "@/components/shared/page"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
+import { KnowledgeScopeToggle } from "@/components/shared/c2"
 import { useWorkspace, type ModalityKey } from "@/context/workspace"
 import type { RiskTier } from "@/lib/api/types"
 import { cn } from "@/lib/utils"
@@ -81,7 +82,7 @@ const steps = [
 
 export function NewScreeningPage() {
   const navigate = useNavigate()
-  const { mode, createCase, runReasoning, validateIntake } = useWorkspace()
+  const { mode, createCase, runReasoning, validateIntake, knowledgeScope, setKnowledgeScope } = useWorkspace()
   const isDemo = mode === "demo"
 
   const [step, setStep] = React.useState(1)
@@ -173,6 +174,12 @@ export function NewScreeningPage() {
         tier, calibrated confidence and symptom IDs must come from an approved Component 1 result and
         are entered manually in step 3. Use synthetic or de-identified data only.
       </Notice>
+
+      {mode === "live" && (
+        <div className="mb-5">
+          <KnowledgeScopeToggle value={knowledgeScope} onChange={setKnowledgeScope} />
+        </div>
+      )}
 
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-[240px_minmax(0,1fr)]">
         <nav aria-label="Screening steps">
