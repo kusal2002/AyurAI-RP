@@ -1,0 +1,23 @@
+# Python virtual environment
+venv/
+
+# Python bytecode
+__pycache__/
+*.pyc
+
+# Secrets / environment variables
+.env
+
+# Local development database (SQLite fallback used before PostgreSQL)
+*.sqlite3
+
+# Raw datasets (may contain patient data — never commit)
+data/raw/
+
+# Editor / IDE settings
+.idea/
+.vscode/
+
+# Raw per-run experiment output (regenerate with: python component4/federated/sweep.py)
+results/*_run*.csv
+# NOTE: results/summary.csv is intentionally NOT ignored — the summary is committed.

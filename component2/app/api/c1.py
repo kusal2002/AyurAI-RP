@@ -1,18 +1,20 @@
+
 from fastapi import APIRouter
 
-from app.models.c1_input import C1Input
+from app.models.c1_screening_payload import C1ScreeningPayload
 
 
 router = APIRouter(
     prefix="/api/v1/c1",
-    tags=["Component 1 Integration"]
+    tags=["Component 1 Integration"],
 )
 
 
 @router.post("/screening-result")
-def receive_screening_result(data: C1Input):
+def receive_screening_result(data: C1ScreeningPayload):
     return {
         "status": "accepted",
         "message": "Component 1 screening result received",
-        "data": data
+        "screening_id": data.screening_id,
+        "data": data.model_dump(mode="json"),
     }
