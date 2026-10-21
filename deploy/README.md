@@ -131,10 +131,28 @@ docker compose -f docker-compose.prod.yml --env-file .env.prod ps
 curl http://localhost/c1-api/api/c1/health && curl http://localhost/c2-api/health && curl http://localhost/c3-api/health && curl http://localhost/c4-api/health
 ```
 
-Create the Component 4 demo accounts once:
+### Sign-in accounts (Component 4)
+
+The dashboard's sign-in page uses these demo accounts:
+
+| Username | Role | Clinic |
+|----------|------|--------|
+| `practitioner.clinic1` / `.clinic2` / `.clinic3` | practitioner | clinic-1 / 2 / 3 |
+| `supervisor` | supervisor | all |
+| `researcher` | researcher | all |
+
+Set `C4_SEED_PASSWORD` (8+ characters) in `component4/.env`. Every time the
+`c4-api` container starts, it creates any missing accounts with that password.
+Accounts that already exist keep their password. Check the result:
 
 ```bash
-docker compose -f docker-compose.prod.yml --env-file .env.prod exec c4-api python seed_users.py --password 'CHOOSE_A_PASSWORD'
+docker compose -f docker-compose.prod.yml --env-file .env.prod logs c4-api | grep -E "created|exists|seed_users"
+```
+
+To change every demo account's password later:
+
+```bash
+docker compose -f docker-compose.prod.yml --env-file .env.prod exec c4-api python seed_users.py --password 'NEW_PASSWORD' --reset-passwords
 ```
 
 Open `http://VPS_IP` in a browser.
@@ -150,7 +168,8 @@ Tip: save typing with an alias in `~/.bashrc`:
    ```bash
    docker compose -f docker-compose.prod.yml --env-file .env.prod up -d nginx
    ```
-3. Get the certificate (replace domain and email):
+3. Get the certificate (replace domain and email). It is stored in the server's
+   `/etc/letsencrypt`, which nginx reads:
    ```bash
    docker compose -f docker-compose.prod.yml --env-file .env.prod run --rm certbot certonly --webroot -w /var/www/certbot -d your.domain --email you@example.com --agree-tos --no-eff-email
    ```
@@ -162,9 +181,62 @@ Tip: save typing with an alias in `~/.bashrc`:
 
 ## Updating
 
+Automatic: see "CI/CD with GitHub Actions" below. By hand, on the server:
+
 ```bash
-cd ~/ayurai && git pull && docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --build
+bash ~/ayurai/deploy/remote-deploy.sh ~/ayurai
 ```
+
+It pulls `main`, rebuilds, restarts and waits until every service answers.
+
+## CI/CD with GitHub Actions
+
+Two workflows in `.github/workflows/`:
+
+- **CI** (`ci.yml`) runs on every pull request and push to `main` or `dev`:
+  frontend lint + type check + build, the Component 4 tests, a check of
+  `docker-compose.prod.yml`, a build of all five Docker images, and an nginx config test.
+- **Deploy** (`deploy.yml`) runs after CI passes on a push to `main`. It connects
+  to the VPS over SSH and runs `deploy/remote-deploy.sh`. It can also be started
+  by hand from the Actions tab (Deploy → Run workflow).
+
+The deploy uses `git pull --ff-only`. If files were edited directly on the
+server (for example `docker-compose.prod.yml`), the deploy stops instead of
+overwriting them. Commit such changes to the repository instead.
+
+### One-time setup
+
+1. **Create a deploy key** on your PC (no passphrase), just for GitHub Actions:
+   ```bash
+   ssh-keygen -t ed25519 -f ayurai_deploy -N "" -C "github-actions-deploy"
+   ```
+2. **Allow it on the server**: append the public key to the deploy user's
+   `~/.ssh/authorized_keys` (run on the PC, replace the IP):
+   ```bash
+   type ayurai_deploy.pub | ssh ubuntu@VPS_IP "cat >> ~/.ssh/authorized_keys"
+   ```
+   (In Git Bash use `cat` instead of `type`.) The user must be in the `docker` group.
+3. **Get the server's host key** (lets GitHub check it is talking to your server):
+   ```bash
+   ssh-keyscan -H VPS_IP
+   ```
+4. **Add repository secrets** on GitHub: Settings → Secrets and variables → Actions → New repository secret:
+
+   | Secret | Value |
+   |--------|-------|
+   | `VPS_HOST` | server IP or domain |
+   | `VPS_USER` | SSH user, e.g. `ubuntu` |
+   | `VPS_SSH_KEY` | the whole content of the private key file `ayurai_deploy` |
+   | `VPS_KNOWN_HOSTS` | the full output of step 3 |
+
+   Optional variables (Variables tab): `VPS_PORT` (default 22), `VPS_APP_DIR` (default `~/ayurai`).
+5. Delete the private key file from your PC once it is saved in GitHub.
+6. Optional: Settings → Environments → `production` → add yourself as a
+   required reviewer, so each deploy waits for your approval.
+
+The server must already be set up once by hand (sections 1–3): the clone in
+`~/ayurai`, the `.env` files, `.env.prod` and the Component 1 model weights.
+The workflows never see or copy those secrets.
 
 ## Useful commands
 
