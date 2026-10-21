@@ -608,18 +608,19 @@ Status codes:
 
 **Review decisions:** Component 1 does **not** record doctor decisions. `review_status` is always `pending_review`, and the PDF prints a blank review form that says it is not a record of approval. To record a decision, the dashboard should use Component 4's existing `POST /api/v1/c4/decisions`, with `case_ref = <Component 1 session_id>` and `decision` of `approve`, `request_changes` or `reject`. Showing those decisions in Component 1's summary would need a read route from Component 4 (not built).
 
-### Shared changes needed before production use (not made; need the owners' approval)
+### Component 4 sign-in in the website and deployment
 
-1. **`ayurai-client/src/lib/api/component4.ts`:** export a token getter, for example `export function getAuthToken() { return authToken }`. The Component 1 frontend currently has no way to send the signed-in user's JWT.
-2. **`ayurai-client/src/lib/api/component1.ts`** (Component 1, after item 1):
-   - send `Authorization: Bearer ${getAuthToken()}` from `intake()` and `reportPdf()`;
-   - in `PatientRegistration.tsx`, let `patientFeaturesAvailable` also return true for `component4` mode when a token exists.
-3. **Practitioner review page (Component 4):** list `GET /api/c1/doctor/sessions`, open the PDF link, and record decisions with `case_ref = session_id`.
-4. **Deployment:**
-   - HTTPS;
-   - `/c1-api` behind the sign-in;
-   - `C1_PATIENT_DATA_ACCESS=component4` only after items 1–3 have been tested;
-   - `C1_PII_DB_PATH` on persistent storage with owner-only permissions;
+Done:
+- `ayurai-client/src/lib/api/component4.ts` exports `getAuthToken()`.
+- `ayurai-client/src/lib/api/component1.ts` sends `Authorization: Bearer <token>` from `intake()` and `reportPdf()` when the user is signed in.
+- `patientFeaturesAvailable` returns true in `component4` mode for a signed-in **practitioner** or **supervisor** (researchers see the "not available" note).
+- `docker-compose.prod.yml` sets `C1_PATIENT_DATA_ACCESS=component4` (override in `.env.prod`, `off` disables it) and `C1_C4_AUTH_ME_URL=http://c4-api:8004/api/v1/c4/auth/me`.
+
+Still to do:
+1. **Practitioner review page (Component 4):** list `GET /api/c1/doctor/sessions`, open the PDF link, and record decisions with `case_ref = session_id`.
+2. **Deployment:**
+   - the other `/c1-api` routes (sessions, images, reports) still answer without sign-in;
+   - `C1_PII_DB_PATH` on persistent storage with owner-only permissions (default is inside the `datasets` volume);
    - the personal-data file included in **encrypted** backups.
 
 ### PDF report contents
