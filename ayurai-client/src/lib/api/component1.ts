@@ -5,7 +5,11 @@ import type {
   C1CaptureStatus,
   C1ImageChange,
   C1IntakeState,
+  C1Patient,
+  C1PatientDataStatus,
   C1PpgCaptureOptions,
+  C1RegistrationBody,
+  C1RegistrationResponse,
   C1PpgJob,
   C1PpgJobStatus,
   C1PpgUploadBody,
@@ -46,16 +50,17 @@ function c1Message(status: number, body: unknown): string {
 /** Intake requests: JSON or multipart, longer timeout (PPG recording and model inference take seconds). */
 async function intake<T>(
   path: string,
-  init: { json?: unknown; form?: FormData; timeoutMs?: number; method?: "POST" | "DELETE" } = {},
+  init: { json?: unknown; form?: FormData; timeoutMs?: number; method?: "GET" | "POST" | "PUT" | "DELETE" } = {},
 ): Promise<T> {
   const controller = new AbortController()
   const timer = window.setTimeout(() => controller.abort(), init.timeoutMs ?? 120_000)
+  const method = init.method ?? "POST"
   let response: Response
   try {
     response = await fetch(`${env.c1BaseUrl}${path}`, {
-      method: init.method ?? "POST",
+      method,
       headers: init.json !== undefined ? { Accept: "application/json", "Content-Type": "application/json" } : { Accept: "application/json" },
-      body: init.form ?? JSON.stringify(init.json ?? {}),
+      body: method === "GET" ? undefined : init.form ?? JSON.stringify(init.json ?? {}),
       signal: controller.signal,
     })
   } catch {
@@ -154,6 +159,38 @@ export const component1Api = {
   ppgJob: (signal?: AbortSignal) => component1Client.get<C1PpgJobStatus>("/api/c1/hardware/ppg-job", { signal }),
 
   cancelPpg: () => intake<{ cancel_requested: boolean }>("/api/c1/hardware/ppg-job/cancel"),
+
+  /** Public: whether patient registration / PDF reports are available on this server (no personal data). */
+  patientDataStatus: (signal?: AbortSignal) =>
+    component1Client.get<C1PatientDataStatus>("/api/c1/patient-data/status", { signal }),
+
+  /** Creates the coded session and its registration together; reuse request_id when retrying (no duplicates). */
+  registerPatient: (body: C1RegistrationBody) => intake<C1RegistrationResponse>("/api/c1/patients/register", { json: body }),
+
+  patient: (sessionId: string) =>
+    intake<{ patient: C1Patient }>(`/api/c1/sessions/${encodeSessionId(sessionId)}/patient`, { method: "GET" }),
+
+  updatePatient: (sessionId: string, body: { full_name: string; phone: string }) =>
+    intake<{ patient: C1Patient; changed_fields: string[] }>(`/api/c1/sessions/${encodeSessionId(sessionId)}/patient`, {
+      json: body,
+      method: "PUT",
+    }),
+
+  /** Protected A4 PDF screening report. */
+  reportPdf: async (sessionId: string): Promise<Blob> => {
+    let response: Response
+    try {
+      response = await fetch(`${env.c1BaseUrl}/api/c1/doctor/sessions/${encodeSessionId(sessionId)}/report.pdf`, {
+        headers: { Accept: "application/pdf" },
+      })
+    } catch {
+      throw new ApiError("network", `${SERVICE} could not be reached.`)
+    }
+    if (!response.ok) {
+      throw new ApiError("http", c1Message(response.status, await response.json().catch(() => null)), { status: response.status })
+    }
+    return response.blob()
+  },
 
   ppgCaptureOptions: (signal?: AbortSignal) =>
     component1Client.get<C1PpgCaptureOptions>("/api/c1/ppg/capture-options", { signal }),

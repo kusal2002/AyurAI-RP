@@ -90,6 +90,28 @@ export type C1SerialPorts = {
   serial_enabled?: boolean
 }
 
+/** Whether patient registration and PDF reports are available (C1_PATIENT_DATA_ACCESS). */
+export type C1PatientDataStatus = {
+  access_mode: "off" | "component4" | "local_dev"
+  enabled: boolean
+  requires_bearer_token: boolean
+}
+
+/** Registered patient for one session (protected routes only). */
+export type C1Patient = {
+  session_id: string
+  full_name: string
+  phone_e164?: string
+  phone_display?: string
+  clinic_id: string | null
+  created_utc: string
+  updated_utc: string
+}
+
+export type C1RegistrationBody = { request_id: string; full_name: string; phone: string }
+
+export type C1RegistrationResponse = { session_id: string; duplicate: boolean; patient: C1Patient }
+
 /** Which PPG capture paths the Component 1 server offers. */
 export type C1PpgCaptureOptions = {
   server_serial_enabled: boolean

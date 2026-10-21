@@ -24,6 +24,8 @@ import type {
   C1ImageChange,
   C1IntakeState,
   C1PpgJob,
+  C1Patient,
+  C1PatientDataStatus,
   C1PpgCaptureOptions,
   C1PpgJobStatus,
   C1Question,
@@ -37,6 +39,14 @@ import type {
 import { cn } from "@/lib/utils"
 import { ReportView, downloadJson } from "@/features/screening/Component1SessionPanel"
 import { BrowserPpgCapture, RecordingSummary } from "@/features/screening/BrowserPpgCapture"
+import {
+  PatientBanner,
+  PatientDetailsForm,
+  PdfReportButton,
+  RegistrationUnavailable,
+  newRequestId,
+  patientFeaturesAvailable,
+} from "@/features/screening/PatientRegistration"
 
 const STEPS = ["Session", "Patient & consent", "Questionnaire", "Webcam", "PPG sensor", "Report"] as const
 type Modality = keyof C1CaptureCounts
@@ -736,6 +746,17 @@ export function Component1IntakeWizard() {
   const [counts, setCounts] = React.useState<C1CaptureCounts>(EMPTY_COUNTS)
   const [report, setReport] = React.useState<Component1Report | null>(null)
   const [imagesChanged, setImagesChanged] = React.useState(false)
+  // Patient registration (name + phone): only through protected Component 1 routes, never in URLs or session IDs.
+  const [patientStatus, setPatientStatus] = React.useState<C1PatientDataStatus | null>(null)
+  const [patient, setPatient] = React.useState<C1Patient | null>(null)
+  const registrationId = React.useRef(newRequestId()) // one per registration form: a retry never creates a second session
+  const patientFeatures = patientFeaturesAvailable(patientStatus)
+
+  React.useEffect(() => {
+    const controller = new AbortController()
+    component1Api.patientDataStatus(controller.signal).then(setPatientStatus).catch(() => undefined)
+    return () => controller.abort()
+  }, [])
 
   const ageTotal = ageYears * 12 + ageMonths
   const isChild = ageTotal < 216
@@ -797,6 +818,8 @@ export function Component1IntakeWizard() {
     setAllergies("")
     setError(null)
     setSavedSessions(null)
+    setPatient(null)
+    registrationId.current = newRequestId()
   }
 
   const setAnswer = (id: string, value: string | number | undefined) =>
@@ -820,6 +843,20 @@ export function Component1IntakeWizard() {
       setSessionId(created.session_id)
       setQuestionSet(questions)
       await refreshIntake(created.session_id)
+      setStep(1)
+    })
+
+  /** Registers name + phone and creates the session in one request (same request ID on retry: no duplicate session). */
+  const registerAndStart = (fullName: string, phone: string) =>
+    run(async () => {
+      const [registered, questions] = await Promise.all([
+        component1Api.registerPatient({ request_id: registrationId.current, full_name: fullName, phone }),
+        component1Api.questions(),
+      ])
+      setPatient(registered.patient)
+      setSessionId(registered.session_id)
+      setQuestionSet(questions)
+      await refreshIntake(registered.session_id)
       setStep(1)
     })
 
@@ -879,6 +916,8 @@ export function Component1IntakeWizard() {
           ? await component1Api.report(state.session_id)
           : null,
       )
+      // Sessions from before registration existed have no details (404): they stay coded sessions.
+      setPatient(patientFeatures ? await component1Api.patient(state.session_id).then((r) => r.patient).catch(() => null) : null)
       setStep(target[state.workflow_state] ?? 1)
     })
 
@@ -997,6 +1036,7 @@ export function Component1IntakeWizard() {
           <span>· everything below is saved to this session only</span>
         </div>
       )}
+      {sessionId && patientFeatures && <PatientBanner sessionId={sessionId} patient={patient} onChanged={setPatient} />}
 
       <ol className="mb-5 flex flex-wrap gap-2" aria-label="Intake steps">
         {STEPS.map((label, index) => {
@@ -1022,12 +1062,24 @@ export function Component1IntakeWizard() {
 
       {step === 0 && (
         <div className="space-y-4">
-          <div className="space-y-2">
-            <p className="text-sm text-slate-700">Creates one coded session folder used by every step; no name or identifier is collected.</p>
-            <Button disabled={busy} onClick={() => void startSession()}>
-              <Play /> Start new screening session
-            </Button>
-          </div>
+          {patientFeatures ? (
+            <section className="space-y-3 rounded-xl border border-slate-200 p-4" aria-label="Patient registration">
+              <h3 className="text-xs font-semibold text-slate-500 uppercase">Patient registration</h3>
+              <p className="text-sm text-slate-700">
+                Enter the patient&apos;s details first. They are stored separately from the screening data and are never used in the
+                session ID or file names.
+              </p>
+              <PatientDetailsForm submitLabel="Register patient and start session" busy={busy} onSubmit={registerAndStart} />
+            </section>
+          ) : (
+            <div className="space-y-2">
+              <RegistrationUnavailable status={patientStatus} />
+              <p className="text-sm text-slate-700">Creates one coded session folder used by every step; no name or identifier is collected.</p>
+              <Button disabled={busy} onClick={() => void startSession()}>
+                <Play /> Start new screening session
+              </Button>
+            </div>
+          )}
           <div className="space-y-2 rounded-xl border border-slate-200 p-4">
             <p className="text-sm text-slate-700">Continue an unfinished session (for example after a page refresh) — no new session is created.</p>
             {savedSessions === null ? (
@@ -1060,8 +1112,11 @@ export function Component1IntakeWizard() {
       {step === 1 && (
         <div className="space-y-4">
           <p className="text-xs text-slate-500">
-            Coded test participants only: real patient data must not be entered until the questionnaire and research
-            protocol are approved. No names or identifiers are collected.
+            Fictional test participants only: real patient data must not be entered until the questionnaire and research
+            protocol are approved.{" "}
+            {patientFeatures
+              ? "Name and phone are kept in separate protected storage; the clinical answers below stay linked only to the coded session ID."
+              : "No names or identifiers are collected."}
           </p>
           {questionnaireSaved && (
             <Notice tone="info">The questionnaire for this session is already saved; changing these details requires saving it again in step 3.</Notice>
@@ -1377,6 +1432,7 @@ export function Component1IntakeWizard() {
                     <Download /> Component 2 payload
                   </Button>
                 )}
+                {patientFeatures && <PdfReportButton sessionId={sessionId} disabled={report.analysis_outdated} />}
               </div>
               <ReportView report={report} />
             </>

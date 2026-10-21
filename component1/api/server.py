@@ -616,3 +616,8 @@ def refresh_session(session_id: str):
 from component1.api.intake import router as intake_router  # noqa: E402
 
 app.include_router(intake_router)
+
+# Patient registration, doctor-review summaries and PDF reports (protected; off unless C1_PATIENT_DATA_ACCESS is set).
+from component1.api.patient_records import router as patient_router  # noqa: E402
+
+app.include_router(patient_router)
