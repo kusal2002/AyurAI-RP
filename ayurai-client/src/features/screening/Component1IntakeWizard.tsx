@@ -24,6 +24,7 @@ import type {
   C1ImageChange,
   C1IntakeState,
   C1PpgJob,
+  C1PpgCaptureOptions,
   C1PpgJobStatus,
   C1Question,
   C1QuestionSet,
@@ -35,6 +36,7 @@ import type {
 } from "@/lib/api/types"
 import { cn } from "@/lib/utils"
 import { ReportView, downloadJson } from "@/features/screening/Component1SessionPanel"
+import { BrowserPpgCapture, RecordingSummary } from "@/features/screening/BrowserPpgCapture"
 
 const STEPS = ["Session", "Patient & consent", "Questionnaire", "Webcam", "PPG sensor", "Report"] as const
 type Modality = keyof C1CaptureCounts
@@ -474,10 +476,18 @@ function PpgStep({
   const [job, setJob] = React.useState<C1PpgJob | null>(null)
   const [seconds, setSeconds] = React.useState(20)
   const [error, setError] = React.useState<string | null>(null)
+  const [options, setOptions] = React.useState<C1PpgCaptureOptions | null>(null)
   const pollRef = React.useRef<number | null>(null)
 
   React.useEffect(() => () => {
     if (pollRef.current) window.clearInterval(pollRef.current)
+  }, [])
+
+  // Which capture paths this server offers: its own USB port (localhost) and/or browser Web Serial upload.
+  React.useEffect(() => {
+    const controller = new AbortController()
+    component1Api.ppgCaptureOptions(controller.signal).then(setOptions).catch(() => undefined)
+    return () => controller.abort()
   }, [])
 
   if (!consented) {
@@ -488,6 +498,9 @@ function PpgStep({
   const cleared = Boolean(status?.ppg_acquisition_allowed) && comfortSaved
   const configured = port?.configured_port ?? "COM11"
   const running = job ? RUNNING.includes(job.state) : false
+  // Older APIs have no capture-options route: keep the server USB controls, as before.
+  const serverSerial = options?.server_serial_enabled !== false
+  const browserUpload = options?.browser_upload_enabled === true
 
   const checkPort = async () => {
     setError(null)
@@ -591,7 +604,21 @@ function PpgStep({
         <Notice tone="caution">Optical obstruction reported (e.g. nail polish); signal quality may be reduced.</Notice>
       )}
 
-      {cleared && (
+      {cleared && browserUpload && options && (
+        <BrowserPpgCapture sessionId={sessionId} baud={options.baud} hasRecordings={recordings.length > 0} onSaved={onSaved} />
+      )}
+
+      {cleared && !serverSerial && !browserUpload && (
+        <Notice tone="neutral" title="PPG capture is not available on this server">
+          Continue without PPG; the report will list PPG as missing.
+        </Notice>
+      )}
+
+      {cleared && serverSerial && browserUpload && (
+        <p className="text-xs text-slate-500">Or record through the Component 1 server&apos;s own USB port (local setup):</p>
+      )}
+
+      {cleared && serverSerial && (
         <div className="space-y-3 rounded-xl border border-slate-200 p-4">
           <div className="flex flex-wrap items-center gap-3 text-sm text-slate-700">
             <Usb className="size-4" aria-hidden />
@@ -659,29 +686,7 @@ function PpgStep({
 
       {error && <Notice tone="critical">{error}</Notice>}
 
-      {result && (
-        <div className="space-y-2">
-          <KeyValueList
-            items={[
-              { label: "Saved to", value: `session ${result.session_id} · SQLite recording #${result.recording_id}` },
-              { label: "RED/IR samples", value: `${result.sample_count} @ ${result.observed_receive_rate_hz ?? "?"} Hz` },
-              {
-                label: "Technical quality",
-                value: result.quality_passed ? "Passed (candidate for pulse validation)" : "Not passed — retake suggested",
-              },
-              { label: "Experimental HR (device)", value: result.median_experimental_hr_bpm != null ? `${result.median_experimental_hr_bpm} bpm` : "not reported" },
-              { label: "Experimental SpO2 (device)", value: result.median_experimental_spo2_percent != null ? `${result.median_experimental_spo2_percent}%` : "not reported" },
-              { label: "Temperature", value: result.median_temperature_c != null ? `${result.median_temperature_c} °C` : "N/A (no temperature sensor)" },
-              { label: "Hb from PPG", value: "Not applied — live PPG Hb transfer is not validated" },
-            ]}
-          />
-          <ul className="list-disc space-y-0.5 pl-5 text-xs text-slate-600">
-            {result.quality_reasons.map((reason) => (
-              <li key={reason}>{reason}</li>
-            ))}
-          </ul>
-        </div>
-      )}
+      {result && <RecordingSummary result={result} />}
 
       {recordings.length > 0 && (
         <div className="text-xs text-slate-600">

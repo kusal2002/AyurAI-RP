@@ -9,11 +9,20 @@ Consent and safety are enforced here, server-side:
 
 Hardware: local USB serial only (ESP32-S3 + MAX30102). Port and baud come from
 component1/.env (C1_SERIAL_PORT, C1_SERIAL_BAUD), defaulting to COM11 / 115200.
+
+PPG capture paths (environment first, then component1/.env):
+- C1_SERIAL_ENABLED (default true): this API opens the ESP32's COM port itself (localhost workflow).
+- C1_PPG_UPLOAD_ENABLED (default false): the browser records over Web Serial and uploads the recording.
+  Enable ONLY when /api/c1 is behind authenticated access (this API has no user authentication of its own).
 """
 
 from __future__ import annotations
 
+import csv
+import io
 import json
+import math
+import os
 import re
 from contextlib import closing
 import sqlite3
@@ -66,6 +75,23 @@ def _env() -> dict[str, str]:
             if sep and not key.strip().startswith("#"):
                 values[key.strip()] = value.strip().strip('"').strip("'")
     return values
+
+
+def _setting(name: str, default: str) -> str:
+    """Process environment first (deployment), then component1/.env (local), then the default."""
+    return os.environ.get(name, "").strip() or _env().get(name, "").strip() or default
+
+
+def _flag(name: str, default: bool) -> bool:
+    value = _setting(name, "true" if default else "false").lower()
+    if value not in ("true", "false", "1", "0", "yes", "no"):
+        raise RuntimeError(f"{name} must be true or false")
+    return value in ("true", "1", "yes")
+
+
+SERIAL_ENABLED = _flag("C1_SERIAL_ENABLED", True)
+PPG_UPLOAD_ENABLED = _flag("C1_PPG_UPLOAD_ENABLED", False)
+SERIAL_DISABLED_MESSAGE = "This server does not record from a USB sensor (C1_SERIAL_ENABLED=false)."
 
 
 def _utc() -> str:
@@ -560,8 +586,11 @@ async def upload_image(
 # ---------------------------------------------------------------- PPG
 
 
+PPG_MIN_SECONDS, PPG_MAX_SECONDS = 5, 60
+
+
 class PpgRecordIn(BaseModel):
-    seconds: int = Field(default=20, ge=5, le=60)
+    seconds: int = Field(default=20, ge=PPG_MIN_SECONDS, le=PPG_MAX_SECONDS)
 
 
 def _recording_summary(session_id: str, recording_file: str) -> dict[str, Any]:
@@ -655,14 +684,28 @@ def _ports(port: str) -> dict[str, Any]:
 
 
 def _serial_config() -> tuple[str, int]:
-    config = _env()
-    return config.get("C1_SERIAL_PORT", "COM11"), int(config.get("C1_SERIAL_BAUD", "115200"))
+    return _setting("C1_SERIAL_PORT", "COM11"), int(_setting("C1_SERIAL_BAUD", "115200"))
+
+
+def _hardware(port: str) -> dict[str, Any]:
+    """Port listing, or an explicit 'disabled' state when this server has no USB sensor (no server ports listed)."""
+    if not SERIAL_ENABLED:
+        return {"serial_enabled": False, "ports": [], "port_listed": False}
+    return {"serial_enabled": True, **_ports(port)}
+
+
+@router.get("/ppg/capture-options")
+def ppg_capture_options():
+    """Which PPG capture paths this server offers; the PPG step shows controls accordingly."""
+    _, baud = _serial_config()
+    return {"server_serial_enabled": SERIAL_ENABLED, "browser_upload_enabled": PPG_UPLOAD_ENABLED, "baud": baud,
+            "min_seconds": PPG_MIN_SECONDS, "max_seconds": PPG_MAX_SECONDS}
 
 
 @router.get("/hardware/serial-ports")
 def serial_ports():
     port, baud = _serial_config()
-    return {"configured_port": port, "configured_baud": baud, **_ports(port)}
+    return {"configured_port": port, "configured_baud": baud, **_hardware(port)}
 
 
 @router.get("/hardware/ppg-job")
@@ -675,7 +718,7 @@ def ppg_job():
         job["elapsed_s"] = round(min(time.monotonic() - started, job.get("seconds", 0)), 1)
     job.pop("recording_started_monotonic", None)
     port, baud = _serial_config()
-    return {"configured_port": port, "configured_baud": baud, **_ports(port), "job": job}
+    return {"configured_port": port, "configured_baud": baud, **_hardware(port), "job": job}
 
 
 @router.post("/hardware/ppg-job/cancel")
@@ -688,6 +731,8 @@ def cancel_ppg_job():
 
 
 def _start_job(kind: str, target, **fields: Any) -> dict[str, Any]:
+    if not SERIAL_ENABLED:
+        raise HTTPException(503, SERIAL_DISABLED_MESSAGE)
     if not _serial_lock.acquire(blocking=False):
         raise HTTPException(409, "The PPG sensor is already in use by another recording or check")
     _stop_event.clear()
@@ -813,6 +858,137 @@ def probe_ppg():
                                                "metrics": metrics, "saved": False})
 
     return _start_job("probe", run)
+
+
+# ---------------------------------------------------------------- PPG upload (browser Web Serial)
+
+# Same CSV columns capture_live_ppg writes; same RED/IR range as capture_live_ppg.parse_sensor_line.
+PPG_SAMPLE_COLUMNS = ["host_elapsed_s", "esp32_readout_ms", "red", "ir"]
+PPG_METRIC_COLUMNS = ["time_ms", "hr_bpm", "spo2_percent", "temperature_c", "finger_present"]
+PPG_ADC_MAX = 262143
+MAX_PPG_SAMPLES_CSV = 400_000  # 60 s at 100 rows/s is about 240 kB; the firmware sends about 25 rows/s.
+MAX_PPG_METRICS_CSV = 20_000
+UPLOAD_REGISTRY = "browser_uploads.json"
+_upload_lock = threading.Lock()
+
+
+class PpgUploadIn(BaseModel):
+    upload_id: str = Field(pattern=r"^[0-9a-f]{32}$")  # One per captured recording: retries are idempotent.
+    seconds: int = Field(ge=PPG_MIN_SECONDS, le=PPG_MAX_SECONDS)
+    samples_csv: str = Field(max_length=MAX_PPG_SAMPLES_CSV)
+    metrics_csv: str = Field(default="", max_length=MAX_PPG_METRICS_CSV)
+
+
+def _csv_rows(text: str, columns: list[str], label: str) -> list[list[str]]:
+    rows = list(csv.reader(io.StringIO(text)))
+    if not rows or [c.strip() for c in rows[0]] != columns:
+        raise HTTPException(422, f"{label}: the first line must be {','.join(columns)}")
+    if any(len(row) != len(columns) for row in rows[1:]):
+        raise HTTPException(422, f"{label}: every row needs {len(columns)} values")
+    return rows[1:]
+
+
+def _optional_int(value: str, low: int, high: int) -> int | None:
+    if value.strip() == "":
+        return None
+    number = int(value)
+    if not low <= number <= high:
+        raise ValueError(f"{number} outside {low}-{high}")
+    return number
+
+
+def _parse_ppg_upload(body: PpgUploadIn) -> tuple[list[tuple], list[tuple]]:
+    """Validate an uploaded recording; returns rows in capture_live_ppg's own types."""
+    samples, last_elapsed = [], 0.0
+    for index, row in enumerate(_csv_rows(body.samples_csv, PPG_SAMPLE_COLUMNS, "PPG samples"), start=2):
+        try:
+            elapsed, esp32_ms, red, ir = float(row[0]), int(row[1]), int(row[2]), int(row[3])
+        except ValueError:
+            raise HTTPException(422, f"PPG samples line {index}: values must be numbers") from None
+        if not math.isfinite(elapsed) or elapsed < last_elapsed or esp32_ms < 0 \
+                or not (0 <= red <= PPG_ADC_MAX and 0 <= ir <= PPG_ADC_MAX):
+            raise HTTPException(422, f"PPG samples line {index}: value out of range or time going backwards")
+        last_elapsed = elapsed
+        samples.append((round(elapsed, 6), esp32_ms, red, ir))
+    if len(samples) < 50:
+        raise HTTPException(422, "Too few RED/IR samples; record again with the finger on the sensor")
+    if not body.seconds * 0.75 <= last_elapsed <= body.seconds + 2:
+        raise HTTPException(422, f"Recording lasts {last_elapsed:.1f} s; expected about {body.seconds} s")
+    if not 5 <= len(samples) / max(last_elapsed, 1e-6) <= 150:
+        raise HTTPException(422, "Implausible sample rate; check the firmware and baud rate")
+
+    metrics = []
+    rows = _csv_rows(body.metrics_csv, PPG_METRIC_COLUMNS, "PPG metrics") if body.metrics_csv.strip() else []
+    for index, row in enumerate(rows, start=2):
+        try:
+            time_ms = int(row[0])
+            temperature = None if row[3].strip() == "" else float(row[3])
+            finger = int(row[4])
+            metric = (time_ms, _optional_int(row[1], 0, 300), _optional_int(row[2], 0, 100), temperature, finger)
+        except ValueError:
+            raise HTTPException(422, f"PPG metrics line {index}: invalid value") from None
+        if time_ms < 0 or finger not in (0, 1) or (temperature is not None and not math.isfinite(temperature)):
+            raise HTTPException(422, f"PPG metrics line {index}: value out of range")
+        metrics.append(metric)
+    return samples, metrics
+
+
+@router.post("/sessions/{session_id}/ppg/upload", status_code=201)
+def upload_ppg(session_id: str, body: PpgUploadIn):
+    """Save a recording captured in the browser over Web Serial; processed exactly like a USB recording.
+
+    Disabled unless C1_PPG_UPLOAD_ENABLED=true. Same consent, safety-referral and finger-comfort rules as
+    /ppg/record. Retrying with the same upload_id returns the recording already saved (no duplicate).
+    """
+    if not PPG_UPLOAD_ENABLED:
+        raise HTTPException(503, "Browser PPG upload is not enabled on this server")
+    session_dir = _session_dir(session_id)
+    status = _questionnaire_row(session_id)["status"]  # Refuses safety-referral and non-demo sessions.
+    if status.get("ppg_pending_finger_comfort_check", True):
+        raise HTTPException(403, "Complete the finger-comfort check before recording")
+    if not status.get("ppg_acquisition_allowed"):
+        raise HTTPException(403, "PPG recording is not permitted by consent or the comfort check")
+    samples, metrics = _parse_ppg_upload(body)
+
+    import matplotlib
+
+    matplotlib.use("Agg")
+    from component1.acquisition.ppg import capture_live_ppg, register_session_ppg, register_session_vitals
+    from component1.quality.ppg.assess_live_ppg import assess
+
+    ppg_dir = session_dir / "ppg"
+    with _upload_lock:
+        registry_path = ppg_dir / UPLOAD_REGISTRY
+        registry = json.loads(registry_path.read_text(encoding="utf-8")) if registry_path.is_file() else {}
+        if body.upload_id in registry:
+            return {**_recording_summary(session_id, registry[body.upload_id]), "duplicate": True}
+        ppg_dir.mkdir(exist_ok=True)
+        stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+        try:
+            csv_path = capture_live_ppg.save_recording(ppg_dir, session_id, samples, metrics, stamp)
+        except FileExistsError:
+            raise HTTPException(409, "Another recording was saved this second; retry the upload") from None
+        registered = False
+        try:
+            assess(csv_path, csv_path.parent)
+            csv_file, report_file = register_session_ppg.find_recording(session_id)
+            if csv_file.name != csv_path.name:
+                raise RuntimeError("Newest quality-checked recording does not match this upload")
+            register_session_ppg.save(session_id, csv_file, report_file, DB_PATH)
+            registered = True
+            if metrics:
+                register_session_vitals.register_vitals(session_id)
+            result = _recording_summary(session_id, csv_path.name)
+        except (ValueError, FileNotFoundError, RuntimeError, sqlite3.Error) as exc:
+            if not registered:  # Nothing reached SQLite: remove this upload's files so a retry starts clean.
+                for leftover in ppg_dir.glob(f"*{stamp}*"):
+                    leftover.unlink(missing_ok=True)
+            raise HTTPException(422, f"PPG processing failed: {exc}") from exc
+        registry[body.upload_id] = csv_path.name
+        tmp = registry_path.with_suffix(".json.tmp")
+        tmp.write_text(json.dumps(registry, indent=2), encoding="utf-8")
+        tmp.replace(registry_path)
+    return {**result, "duplicate": False}
 
 
 # ---------------------------------------------------------------- analysis
