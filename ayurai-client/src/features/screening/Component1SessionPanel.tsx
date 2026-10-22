@@ -15,11 +15,15 @@ import {
 import { ErrorState, KeyValueList, LoadingState, Notice, Panel } from "@/components/shared/page"
 import { StatusBadge, type StatusSpec } from "@/components/shared/status"
 import { Button } from "@/components/ui/button"
+import { Link } from "react-router"
+
 import { useAuth } from "@/context/auth"
+import { useWorkspace } from "@/context/workspace"
 import { ApiError } from "@/lib/api/client"
 import { component1Api } from "@/lib/api/component1"
 import type { C1EvidenceItem, C1PatientDataStatus, Component1Json, Component1Report, Component1Session } from "@/lib/api/types"
 import { PdfReportButton, patientFeaturesAvailable } from "@/features/screening/PatientRegistration"
+import { looksLikePayload } from "@/lib/c1-payload"
 import { formatDateTime } from "@/lib/labels"
 import { cn } from "@/lib/utils"
 
@@ -598,6 +602,32 @@ export function Component1SessionPanel() {
   // Request identity: a report response is applied only if it is the latest request and its session is still selected.
   const selectedRef = React.useRef("")
   const requestRef = React.useRef(0)
+  const { cases, importC1Payloads, selectCase, runReasoning } = useWorkspace()
+  const [activated, setActivated] = React.useState<{ sessionId: string; caseRef: string } | null>(null)
+  const [activateError, setActivateError] = React.useState<string | null>(null)
+
+  /**
+   * Make a loaded server session the active case for the other screens:
+   * reuse its open case if there is one, otherwise import its Component 2 payload
+   * (which also runs Component 2 reasoning).
+   */
+  const activate = async (id: string) => {
+    setActivateError(null)
+    const existing = cases.find((record) => record.c1?.origin === "c1_payload" && record.caseRef === id)
+    if (existing) {
+      selectCase(existing.id)
+      if (existing.c2.status !== "success" && existing.c2.status !== "loading") void runReasoning(existing.id)
+      setActivated({ sessionId: id, caseRef: existing.caseRef })
+      return
+    }
+    const payload = await component1Api.c2Payload(id)
+    if (!looksLikePayload(payload)) {
+      setActivateError("The Component 1 API did not return a usable Component 2 payload for this session.")
+      return
+    }
+    setActivated({ sessionId: id, caseRef: payload.screening_id })
+    await importC1Payloads([payload], `Component 1 session ${id}`)
+  }
 
   /** Change the selected session; any report request still in flight becomes stale. */
   const selectSession = (id: string) => {
@@ -647,6 +677,13 @@ export function Component1SessionPanel() {
       current(() =>
         setReport(data.session_id === id ? { status: "success", data } : { status: "error", message: SESSION_MISMATCH }),
       )
+      if (data.session_id === id && !data.analysis_outdated) {
+        try {
+          await activate(id)
+        } catch (error) {
+          setActivateError(`Loaded, but could not open it as the active case: ${errorMessage(error)}`)
+        }
+      }
     } catch (error) {
       current(() => setReport({ status: "error", message: errorMessage(error) }))
     }
@@ -756,6 +793,19 @@ export function Component1SessionPanel() {
         </div>
       )}
       {report.status === "loading" && <div className="mt-5"><LoadingState label="Loading the Component 1 report…" /></div>}
+      {activated && activated.sessionId === selectedId && (
+        <Notice tone="info" className="mt-5" title={`Active case: ${activated.caseRef}`}>
+          This session is now the active case on every screen.{" "}
+          <Link to="/analysis" className="font-semibold text-emerald-800 underline">
+            Open Ayurvedic analysis
+          </Link>
+        </Notice>
+      )}
+      {activateError && (
+        <Notice tone="caution" className="mt-5" title="Not opened as the active case">
+          {activateError}
+        </Notice>
+      )}
       {report.status === "error" && (
         <div className="mt-5">
           <ErrorState error={{ kind: "network", message: report.message, details: [] }} title="Report unavailable" />
