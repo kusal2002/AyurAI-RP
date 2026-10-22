@@ -3,7 +3,8 @@
 Grid: 2 strategies (FedAvg, FedProx) x 5 ε values x N runs (default 3).
 Each run writes results/<strategy>_eps<ε>_run<n>.csv (via run.py).
 Writes results/summary.csv: mean and standard deviation of the final-round
-accuracy and macro-F1 for each (strategy, ε).
+accuracy and macro-F1 for each (strategy, ε), and results/clinic_counts.csv:
+patients per risk tier at each clinic (aggregate counts only, never the data).
 
 Reference points (written to results/baselines.csv), to read the grid against:
   - majority class and centralised training without DP   (centralized.py)
@@ -20,8 +21,8 @@ import subprocess
 import sys
 from pathlib import Path
 
-from config import EPSILONS, NUM_ROUNDS
-from data import DATA_SOURCE
+from config import CLINIC_PROFILES, EPSILONS, FEATURES_FILE, NUM_ROUNDS
+from data import DATA_SOURCE, USE_REAL_DATA
 
 HERE = Path(__file__).resolve().parent
 RUN_SCRIPT = str(HERE / "run.py")
@@ -68,6 +69,27 @@ def summarise(runs):
     print(f"Saved summary to {summary_path}")
 
 
+def save_clinic_counts():
+    """Patients per risk tier at each clinic -> results/clinic_counts.csv.
+
+    Only these aggregate counts are committed (the dataset never is), so a server
+    without the dataset, such as the deployed dashboard, can still show the real split."""
+    if not USE_REAL_DATA:
+        return  # placeholder counts are already in config.py
+    counts = {clinic_id: [0, 0, 0] for clinic_id in CLINIC_PROFILES}   # [low, moderate, high]
+    with open(FEATURES_FILE, newline="") as f:
+        for row in csv.DictReader(f):
+            counts[int(row["clinic_id"])][int(row["tier"])] += 1
+
+    path = RESULTS_DIR / "clinic_counts.csv"
+    with open(path, "w", newline="") as f:
+        writer = csv.writer(f)
+        writer.writerow(["clinic_id", "low", "moderate", "high", "data_source"])
+        for clinic_id, (low, moderate, high) in counts.items():
+            writer.writerow([clinic_id, low, moderate, high, DATA_SOURCE])
+    print(f"Saved clinic counts to {path}")
+
+
 def summarise_baselines(runs):
     """Combine centralized.csv with the no-DP federated runs into baselines.csv."""
     rows = []
@@ -105,6 +127,7 @@ if __name__ == "__main__":
                     check=True,
                 )
     summarise(args.runs)
+    save_clinic_counts()
 
     # Reference points: no-DP federated runs and the centralised baseline
     for strategy in STRATEGIES:
