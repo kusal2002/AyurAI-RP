@@ -19,6 +19,8 @@ router = APIRouter(prefix="/api/v1/c4/federation", tags=["Federated learning"])
 
 # e.g. fedprox_eps0.5_run2.csv -> ("fedprox", "0.5", "2")
 RUN_FILE = re.compile(r"^(fedavg|fedprox)_eps([0-9.]+)_run(\d+)\.csv$")
+# Real per-clinic tier counts saved by federated/sweep.py (committed; no patient data)
+CLINIC_COUNTS_FILE = RESULTS_DIR / "clinic_counts.csv"
 
 
 def read_csv(path: Path):
@@ -31,13 +33,20 @@ def to_float(value):
 
 
 def clinic_tier_counts():
-    """(Low, Moderate, High) patients per clinic: from the real features file if it
-    exists (same rule as federated/data.py), otherwise the placeholder counts."""
+    """(Low, Moderate, High) patients per clinic, and whether they are real:
+    1. the real features file, if it exists (same rule as federated/data.py);
+    2. else results/clinic_counts.csv, the real counts saved by sweep.py (a server
+       without the dataset, e.g. the deployed dashboard, still shows the real split);
+    3. else the placeholder counts."""
     features_file = fl_config.FEATURES_FILE
     if features_file is not None and features_file.exists():
         counts = {clinic_id: [0, 0, 0] for clinic_id in fl_config.CLINIC_PROFILES}
         for row in read_csv(features_file):
             counts[int(row["clinic_id"])][int(row["tier"])] += 1
+        return counts, True
+    if CLINIC_COUNTS_FILE.exists():
+        counts = {int(row["clinic_id"]): [int(row["low"]), int(row["moderate"]), int(row["high"])]
+                  for row in read_csv(CLINIC_COUNTS_FILE)}
         return counts, True
     return {cid: list(p["label_counts"]) for cid, p in fl_config.CLINIC_PROFILES.items()}, False
 

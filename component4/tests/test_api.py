@@ -13,6 +13,7 @@ import tempfile
 import time
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 # Configure a throwaway database and secrets BEFORE the API modules are imported
 _tmp = tempfile.TemporaryDirectory(ignore_cleanup_errors=True)
@@ -29,6 +30,7 @@ from sqlalchemy import update  # noqa: E402
 import main  # noqa: E402
 from database import SessionLocal, engine  # noqa: E402
 from models import AuditLog, User  # noqa: E402
+from routers import federation_routes  # noqa: E402
 from security import hash_password  # noqa: E402
 
 PASSWORD = "test-password"
@@ -139,6 +141,16 @@ class ApiTests(unittest.TestCase):
         self.assertFalse(status["configured"])          # no graph configured in tests
         self.assertFalse(status["connected"])
         self.assertIsNone(status["counts"])
+
+    # ---------- federation results on a server without the dataset ----------
+    def test_clinic_counts_used_when_dataset_missing(self):
+        counts_file = Path(_tmp.name) / "clinic_counts.csv"
+        counts_file.write_text("clinic_id,low,moderate,high,data_source\n1,5,6,7,test\n2,1,2,3,test\n3,0,0,9,test\n")
+        with patch.object(federation_routes.fl_config, "FEATURES_FILE", None), \
+             patch.object(federation_routes, "CLINIC_COUNTS_FILE", counts_file):
+            config = self.client.get("/api/v1/c4/federation/config", headers=self.auth("researcher")).json()
+        self.assertTrue(config["real_data"])
+        self.assertEqual((config["clinics"][0]["low"], config["clinics"][0]["high"]), (5, 7))
 
     def test_timestamps_are_utc(self):
         sup = self.auth("supervisor")
