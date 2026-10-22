@@ -757,6 +757,216 @@
       "source_group": "prototype_clinical_intake"
     },
     {
+      "id": "PT01",
+      "section": "pandu_type_signs",
+      "prompt": "Do your hands, head or body tremble or shake?",
+      "type": "choice",
+      "required_when_shown": false,
+      "options": [
+        "yes",
+        "no",
+        "not_sure",
+        "prefer_not_to_answer"
+      ],
+      "source_group": "ayurvedic_pandu_type_signs",
+      "note": "Classical signs that distinguish the Pandu types (Caraka Ci.16, Astangahrdaya Ni.13). Sent to Component 2 for type-specific candidates only; never used in the anaemia risk score."
+    },
+    {
+      "id": "PT02",
+      "section": "pandu_type_signs",
+      "prompt": "Are your stools hard or dry, or are you constipated?",
+      "type": "choice",
+      "required_when_shown": false,
+      "options": [
+        "yes",
+        "no",
+        "not_sure",
+        "prefer_not_to_answer"
+      ],
+      "source_group": "ayurvedic_pandu_type_signs",
+      "note": "Classical signs that distinguish the Pandu types (Caraka Ci.16, Astangahrdaya Ni.13). Sent to Component 2 for type-specific candidates only; never used in the anaemia risk score."
+    },
+    {
+      "id": "PT03",
+      "section": "pandu_type_signs",
+      "prompt": "Do you often feel bloated or have a swollen, tight abdomen?",
+      "type": "choice",
+      "required_when_shown": false,
+      "options": [
+        "yes",
+        "no",
+        "not_sure",
+        "prefer_not_to_answer"
+      ],
+      "source_group": "ayurvedic_pandu_type_signs",
+      "note": "Classical signs that distinguish the Pandu types (Caraka Ci.16, Astangahrdaya Ni.13). Sent to Component 2 for type-specific candidates only; never used in the anaemia risk score."
+    },
+    {
+      "id": "PT04",
+      "section": "pandu_type_signs",
+      "prompt": "Do you feel a burning sensation in your body or skin?",
+      "type": "choice",
+      "required_when_shown": false,
+      "options": [
+        "yes",
+        "no",
+        "not_sure",
+        "prefer_not_to_answer"
+      ],
+      "source_group": "ayurvedic_pandu_type_signs",
+      "note": "Classical signs that distinguish the Pandu types (Caraka Ci.16, Astangahrdaya Ni.13). Sent to Component 2 for type-specific candidates only; never used in the anaemia risk score."
+    },
+    {
+      "id": "PT05",
+      "section": "pandu_type_signs",
+      "prompt": "Do you feel unusually thirsty most of the time?",
+      "type": "choice",
+      "required_when_shown": false,
+      "options": [
+        "yes",
+        "no",
+        "not_sure",
+        "prefer_not_to_answer"
+      ],
+      "source_group": "ayurvedic_pandu_type_signs",
+      "note": "Classical signs that distinguish the Pandu types (Caraka Ci.16, Astangahrdaya Ni.13). Sent to Component 2 for type-specific candidates only; never used in the anaemia risk score."
+    },
+    {
+      "id": "PT06",
+      "section": "pandu_type_signs",
+      "prompt": "Do you have a bitter taste in your mouth?",
+      "type": "choice",
+      "required_when_shown": false,
+      "options": [
+        "yes",
+        "no",
+        "not_sure",
+        "prefer_not_to_answer"
+      ],
+      "source_group": "ayurvedic_pandu_type_signs",
+      "note": "Classical signs that distinguish the Pandu types (Caraka Ci.16, Astangahrdaya Ni.13). Sent to Component 2 for type-specific candidates only; never used in the anaemia risk score."
+    },
+    {
+      "id": "PT07",
+      "section": "pandu_type_signs",
+      "prompt": "Do you often have loose or watery stools?",
+      "type": "choice",
+      "required_when_shown": false,
+      "options": [
+        "yes",
+        "no",
+        "not_sure",
+        "prefer_not_to_answer"
+      ],
+      "source_group": "ayurvedic_pandu_type_signs",
+      "note": "Classical signs that distinguish the Pandu types (Caraka Ci.16, Astangahrdaya Ni.13). Sent to Component 2 for type-specific candidates only; never used in the anaemia risk score."
+    },
+    {
+      "id": "PT08",
+      "section": "pandu_type_signs",
+      "prompt": "Do you sweat more than usual?",
+      "type": "choice",
+      "required_when_shown": false,
+      "options": [
+        "yes",
+        "no",
+        "not_sure",
+        "prefer_not_to_answer"
+      ],
+      "source_group": "ayurvedic_pandu_type_signs",
+      "note": "Classical signs that distinguish the Pandu types (Caraka Ci.16, Astangahrdaya Ni.13). Sent to Component 2 for type-specific candidates only; never used in the anaemia risk score."
+    },
+    {
+      "id": "PT09",
+      "section": "pandu_type_signs",
+      "prompt": "Do you often feel drowsy or sleepy during the day?",
+      "type": "choice",
+      "required_when_shown": false,
+      "options": [
+        "yes",
+        "no",
+        "not_sure",
+        "prefer_not_to_answer"
+      ],
+      "source_group": "ayurvedic_pandu_type_signs",
+      "note": "Classical signs that distinguish the Pandu types (Caraka Ci.16, Astangahrdaya Ni.13). Sent to Component 2 for type-specific candidates only; never used in the anaemia risk score."
+    },
+    {
+      "id": "PT10",
+      "section": "pandu_type_signs",
+      "prompt": "Have you been vomiting or feeling like vomiting?",
+      "type": "choice",
+      "required_when_shown": false,
+      "options": [
+        "yes",
+        "no",
+        "not_sure",
+        "prefer_not_to_answer"
+      ],
+      "source_group": "ayurvedic_pandu_type_signs",
+      "note": "Classical signs that distinguish the Pandu types (Caraka Ci.16, Astangahrdaya Ni.13). Sent to Component 2 for type-specific candidates only; never used in the anaemia risk score."
+    },
+    {
+      "id": "PT11",
+      "section": "pandu_type_signs",
+      "prompt": "Do you have a cough?",
+      "type": "choice",
+      "required_when_shown": false,
+      "options": [
+        "yes",
+        "no",
+        "not_sure",
+        "prefer_not_to_answer"
+      ],
+      "source_group": "ayurvedic_pandu_type_signs",
+      "note": "Classical signs that distinguish the Pandu types (Caraka Ci.16, Astangahrdaya Ni.13). Sent to Component 2 for type-specific candidates only; never used in the anaemia risk score."
+    },
+    {
+      "id": "PT12",
+      "section": "pandu_type_signs",
+      "prompt": "Is your voice hoarse or weak?",
+      "type": "choice",
+      "required_when_shown": false,
+      "options": [
+        "yes",
+        "no",
+        "not_sure",
+        "prefer_not_to_answer"
+      ],
+      "source_group": "ayurvedic_pandu_type_signs",
+      "note": "Classical signs that distinguish the Pandu types (Caraka Ci.16, Astangahrdaya Ni.13). Sent to Component 2 for type-specific candidates only; never used in the anaemia risk score."
+    },
+    {
+      "id": "PT13",
+      "section": "pandu_type_signs",
+      "prompt": "Do you have a habit or urge to eat clay, soil or chalk?",
+      "type": "choice",
+      "required_when_shown": false,
+      "options": [
+        "yes",
+        "no",
+        "not_sure",
+        "prefer_not_to_answer"
+      ],
+      "source_group": "ayurvedic_pandu_type_signs",
+      "note": "Classical signs that distinguish the Pandu types (Caraka Ci.16, Astangahrdaya Ni.13). Sent to Component 2 for type-specific candidates only; never used in the anaemia risk score."
+    },
+    {
+      "id": "PT14",
+      "section": "pandu_type_signs",
+      "prompt": "Have you seen worms in your stool?",
+      "type": "choice",
+      "required_when_shown": false,
+      "options": [
+        "yes",
+        "no",
+        "not_sure",
+        "prefer_not_to_answer"
+      ],
+      "source_group": "ayurvedic_pandu_type_signs",
+      "note": "Classical signs that distinguish the Pandu types (Caraka Ci.16, Astangahrdaya Ni.13). Sent to Component 2 for type-specific candidates only; never used in the anaemia risk score."
+    },
+    {
       "id": "BL01",
       "section": "followup_bleeding",
       "prompt": "Where has the blood loss or bleeding occurred?",

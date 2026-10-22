@@ -16,11 +16,24 @@ import { StatusBadge, relationshipSpecs, verificationSpec } from "@/components/s
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import type { Component2Output } from "@/lib/api/types"
-import { conceptNames, indexClaims, indexEvidence, type EvidenceIndexEntry } from "@/lib/c2-derive"
+import { conceptNames, indexClaims, indexEvidence, matchedRogaTypes, type EvidenceIndexEntry } from "@/lib/c2-derive"
 import { evidenceTypeLabels, formatScore, humanizeCode, predicateLabels } from "@/lib/labels"
 import { cn } from "@/lib/utils"
 
 type RelationFilter = "all" | "supports" | "contradicts"
+
+/** Matched Pandu types (e.g. Pittaja Pandu) that a record's claims start or end at. */
+function rogaTypesOf(entry: EvidenceIndexEntry, output: Component2Output, typeIds: Set<string>): string[] {
+  const claims = indexClaims(output)
+  const found = new Set<string>()
+  for (const usage of entry.usages) {
+    const claim = claims.get(usage.claimId)?.claim
+    if (!claim) continue
+    if (typeIds.has(claim.subject_id)) found.add(claim.subject_id)
+    if (typeIds.has(claim.object_id)) found.add(claim.object_id)
+  }
+  return Array.from(found).sort()
+}
 type ProvenanceFilter = "all" | "complete" | "incomplete"
 
 function EvidenceDetail({
@@ -102,7 +115,8 @@ function EvidenceDetail({
                 )}
                 <p className="mt-1 text-xs text-slate-500">
                   Candidates using this claim:{" "}
-                  {usage.candidateIds.map((id) => names.get(id) ?? id).join(", ") || "none"}
+                  {usage.candidateIds.map((id) => names.get(id) ?? id).join(", ") ||
+                    "none (traversed for interpretation only; never creates or ranks a candidate)"}
                 </p>
               </li>
             )
@@ -142,6 +156,13 @@ function EvidenceDetail({
 
 function EvidenceExplorer({ output }: { output: Component2Output }) {
   const index = React.useMemo(() => indexEvidence(output), [output])
+  const names = React.useMemo(() => conceptNames(output), [output])
+  const rogaTypes = React.useMemo(() => matchedRogaTypes(output), [output])
+  const typesByEvidence = React.useMemo(() => {
+    const typeIds = new Set(rogaTypes.keys())
+    return new Map(Array.from(index.values()).map((entry) => [entry.evidenceId, rogaTypesOf(entry, output, typeIds)]))
+  }, [index, output, rogaTypes])
+  const [rogaType, setRogaType] = React.useState("all")
   const [relation, setRelation] = React.useState<RelationFilter>("all")
   const [provenance, setProvenance] = React.useState<ProvenanceFilter>("all")
   const [type, setType] = React.useState("all")
@@ -159,6 +180,9 @@ function EvidenceExplorer({ output }: { output: Component2Output }) {
     if (provenance === "complete" && !entry.reference.provenance_complete) return false
     if (provenance === "incomplete" && entry.reference.provenance_complete) return false
     if (type !== "all" && (entry.reference.evidence_type ?? "unknown") !== type) return false
+    const entryTypes = typesByEvidence.get(entry.evidenceId) ?? []
+    if (rogaType === "any" && entryTypes.length === 0) return false
+    if (rogaType !== "all" && rogaType !== "any" && !entryTypes.includes(rogaType)) return false
     const text = query.trim().toLowerCase()
     if (text) {
       const haystack = [entry.evidenceId, entry.reference.title, entry.reference.source_name, entry.reference.citation]
@@ -222,6 +246,22 @@ function EvidenceExplorer({ output }: { output: Component2Output }) {
                     </option>
                   ))}
                 </select>
+                {rogaTypes.size > 0 && (
+                  <select
+                    aria-label="Pandu type"
+                    value={rogaType}
+                    onChange={(event) => setRogaType(event.target.value)}
+                    className="h-8 rounded-lg border border-violet-200 bg-white px-2 text-xs text-slate-700"
+                  >
+                    <option value="all">All evidence</option>
+                    <option value="any">Any matched Pandu type</option>
+                    {Array.from(rogaTypes.values()).map((item) => (
+                      <option key={item.id} value={item.id}>
+                        {item.name ?? names.get(item.id) ?? item.id}
+                      </option>
+                    ))}
+                  </select>
+                )}
               </div>
             </div>
             {filtered.length === 0 ? (
@@ -250,6 +290,11 @@ function EvidenceExplorer({ output }: { output: Component2Output }) {
                           <IdChip>{entry.evidenceId}</IdChip>
                           {supports > 0 && <StatusBadge spec={{ ...relationshipSpecs.SUPPORTS, label: `Supports ${supports} claim(s)` }} />}
                           {contradicts > 0 && <StatusBadge spec={{ ...relationshipSpecs.CONTRADICTS, label: `Contradicts ${contradicts} claim(s)` }} />}
+                          {(typesByEvidence.get(entry.evidenceId) ?? []).map((id) => (
+                            <span key={id} className="rounded-md border border-violet-200 bg-violet-50 px-1.5 py-0.5 text-[11px] font-medium text-violet-800">
+                              {names.get(id) ?? id}
+                            </span>
+                          ))}
                           {!entry.reference.provenance_complete && (
                             <span className="inline-flex items-center gap-1 text-[11px] font-medium text-amber-800">
                               <TriangleAlert aria-hidden className="size-3.5" /> Incomplete provenance

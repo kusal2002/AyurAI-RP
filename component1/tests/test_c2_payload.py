@@ -36,6 +36,16 @@ def report(regions, ppg, answers):
     }
 
 
+class PanduTypeSigns(unittest.TestCase):
+    def test_pandu_type_signs_reach_c2_as_symptoms(self):
+        answers = {"C01": "yes", "C02": "no", "C06": "yes", "PT04": "yes", "PT13": "yes", "PT11": "no"}
+        symptoms = {s["name"]: s["present"] for s in _c2_payload(report({}, {"available": False}, answers))["symptoms"]}
+        self.assertTrue(symptoms["burning sensation"])
+        self.assertTrue(symptoms["eating clay or soil"])
+        self.assertFalse(symptoms["cough"])
+        self.assertTrue(symptoms["pallor"])
+
+
 @unittest.skipIf(C1ScreeningPayload is None, "Component 2 models not importable")
 class C2Contract(unittest.TestCase):
     def test_empty_session_validates(self):

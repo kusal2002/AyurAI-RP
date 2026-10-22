@@ -32,6 +32,9 @@ FOLLOWUP_ORDER = (
     'LAB01','LAB02',                    # Previous anaemia (if applicable)
     'SY01','SY02','SY04',               # Symptoms
 )
+# Classical signs that tell the Pandu types apart. Always asked after the
+# adaptive follow-ups; they feed Component 2 only, never the risk score.
+PANDU_TYPE_SIGN_IDS = tuple(f'PT{n:02d}' for n in range(1, 15))
 STAGES = ('age','sex','consent','common','followups','medications','allergies','review')
 
 
@@ -59,7 +62,7 @@ def select_followups(profile: dict, answers: dict) -> list[str]:
             result.append(qid)
         if len(result) == MAX_FOLLOWUPS:
             break
-    return result
+    return result + list(PANDU_TYPE_SIGN_IDS)
 
 
 def safety_state(profile: dict, answers: dict) -> dict:

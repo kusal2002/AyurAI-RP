@@ -112,3 +112,31 @@ def test_matched_type_remedy_is_listed_first_with_score_unchanged(tmp_path, extr
     assert any(s.kind == "subtype_match" for s in first.rationale)
     assert not any(s.kind == "subtype_match" for s in second.rationale)
     assert {c.name for c in output.interpretation if c.concept_type == "Roga"} == {"Pandu", "Pittaja Pandu"}
+
+
+def test_type_with_no_remedy_is_traced_in_interpretation_claims(tmp_path, extracted):  # noqa: F811
+    concepts = SUBTYPE_CONCEPTS + [
+        {"type": "Symptom", "id": "S-TREMOR", "name": "tremor", "aliases": []},
+        {"type": "Roga", "id": "R-PANDU-VATAJA", "name": "Vātaja Pandu", "aliases": [], "subtype_of": "R-PANDU"},
+        {"type": "TherapeuticPrinciple", "id": "TP-VATA", "name": "Unctuous treatment", "aliases": []},
+    ]
+    claims = SUBTYPE_CLAIMS + [
+        _claim("tremor-vataja", "S-TREMOR", "INDICATES", "R-PANDU-VATAJA"),
+        _claim("vataja-tp", "R-PANDU-VATAJA", "SUGGESTS_PRINCIPLE", "TP-VATA",
+               quote="pāṇḍuroge lakṣaṇāni vakṣyāmi/", element="Syn.6.16.1"),
+    ]
+    plan = plan_dataset(_dataset(tmp_path, concepts=concepts, claims=claims, refs=[]), extracted)
+    output = _run(plan, ["S-PALLOR", "S-TREMOR"])
+
+    # No Vāta-specific remedy: candidates and their order are unchanged.
+    assert [c.candidate_id for c in output.candidates] == ["H-PUNARNAVA"]
+    traced = {(c.subject_id, c.predicate, c.object_id) for c in output.interpretation_claims}
+    assert traced == {
+        ("S-TREMOR", "INDICATES", "R-PANDU-VATAJA"),
+        ("R-PANDU-VATAJA", "SUGGESTS_PRINCIPLE", "TP-VATA"),
+    }
+    on_paths = {s.claim_id for c in output.candidates for p in c.paths for s in p.claims}
+    assert not on_paths & {c.claim_id for c in output.interpretation_claims}
+    assert all(c.supporting_evidence for c in output.interpretation_claims)
+    subtype_of = {c.concept_id: c.subtype_of for c in output.interpretation if c.concept_type == "Roga"}
+    assert subtype_of == {"R-PANDU": None, "R-PANDU-VATAJA": "R-PANDU"}

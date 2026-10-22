@@ -541,6 +541,8 @@ export type InterpretedConcept = {
   verification_statuses: string[]
   supporting_evidence_ids: string[]
   contradicting_evidence_ids: string[]
+  /** Added in c2-output/0.5.0: for a Roga type (e.g. Pittaja Pandu), its parent Roga ID. */
+  subtype_of?: string | null
 }
 
 export type RejectedPath = {
@@ -595,6 +597,11 @@ export type Component2Output = {
   symptom_mappings: SymptomMapping[]
   interpretation: InterpretedConcept[]
   candidates: Candidate[]
+  /**
+   * Added in c2-output/0.5.0: traversed claims on no candidate path (e.g. Vātaja
+   * Pandu to its treatment principle). Traceability only; absent in older outputs.
+   */
+  interpretation_claims?: ClaimStep[]
   rejected_paths: RejectedPath[]
   retrieval: RetrievalInfo
   retrieved_evidence: RetrievedEvidenceItem[]

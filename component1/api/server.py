@@ -408,6 +408,21 @@ C2_SYMPTOM_NAMES = {
     "recent_or_recurring_blood_loss": "blood loss",
     "blood_in_stool_or_urine": "blood in stool or urine",
     "heavy_or_prolonged_menstruation": "heavy menstrual bleeding",
+    # Pandu type signs: names match Component 2's Symptom names or aliases.
+    "tremor": "tremor",
+    "hard_or_dry_stools": "hard or dry stool",
+    "bloating": "bloating",
+    "burning_sensation": "burning sensation",
+    "excessive_thirst": "excessive thirst",
+    "bitter_taste": "bitter taste in the mouth",
+    "loose_stools": "loose stools",
+    "excessive_sweating": "excessive sweating",
+    "daytime_drowsiness": "drowsiness",
+    "vomiting": "vomiting",
+    "cough": "cough",
+    "hoarse_or_weak_voice": "hoarse or weak voice",
+    "eating_clay_or_soil": "eating clay or soil",
+    "worms_in_stool": "worms in the stool",
 }
 
 
@@ -483,7 +498,10 @@ def _c2_payload(report: dict[str, Any]) -> dict[str, Any]:
         },
         "symptoms": [
             {"name": C2_SYMPTOM_NAMES.get(name, name), "present": present}
-            for key, present in (("present_symptoms", True), ("absent_symptoms", False))
+            for key, present in (
+                ("present_symptoms", True), ("pandu_type_signs_present", True),
+                ("absent_symptoms", False), ("pandu_type_signs_absent", False),
+            )
             for name in symptoms.get(key, [])
         ],
         "clinical_findings": [],

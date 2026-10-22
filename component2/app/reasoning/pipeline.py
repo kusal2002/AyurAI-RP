@@ -326,6 +326,9 @@ def run_component2_reasoning(
         )
 
     unranked.sort(key=candidate_order_key)
+    path_claim_ids = {
+        step.claim_id for data in unranked for path in data["paths"] for step in path.claims
+    }
     candidates = []
     for rank, data in enumerate(unranked, start=1):
         candidate = Candidate(rank=rank, **data)
@@ -407,6 +410,11 @@ def run_component2_reasoning(
         symptom_mappings=mappings,
         interpretation=interpretation,
         candidates=candidates,
+        interpretation_claims=[
+            step
+            for claim_id, step in sorted(claim_steps.items())
+            if claim_id not in path_claim_ids
+        ],
         rejected_paths=extracted["rejected_paths"],
         retrieval=retrieval_info,
         retrieved_evidence=retrieved,

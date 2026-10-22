@@ -1,11 +1,12 @@
 import type { ClaimStep, Component2Output } from "@/lib/api/types"
-import { conceptNames, indexClaims } from "@/lib/c2-derive"
+import { conceptNames, indexClaims, matchedRogaTypes } from "@/lib/c2-derive"
 
 /**
  * Builds a graph strictly from relationships present in the Component 2
- * output: each edge is a claim returned on a candidate path. No edges are
- * inferred. Concepts reached only through claims that are not on a
- * candidate path appear as nodes without edges.
+ * output: each edge is a claim the reasoning traversed, either on a candidate
+ * path or (c2-output/0.5.0+) in `interpretation_claims`. No edges are
+ * inferred. Older outputs omit off-path claims, so some concepts may appear
+ * as nodes without edges.
  */
 
 export type GraphNode = {
@@ -17,6 +18,8 @@ export type GraphNode = {
   isCandidate: boolean
   isInterpretation: boolean
   isSymptom: boolean
+  /** Parent Roga ID when this node is a Roga type (e.g. Pittaja Pandu). */
+  subtypeOf: string | null
 }
 
 export type GraphEdge = {
@@ -25,6 +28,8 @@ export type GraphEdge = {
   source: string
   target: string
   candidateIds: string[]
+  /** False for a traversed claim that leads to no candidate. */
+  onCandidatePath: boolean
 }
 
 export type ReasoningGraph = {
@@ -55,6 +60,7 @@ export function buildGraph(output: Component2Output): ReasoningGraph {
   const types = new Map<string, string | null>()
   const nodeIds = new Set<string>()
 
+  const rogaTypes = matchedRogaTypes(output)
   const candidateIds = new Set(output.candidates.map((candidate) => candidate.candidate_id))
   const interpretationIds = new Set(output.interpretation.map((concept) => concept.concept_id))
   const symptomIds = new Set(
@@ -86,6 +92,7 @@ export function buildGraph(output: Component2Output): ReasoningGraph {
       source: claim.subject_id,
       target: claim.object_id,
       candidateIds: usedBy,
+      onCandidatePath: usedBy.length > 0,
     })
   }
 
@@ -118,6 +125,7 @@ export function buildGraph(output: Component2Output): ReasoningGraph {
         isCandidate: candidateIds.has(id),
         isInterpretation: interpretationIds.has(id),
         isSymptom: symptomIds.has(id),
+        subtypeOf: rogaTypes.get(id)?.parentId || null,
       }),
     )
   }
