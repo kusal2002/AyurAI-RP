@@ -4,7 +4,6 @@ import {
   AlertTriangle,
   ArrowRight,
   CheckCircle2,
-  CircleSlash,
   ClipboardCheck,
   Leaf,
   ShieldCheck,
@@ -33,10 +32,10 @@ type Outcome = { title: string; text: string; icon: LucideIcon; className: strin
 function outcomeFor(output: Component2Output): Outcome {
   if (output.abstention.abstain || output.decision === "abstain") {
     return {
-      title: "No recommendation for this case",
+      title: "Options found, practitioner review needed",
       // The service's own explanation lists policy codes; it stays in the technical view.
-      text: "There is not enough reliable evidence to suggest options. Please assess the patient directly.",
-      icon: CircleSlash,
+      text: "The knowledge behind these options is not yet verified by a practitioner. Review each option before use.",
+      icon: AlertTriangle,
       className: "border-amber-200 bg-amber-50/70",
       iconClassName: "bg-amber-100 text-amber-700",
     }
@@ -245,7 +244,6 @@ export function CandidateStatus({ candidate }: { candidate: Candidate }) {
 function OptionsCard({ output, record }: { output: Component2Output; record: CaseRecord }) {
   const report = record.c3.status === "success" ? record.c3.data : null
   const shown = topCandidatePerCategory(output)
-  const abstained = output.abstention.abstain
   const names = React.useMemo(() => conceptNames(output), [output])
 
   return (
@@ -254,15 +252,13 @@ function OptionsCard({ output, record }: { output: Component2Output; record: Cas
       actions={
         output.candidates.length > 0 && (
           <Link to="/candidates" className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-700 hover:text-emerald-900">
-            {abstained ? "View withheld options" : `View all ${output.candidates.length}`} <ArrowRight aria-hidden className="size-3.5" />
+            View details <ArrowRight aria-hidden className="size-3.5" />
           </Link>
         )
       }
     >
-      {abstained || shown.length === 0 ? (
-        <p className="text-sm text-slate-500">
-          {abstained ? "No option is suggested, because the evidence check was not met." : "No option was found for these symptoms."}
-        </p>
+      {shown.length === 0 ? (
+        <p className="text-sm text-slate-500">No option was found for these symptoms.</p>
       ) : (
         <ol className="divide-y divide-slate-100">
           {shown.map((candidate) => {

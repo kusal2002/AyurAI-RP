@@ -7,7 +7,7 @@ import { StatusBadge, safetySpec, sufficiencySpec } from "@/components/shared/st
 import type { CaseRecord } from "@/context/workspace"
 import { CandidateStatus, TypeMatch } from "@/features/ayurvedic-analysis/AnalysisSummary"
 import type { Candidate, Component2Output } from "@/lib/api/types"
-import { conceptNames, topCandidatePerCategory } from "@/lib/c2-derive"
+import { conceptNames } from "@/lib/c2-derive"
 import { describeFlag, humanizeCode } from "@/lib/labels"
 import { cn } from "@/lib/utils"
 
@@ -18,7 +18,6 @@ import { cn } from "@/lib/utils"
  */
 
 type Filter = "all" | "review" | "safety"
-type Scope = "top" | "all"
 
 const MAX_PATHS = 3
 
@@ -89,14 +88,11 @@ function WhySuggested({ candidate, names }: { candidate: Candidate; names: Map<s
 
 export function CandidateList({ output, record }: { output: Component2Output; record: CaseRecord }) {
   const [filter, setFilter] = React.useState<Filter>("all")
-  const [scope, setScope] = React.useState<Scope>("top")
   const [open, setOpen] = React.useState<string | null>(null)
   const names = React.useMemo(() => conceptNames(output), [output])
   const report = record.c3.status === "success" ? record.c3.data : null
 
-  // Default: only the best-ranked herb, formulation, diet and lifestyle option.
-  const pool = scope === "top" ? topCandidatePerCategory(output) : output.candidates
-  const candidates = pool.filter((candidate) =>
+  const candidates = output.candidates.filter((candidate) =>
     filter === "all"
       ? true
       : filter === "review"
@@ -106,33 +102,12 @@ export function CandidateList({ output, record }: { output: Component2Output; re
 
   return (
     <div className="space-y-4">
-      {output.abstention.abstain && (
-        <div className="flex gap-3 rounded-2xl border border-amber-200 bg-amber-50/70 p-4 text-sm text-slate-800">
-          <CircleSlash aria-hidden className="mt-0.5 size-5 shrink-0 text-amber-600" />
-          <p>
-            <strong>No recommendation for this case.</strong> The evidence check was not met. Options below are shown
-            for reference only and are not suggested.
-          </p>
-        </div>
-      )}
-
       <section className="rounded-2xl border border-slate-200/80 bg-white shadow-sm shadow-slate-200/30">
         <header className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-5 py-3">
           <h2 className="text-sm font-semibold text-slate-900">
-            {scope === "top"
-              ? `Top option per category (${candidates.length} of ${output.candidates.length})`
-              : `${candidates.length} option${candidates.length === 1 ? "" : "s"}`}
+            {candidates.length} option{candidates.length === 1 ? "" : "s"} for this patient
           </h2>
           <div className="flex flex-wrap items-center gap-2">
-            <FilterChips
-              label="View"
-              value={scope}
-              onChange={setScope}
-              options={[
-                { value: "top", label: "Top per category" },
-                { value: "all", label: `All ${output.candidates.length}` },
-              ]}
-            />
             <FilterChips
               label="Show"
               value={filter}

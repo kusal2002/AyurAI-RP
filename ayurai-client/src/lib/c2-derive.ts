@@ -151,3 +151,34 @@ export function topCandidatePerCategory(output: Component2Output): Candidate[] {
     return candidate ? [candidate] : []
   })
 }
+
+/**
+ * The Component 2 result as every screen shows it: only the patient's related
+ * candidates (the top-ranked herb, formulation, diet and lifestyle candidate),
+ * ranked 1..n in the service's order. Claims that led only to the dropped
+ * candidates are kept as off-path claims, minus any that name a dropped
+ * candidate, so the reasoning chain stays traceable. Safe to apply twice.
+ */
+export function focusOutput(output: Component2Output): Component2Output {
+  // Keep the service's ranking order (not category order) before renumbering.
+  const kept = topCandidatePerCategory(output).sort((a, b) => a.rank - b.rank)
+  if (kept.length === output.candidates.length) return output
+  const keptIds = new Set(kept.map((candidate) => candidate.candidate_id))
+  const droppedIds = new Set(output.candidates.map((c) => c.candidate_id).filter((id) => !keptIds.has(id)))
+
+  const keptClaimIds = new Set(kept.flatMap((c) => c.paths.flatMap((path) => path.claims.map((claim) => claim.claim_id))))
+  const offPath = new Map((output.interpretation_claims ?? []).map((claim) => [claim.claim_id, claim]))
+  for (const candidate of output.candidates) {
+    if (keptIds.has(candidate.candidate_id)) continue
+    for (const claim of candidate.paths.flatMap((path) => path.claims)) {
+      if (keptClaimIds.has(claim.claim_id) || droppedIds.has(claim.subject_id) || droppedIds.has(claim.object_id)) continue
+      offPath.set(claim.claim_id, claim)
+    }
+  }
+
+  return {
+    ...output,
+    candidates: kept.map((candidate, index) => ({ ...candidate, rank: index + 1 })),
+    interpretation_claims: Array.from(offPath.values()),
+  }
+}

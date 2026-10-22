@@ -16,6 +16,7 @@ import type {
   SafetyAssessmentReport,
 } from "@/lib/api/types"
 import { c1View } from "@/lib/api/types"
+import { focusOutput } from "@/lib/c2-derive"
 import { useAccess } from "@/lib/access"
 import { readSession, SESSION_KEYS, writeSession } from "@/lib/session-store"
 
@@ -130,6 +131,10 @@ function settle<T>(state: AsyncState<T>): AsyncState<T> {
   return state.status === "loading" ? { status: "idle" } : state
 }
 
+function focusStored(state: CaseRecord["c2"]): CaseRecord["c2"] {
+  return state.status === "success" ? { ...state, data: focusOutput(state.data) } : state
+}
+
 /** Cases saved in this tab's sessionStorage, with interrupted requests reset. */
 function restoreWorkspace(): StoredWorkspace {
   const stored = readSession<StoredWorkspace>(SESSION_KEYS.workspace)
@@ -137,7 +142,8 @@ function restoreWorkspace(): StoredWorkspace {
   const cases = stored.cases.map((record) => ({
     ...record,
     c1: record.c1 ? { ...record.c1, intake: settle(record.c1.intake) } : record.c1,
-    c2: settle(record.c2),
+    // Cases saved before candidates were focused are focused on restore.
+    c2: focusStored(settle(record.c2)),
     c3: settle(record.c3),
   }))
   const activeId = cases.some((record) => record.id === stored.activeId) ? stored.activeId : null
@@ -268,7 +274,7 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
                 }
               : current.c1,
             c2: response.reasoning
-              ? { status: "success", data: response.reasoning, receivedAt: new Date().toISOString() }
+              ? { status: "success", data: focusOutput(response.reasoning), receivedAt: new Date().toISOString() }
               : {
                   status: "error",
                   error: {
@@ -301,7 +307,7 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
         )
         updateCase(caseId, (current) => ({
           ...current,
-          c2: { status: "success", data: output, receivedAt: new Date().toISOString() },
+          c2: { status: "success", data: focusOutput(output), receivedAt: new Date().toISOString() },
         }))
       } catch (error) {
         if (isAbortError(error)) return
