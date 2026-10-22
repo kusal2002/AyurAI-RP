@@ -406,7 +406,7 @@ function ReasoningDetail({ output, record }: { output: Component2Output; record:
         description="Top-ranked herb, formulation, diet and lifestyle candidate for this patient (not practitioner-approved recommendations)"
         actions={
           <Link to="/candidates" className="text-xs font-semibold text-emerald-700 hover:text-emerald-900">
-            {output.candidates.length > 0 ? `View all ${output.candidates.length}` : "Candidate details"}
+            Candidate details
           </Link>
         }
       >
@@ -481,7 +481,7 @@ function ReasoningDetail({ output, record }: { output: Component2Output; record:
               <FlagList flags={output.abstention.reasons} />
             </div>
             <p className="mt-3 text-xs text-amber-900">
-              No recommendation is shown in place of the abstention. A practitioner should review the case directly.
+              The candidates above are shown for practitioner review; none is approved until a practitioner verifies the knowledge behind it.
             </p>
           </div>
         ) : (

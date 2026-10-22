@@ -101,11 +101,9 @@ function SafetyReportView({ report, record }: { report: SafetyAssessmentReport; 
 
 function SafetyWorkspace({ output, record }: { output: Component2Output; record: CaseRecord }) {
   const { runSafety } = useWorkspace()
-  const forwarded = output.candidates.filter((candidate) => candidate.disposition === "forward_for_safety_assessment")
+  // The case's related candidates (top per category) are all pre-selected.
   const [selected, setSelected] = React.useState<string[]>(() =>
-    forwarded.length > 0
-      ? forwarded.map((candidate) => candidate.candidate_id)
-      : output.candidates.filter((c) => c.name).slice(0, 5).map((candidate) => candidate.candidate_id)
+    output.candidates.filter((c) => c.name).map((candidate) => candidate.candidate_id),
   )
   const [form, setForm] = React.useState<PatientFormState>(() => ({
     ...emptyPatientForm,
@@ -141,7 +139,7 @@ function SafetyWorkspace({ output, record }: { output: Component2Output; record:
       </Notice>
 
       <div className="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)]">
-        <Panel step={1} title="Candidates to assess" description="Forwarded candidates are pre-selected">
+        <Panel step={1} title="Candidates to assess" description="The patient's related candidates are pre-selected">
           {output.candidates.length === 0 ? (
             <EmptyState title="No candidates to assess" description="Component 2 produced no candidates for this case." />
           ) : (
@@ -952,7 +950,7 @@ export function SafetyPage() {
                 Active Case Loaded: <code className="bg-emerald-100 px-1 py-0.5 rounded text-emerald-950 font-mono">{activeCase.caseRef}</code>
               </p>
               <p className="text-[11px] text-emerald-800">
-                {activeCase.c2.data.candidates.length} candidate formulation(s) from Component 2 are ready for Component 3 safety evaluation.
+                {activeCase.c2.data.candidates.length} related candidate(s) from Component 2 are ready for Component 3 safety evaluation.
               </p>
             </div>
           </div>
