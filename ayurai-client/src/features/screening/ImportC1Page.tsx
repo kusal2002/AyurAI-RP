@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { KnowledgeScopeToggle } from "@/components/shared/c2"
 import { useWorkspace, type CaseRecord } from "@/context/workspace"
 import { c1View, type C1ScreeningPayload } from "@/lib/api/types"
+import { extractPayloads } from "@/lib/c1-payload"
 import { formatScore } from "@/lib/labels"
 import { cn } from "@/lib/utils"
 import scenarioFile from "@/lib/samples/c1_screening_scenarios.json"
@@ -17,33 +18,6 @@ const scenarios = (scenarioFile as { scenarios: Scenario[] }).scenarios
 
 const MAX_FILE_BYTES = 5 * 1024 * 1024
 const MAX_PAYLOADS = 200
-
-/** Light structural check; the service validates the full contract. */
-function looksLikePayload(value: unknown): value is C1ScreeningPayload {
-  if (typeof value !== "object" || value === null) return false
-  const record = value as Record<string, unknown>
-  const result = record.screening_result as Record<string, unknown> | undefined
-  return (
-    typeof record.screening_id === "string" &&
-    typeof result?.risk_level === "string" &&
-    Array.isArray(record.symptoms)
-  )
-}
-
-/** Accepts one payload, an array, {payloads: [...]} or {scenarios: [{payload}]}. */
-function extractPayloads(parsed: unknown): { payloads: C1ScreeningPayload[]; rejected: number } {
-  let items: unknown[] = []
-  if (Array.isArray(parsed)) items = parsed
-  else if (typeof parsed === "object" && parsed !== null) {
-    const record = parsed as Record<string, unknown>
-    if (Array.isArray(record.payloads)) items = record.payloads
-    else if (Array.isArray(record.scenarios))
-      items = (record.scenarios as Record<string, unknown>[]).map((item) => item.payload)
-    else items = [parsed]
-  }
-  const payloads = items.filter(looksLikePayload)
-  return { payloads, rejected: items.length - payloads.length }
-}
 
 function symptomSummary(payload: C1ScreeningPayload) {
   const present = c1View(payload).symptoms.filter((item) => item.present).map((item) => item.name)
