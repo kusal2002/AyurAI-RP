@@ -31,7 +31,10 @@ from app.models.c1_input import RiskTier
 # 0.4.0 (2026-10-22): adds candidate `matched_subtypes`; within a disposition,
 # candidates reached through a matched Roga type (e.g. Pittaja Pandu) are
 # listed before general remedies. Scores are unchanged. Additive only.
-OUTPUT_SCHEMA_VERSION = "c2-output/0.4.0"
+# 0.5.0 (2026-10-22): adds `interpretation_claims` (traversed claims that lie
+# on no candidate path, e.g. Vātaja Pandu -> its treatment principle) and
+# interpretation `subtype_of`. Ranking and order are unchanged. Additive only.
+OUTPUT_SCHEMA_VERSION = "c2-output/0.5.0"
 
 SCORE_SEMANTICS = {
     "upstream.calibrated_confidence": (
@@ -253,6 +256,10 @@ class InterpretedConcept(BaseModel):
     verification_statuses: list[str]
     supporting_evidence_ids: list[str]
     contradicting_evidence_ids: list[str]
+    subtype_of: str | None = Field(
+        default=None,
+        description="For a Roga type (e.g. Pittaja Pandu), the parent Roga ID.",
+    )
 
 
 class RejectedPath(BaseModel):
@@ -337,6 +344,15 @@ class Component2Output(BaseModel):
     symptom_mappings: list[SymptomMapping]
     interpretation: list[InterpretedConcept]
     candidates: list[Candidate]
+    interpretation_claims: list[ClaimStep] = Field(
+        default_factory=list,
+        description=(
+            "Traversed, ontology-valid claims that lie on no candidate path "
+            "(for example a symptom indicating a Roga type that has no "
+            "type-specific remedy). Shown for traceability only; they never "
+            "create or rank a candidate."
+        ),
+    )
     rejected_paths: list[RejectedPath] = Field(default_factory=list)
     retrieval: RetrievalInfo
     retrieved_evidence: list[RetrievedEvidenceItem] = Field(

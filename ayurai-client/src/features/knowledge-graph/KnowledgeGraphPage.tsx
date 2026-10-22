@@ -8,7 +8,7 @@ import { StatusBadge, sufficiencySpec, verificationSpec } from "@/components/sha
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import type { Component2Output } from "@/lib/api/types"
-import { conceptNames } from "@/lib/c2-derive"
+import { conceptNames, matchedRogaTypes } from "@/lib/c2-derive"
 import { conceptTypeLabels, predicateLabels } from "@/lib/labels"
 import { buildGraph, columnTitles, type GraphEdge, type GraphNode, type ReasoningGraph } from "./buildGraph"
 
@@ -22,6 +22,7 @@ const PAD_TOP = 40
 const typeColors: Record<string, { fill: string; stroke: string; text: string }> = {
   Symptom: { fill: "#f8fafc", stroke: "#94a3b8", text: "#334155" },
   Roga: { fill: "#ecfdf5", stroke: "#059669", text: "#065f46" },
+  RogaType: { fill: "#f5f3ff", stroke: "#7c3aed", text: "#5b21b6" },
   Dosha: { fill: "#f0fdfa", stroke: "#0d9488", text: "#115e59" },
   Dhatu: { fill: "#f0fdfa", stroke: "#0d9488", text: "#115e59" },
   TherapeuticPrinciple: { fill: "#f0f9ff", stroke: "#0284c7", text: "#075985" },
@@ -38,6 +39,7 @@ const edgeStyles: Record<string, { stroke: string; dash?: string; label: string 
 
 function nodeColors(node: GraphNode) {
   if (node.isCandidate) return typeColors.Candidate
+  if (node.subtypeOf) return typeColors.RogaType
   return typeColors[node.type ?? ""] ?? typeColors.Unknown
 }
 
@@ -134,7 +136,7 @@ function GraphCanvas({
           const contradicted = edge.claim.contradicting_evidence.length > 0
           const dimmed = related && !related.edges.has(edge.id)
           const selected = selection?.kind === "edge" && selection.id === edge.id
-          const label = `Claim ${edge.claim.claim_id}: ${edge.source} ${predicateLabels[edge.claim.predicate] ?? edge.claim.predicate} ${edge.target}, ${style.label}${contradicted ? ", has contradicting evidence" : ""}`
+          const label = `Claim ${edge.claim.claim_id}: ${edge.source} ${predicateLabels[edge.claim.predicate] ?? edge.claim.predicate} ${edge.target}, ${style.label}${contradicted ? ", has contradicting evidence" : ""}${edge.onCandidatePath ? "" : ", leads to no candidate"}`
           return (
             <g
               key={edge.id}
@@ -153,7 +155,8 @@ function GraphCanvas({
                 d={d}
                 fill="none"
                 stroke={style.stroke}
-                strokeWidth={selected ? 3.5 : 2}
+                strokeWidth={selected ? 3.5 : edge.onCandidatePath ? 2 : 1.25}
+                strokeOpacity={edge.onCandidatePath ? 1 : 0.6}
                 strokeDasharray={style.dash}
                 markerEnd="url(#kg-arrow)"
               />
@@ -174,7 +177,9 @@ function GraphCanvas({
           const colors = nodeColors(node)
           const selected = selection?.kind === "node" && selection.id === node.id
           const dimmed = related && !related.nodes.has(node.id)
-          const typeLabel = node.type ? conceptTypeLabels[node.type] ?? node.type : ""
+          const typeLabel = node.subtypeOf
+            ? "Pandu type · matched"
+            : node.type ? conceptTypeLabels[node.type] ?? node.type : ""
           return (
             <g
               key={node.id}
@@ -226,6 +231,16 @@ function Legend() {
         <span className="flex size-4 items-center justify-center rounded-full border border-rose-600 bg-rose-50 text-[10px] font-bold text-rose-700">!</span>
         Claim has contradicting evidence
       </span>
+      <span className="inline-flex items-center gap-1.5">
+        <svg width="26" height="8" aria-hidden>
+          <line x1="0" y1="4" x2="26" y2="4" stroke="#64748b" strokeWidth="1.25" strokeOpacity="0.6" />
+        </svg>
+        Thin line: traversed, leads to no candidate
+      </span>
+      <span className="inline-flex items-center gap-1.5">
+        <span aria-hidden className="size-3.5 rounded border border-violet-600 bg-violet-50" />
+        Pandu type matched from the patient&apos;s signs
+      </span>
     </div>
   )
 }
@@ -257,7 +272,10 @@ function Inspector({
         </div>
         <ClaimCard claim={edge.claim} names={names} />
         <p className="text-xs text-slate-500">
-          Used by: {edge.candidateIds.map((id) => names.get(id) ?? id).join(", ")}
+          Used by:{" "}
+          {edge.candidateIds.length > 0
+            ? edge.candidateIds.map((id) => names.get(id) ?? id).join(", ")
+            : "no candidate (traversed for interpretation only; never creates or ranks a candidate)"}
         </p>
       </div>
     )
@@ -270,6 +288,11 @@ function Inspector({
   const interpretation = output.interpretation.find((concept) => concept.concept_id === node.id)
   const candidate = output.candidates.find((item) => item.candidate_id === node.id)
   const symptom = output.symptom_mappings.find((mapping) => mapping.symptom_id === node.id)
+  const rogaType = matchedRogaTypes(output).get(node.id)
+  const signs = rogaType
+    ? incoming.filter((edge) => edge.claim.predicate === "INDICATES").map((edge) => names.get(edge.source) ?? edge.source)
+    : []
+  const reachedThrough = (candidate?.matched_subtypes ?? []).map((id) => names.get(id) ?? id)
 
   return (
     <div className="space-y-4">
@@ -283,6 +306,18 @@ function Inspector({
       <KeyValueList
         items={[
           { label: "Type", value: node.type ? conceptTypeLabels[node.type] ?? node.type : "Not supplied" },
+          ...(rogaType
+            ? [
+                { label: "Type of", value: names.get(rogaType.parentId) ?? (rogaType.parentId || "Not supplied") },
+                { label: "Patient signs pointing here", value: signs.join(", ") || "None in this response" },
+                {
+                  label: "Candidates listed first for this type",
+                  value: rogaType.candidateIds.length
+                    ? rogaType.candidateIds.map((id) => names.get(id) ?? id).join(", ")
+                    : "None: the sources give no type-specific remedy, so the general remedies apply",
+                },
+              ]
+            : []),
           ...(symptom ? [{ label: "INDICATES claims", value: symptom.indicates_claim_ids.length }] : []),
           ...(interpretation
             ? [
@@ -294,6 +329,7 @@ function Inspector({
           ...(candidate
             ? [
                 { label: "Rank", value: candidate.rank },
+                { label: "Reached through Pandu type", value: reachedThrough.join(", ") || "No (general remedy)" },
                 { label: "Sufficiency", value: <StatusBadge spec={sufficiencySpec(candidate.sufficiency.status)} /> },
               ]
             : []),
@@ -343,6 +379,51 @@ function RelationshipList({ graph, output }: { graph: ReasoningGraph; output: Co
   )
 }
 
+function MatchedTypes({ output }: { output: Component2Output }) {
+  const names = React.useMemo(() => conceptNames(output), [output])
+  const types = Array.from(matchedRogaTypes(output).values())
+  const allClaims = [
+    ...output.candidates.flatMap((candidate) => candidate.paths.flatMap((path) => path.claims)),
+    ...(output.interpretation_claims ?? []),
+  ]
+  if (types.length === 0) {
+    return (
+      <p className="text-xs text-slate-500">
+        No Pandu type was matched: the patient&apos;s signs point only to Pandu in general, so the general remedies apply.
+      </p>
+    )
+  }
+  return (
+    <Panel
+      title="Matched Pandu types"
+      description="Types of Pandu that the patient's signs point to, and the candidates they move to the top"
+      bodyClassName="flex flex-wrap gap-3 p-4"
+    >
+      {types.map((type) => {
+        const signs = Array.from(
+          new Set(
+            allClaims
+              .filter((claim) => claim.predicate === "INDICATES" && claim.object_id === type.id)
+              .map((claim) => names.get(claim.subject_id) ?? claim.subject_id),
+          ),
+        )
+        return (
+          <div key={type.id} className="min-w-[220px] flex-1 rounded-lg border border-violet-200 bg-violet-50/50 px-3 py-2">
+            <p className="text-sm font-semibold text-violet-900">{type.name ?? names.get(type.id) ?? type.id}</p>
+            <p className="mt-1 text-xs text-slate-600">Signs: {signs.join(", ") || "not listed"}</p>
+            <p className="text-xs text-slate-600">
+              Listed first:{" "}
+              {type.candidateIds.length
+                ? type.candidateIds.map((id) => names.get(id) ?? id).join(", ")
+                : "no type-specific remedy in the sources"}
+            </p>
+          </div>
+        )
+      })}
+    </Panel>
+  )
+}
+
 function GraphView({ output }: { output: Component2Output }) {
   const graph = React.useMemo(() => buildGraph(output), [output])
   const [selection, setSelection] = React.useState<Selection>(null)
@@ -358,10 +439,10 @@ function GraphView({ output }: { output: Component2Output }) {
   return (
     <div className="space-y-4">
       <Notice tone="neutral">
-        Every relationship drawn is a claim returned by Component 2 on a candidate path. No relationship is
-        inferred by the interface. Concepts reached only through claims outside candidate paths are shown
-        without edges because the response does not include those claim details.
+        Every relationship drawn is a claim returned by Component 2. Thick lines lie on a candidate path; thin
+        lines were traversed but lead to no candidate. No relationship is inferred by the interface.
       </Notice>
+      <MatchedTypes output={output} />
       <Tabs defaultValue="graph">
         <TabsList>
           <TabsTrigger value="graph">Graph view</TabsTrigger>

@@ -247,6 +247,7 @@ def extract_candidate_paths(
             concept_id=concept_id,
             concept_type=entry["type"],
             name=concept_name(concepts, concept_id),
+            subtype_of=(concepts.get(concept_id, {}).get("properties") or {}).get("subtype_of"),
             via_claim_ids=sorted(entry["steps"]),
             verification_statuses=sorted(
                 {s.verification_status for s in entry["steps"].values()}

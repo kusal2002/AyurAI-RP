@@ -28,7 +28,7 @@ import { useWorkspace, type CaseRecord } from "@/context/workspace"
 import { AnalysisSummary } from "@/features/ayurvedic-analysis/AnalysisSummary"
 import { useTechnicalView } from "@/lib/access"
 import type { C1SymptomMapping, Component2Output, EvidenceReference } from "@/lib/api/types"
-import { conceptNames, indexEvidence } from "@/lib/c2-derive"
+import { CANDIDATE_CATEGORIES, conceptNames, indexEvidence, topCandidatePerCategory } from "@/lib/c2-derive"
 import { conceptTypeLabels, describeFlag, formatDateTime, formatScore, humanizeCode } from "@/lib/labels"
 
 /** Labels that separate who produced each piece of information. */
@@ -403,10 +403,10 @@ function ReasoningDetail({ output, record }: { output: Component2Output; record:
       <Panel
         step={6}
         title="Ranked candidates"
-        description="Herb, formulation, diet and lifestyle candidates produced by the system (not practitioner-approved recommendations)"
+        description="Top-ranked herb, formulation, diet and lifestyle candidate for this patient (not practitioner-approved recommendations)"
         actions={
           <Link to="/candidates" className="text-xs font-semibold text-emerald-700 hover:text-emerald-900">
-            Candidate details
+            {output.candidates.length > 0 ? `View all ${output.candidates.length}` : "Candidate details"}
           </Link>
         }
       >
@@ -436,25 +436,35 @@ function ReasoningDetail({ output, record }: { output: Component2Output; record:
           </div>
         ) : (
           <ol className="space-y-2">
-            {output.candidates.map((candidate) => (
-              <li key={candidate.candidate_id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-slate-200 px-3 py-2">
-                <div className="flex min-w-0 items-center gap-3">
-                  <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-slate-100 text-xs font-bold text-slate-700">
-                    {candidate.rank}
-                  </span>
-                  <div className="min-w-0">
-                    <p className="text-sm font-semibold text-slate-800">{candidate.name ?? candidate.candidate_id}</p>
-                    <p className="text-xs text-slate-500">
-                      {candidate.category} · experimental ranking score {formatScore(candidate.ranking.score)}
-                    </p>
+            {CANDIDATE_CATEGORIES.map((category) => {
+              const candidate = topCandidatePerCategory(output).find((item) => item.category === category)
+              if (!candidate) {
+                return (
+                  <li key={`missing-${category}`} className="rounded-lg border border-dashed border-slate-200 px-3 py-2 text-xs text-slate-500">
+                    No {category.toLowerCase()} candidate was found for these symptoms.
+                  </li>
+                )
+              }
+              return (
+                <li key={candidate.candidate_id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-slate-200 px-3 py-2">
+                  <div className="flex min-w-0 items-center gap-3">
+                    <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-slate-100 text-xs font-bold text-slate-700">
+                      {candidate.rank}
+                    </span>
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-slate-800">{candidate.name ?? candidate.candidate_id}</p>
+                      <p className="text-xs text-slate-500">
+                        Top {candidate.category.toLowerCase()} · experimental ranking score {formatScore(candidate.ranking.score)}
+                      </p>
+                    </div>
                   </div>
-                </div>
-                <div className="flex flex-wrap gap-1.5">
-                  <StatusBadge spec={sufficiencySpec(candidate.sufficiency.status)} />
-                  <StatusBadge spec={dispositionSpec(candidate.disposition)} />
-                </div>
-              </li>
-            ))}
+                  <div className="flex flex-wrap gap-1.5">
+                    <StatusBadge spec={sufficiencySpec(candidate.sufficiency.status)} />
+                    <StatusBadge spec={dispositionSpec(candidate.disposition)} />
+                  </div>
+                </li>
+              )
+            })}
           </ol>
         )}
         <div className="mt-3">

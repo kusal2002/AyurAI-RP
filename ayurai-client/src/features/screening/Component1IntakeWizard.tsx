@@ -98,6 +98,8 @@ function listToText(value: unknown, first: string, second: string) {
     .join("\n")
 }
 
+const PANDU_TYPE_SIGN_SECTION = "pandu_type_signs"
+
 function QuestionField({
   question,
   value,
@@ -735,6 +737,8 @@ export function Component1IntakeWizard() {
 
   const [answers, setAnswers] = React.useState<C1Answers>({})
   const [followups, setFollowups] = React.useState<C1Question[] | null>(null)
+  const adaptiveFollowups = (followups ?? []).filter((question) => question.section !== PANDU_TYPE_SIGN_SECTION)
+  const typeSignQuestions = (followups ?? []).filter((question) => question.section === PANDU_TYPE_SIGN_SECTION)
   const [noMeds, setNoMeds] = React.useState(false)
   const [meds, setMeds] = React.useState("")
   const [herbals, setHerbals] = React.useState("")
@@ -1267,16 +1271,30 @@ export function Component1IntakeWizard() {
             <>
               <section className="space-y-3">
                 <h3 className="text-xs font-semibold text-slate-500 uppercase">
-                  Adaptive follow-ups ({followups.length}) — selected by the rule engine from the answers above
+                  Adaptive follow-ups ({adaptiveFollowups.length}) — selected by the rule engine from the answers above
                 </h3>
-                {followups.length === 0 && <p className="text-xs text-slate-500">No follow-ups apply.</p>}
+                {adaptiveFollowups.length === 0 && <p className="text-xs text-slate-500">No follow-ups apply.</p>}
                 <div className="grid gap-3 sm:grid-cols-2">
-                  {followups.map((question) => (
+                  {adaptiveFollowups.map((question) => (
                     <QuestionField key={question.id} question={question} value={answers[question.id]} onChange={(value) => setAnswer(question.id, value)} />
                   ))}
                 </div>
                 <p className="text-xs text-slate-500">Follow-ups are optional; unanswered ones are stored as not answered.</p>
               </section>
+
+              {typeSignQuestions.length > 0 && (
+                <section className="space-y-3">
+                  <h3 className="text-xs font-semibold text-slate-500 uppercase">Ayurvedic Pandu type signs ({typeSignQuestions.length})</h3>
+                  <p className="text-xs text-slate-500">
+                    These help Component 2 choose type-specific candidates. They do not change the anaemia risk result. Optional.
+                  </p>
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    {typeSignQuestions.map((question) => (
+                      <QuestionField key={question.id} question={question} value={answers[question.id]} onChange={(value) => setAnswer(question.id, value)} />
+                    ))}
+                  </div>
+                </section>
+              )}
 
               <section className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2 text-sm">

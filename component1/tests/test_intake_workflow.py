@@ -467,6 +467,14 @@ class ProfileValidation(IsolatedDatasets):
         self.assertTrue(saved["status"]["image_acquisition_allowed"])
         self.assertEqual(self.threshold_after_analysis(sid), 12.0)  # existing WHO rule, women >= 15 years
 
+    def test_pandu_type_sign_questions_are_offered_and_saved(self):
+        profile = {"age_months": 300, "sex": "female", "pregnancy_status": "not_pregnant"}
+        followups = intake.questionnaire_followups(intake.FollowupsIn(profile=profile, answers=COMMON_NO_SAFETY))["followups"]
+        signs = [q["id"] for q in followups if q["section"] == "pandu_type_signs"]
+        self.assertEqual(signs, [f"PT{n:02d}" for n in range(1, 15)])
+        _, saved = self.save(profile, answers={**COMMON_NO_SAFETY, "PT04": "yes", "PT11": "no"})
+        self.assertGreater(saved["answers_saved"], 0)
+
     def test_valid_adult_male(self):
         sid, saved = self.save({"age_months": 360, "sex": "male", "pregnancy_status": "not_applicable"})
         self.assertTrue(saved["status"]["image_acquisition_allowed"])

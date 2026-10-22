@@ -17,7 +17,7 @@ import { Button } from "@/components/ui/button"
 import type { CaseRecord } from "@/context/workspace"
 import { useAccess } from "@/lib/access"
 import type { Candidate, Component2Output, SafetyAssessmentReport } from "@/lib/api/types"
-import { conceptNames } from "@/lib/c2-derive"
+import { conceptNames, topCandidatePerCategory } from "@/lib/c2-derive"
 import { formatDateTime, humanizeCode } from "@/lib/labels"
 import { cn } from "@/lib/utils"
 
@@ -27,7 +27,6 @@ import { cn } from "@/lib/utils"
  * and retrieval settings stay in the technical view (supervisors, researchers).
  */
 
-const SUMMARY_CANDIDATES = 5
 
 type Outcome = { title: string; text: string; icon: LucideIcon; className: string; iconClassName: string }
 
@@ -245,7 +244,7 @@ export function CandidateStatus({ candidate }: { candidate: Candidate }) {
 
 function OptionsCard({ output, record }: { output: Component2Output; record: CaseRecord }) {
   const report = record.c3.status === "success" ? record.c3.data : null
-  const shown = output.candidates.slice(0, SUMMARY_CANDIDATES)
+  const shown = topCandidatePerCategory(output)
   const abstained = output.abstention.abstain
   const names = React.useMemo(() => conceptNames(output), [output])
 

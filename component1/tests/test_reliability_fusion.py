@@ -75,6 +75,15 @@ class Questionnaire(unittest.TestCase):
         self.assertAlmostEqual(result["evidence"], 0.5)
         self.assertFalse(result["trained_model"])
 
+    def test_pandu_type_signs_never_change_the_symptom_fraction(self):
+        core = {"C01": "yes", "C02": "yes", "C03": "no", "C06": "yes"}
+        result = rf.questionnaire_evidence({**core, "PT04": "yes", "PT05": "yes", "PT11": "no"})
+        self.assertEqual(result["evidence"], rf.questionnaire_evidence(core)["evidence"])
+        self.assertEqual(result["answered_items"], 4)
+        self.assertEqual(result["pandu_type_signs_present"], ["burning_sensation", "excessive_thirst"])
+        self.assertEqual(result["pandu_type_signs_absent"], ["cough"])
+        self.assertNotIn("burning_sensation", result["present_symptoms"])
+
 
 class Fusion(unittest.TestCase):
     def test_no_evidence_is_insufficient(self):

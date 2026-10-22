@@ -70,6 +70,26 @@ SYMPTOM_ITEMS = {
 }
 MIN_ANSWERED_SYMPTOMS = 3
 
+# Classical Pandu type signs (question bank section pandu_type_signs). They are
+# passed to Component 2 to pick type-specific candidates and are kept out of the
+# symptom fraction, so they never change the anaemia risk score.
+PANDU_TYPE_SIGN_ITEMS = {
+    "PT01": "tremor",
+    "PT02": "hard_or_dry_stools",
+    "PT03": "bloating",
+    "PT04": "burning_sensation",
+    "PT05": "excessive_thirst",
+    "PT06": "bitter_taste",
+    "PT07": "loose_stools",
+    "PT08": "excessive_sweating",
+    "PT09": "daytime_drowsiness",
+    "PT10": "vomiting",
+    "PT11": "cough",
+    "PT12": "hoarse_or_weak_voice",
+    "PT13": "eating_clay_or_soil",
+    "PT14": "worms_in_stool",
+}
+
 # Decision rules.
 MIN_TOTAL_RELIABILITY = 0.40
 MIN_PHYSIOLOGICAL_MODALITIES = 2
@@ -119,6 +139,12 @@ def questionnaire_evidence(answers: dict) -> dict:
         "answered_items": len(answered),
         "present_symptoms": present,
         "absent_symptoms": absent,
+        "pandu_type_signs_present": [
+            name for qid, name in PANDU_TYPE_SIGN_ITEMS.items() if answers.get(qid) == "yes"
+        ],
+        "pandu_type_signs_absent": [
+            name for qid, name in PANDU_TYPE_SIGN_ITEMS.items() if answers.get(qid) == "no"
+        ],
         "symptom_fraction": round(fraction, 3) if fraction is not None else None,
         "usable": usable,
         "evidence": round(2 * fraction - 1, 3) if usable else None,
