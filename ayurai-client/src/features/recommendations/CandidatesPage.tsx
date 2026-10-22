@@ -19,7 +19,7 @@ import { TypeMatch } from "@/features/ayurvedic-analysis/AnalysisSummary"
 import { CandidateList } from "@/features/recommendations/CandidateList"
 import { useTechnicalView } from "@/lib/access"
 import type { Candidate, Component2Output } from "@/lib/api/types"
-import { conceptNames } from "@/lib/c2-derive"
+import { conceptNames, topCandidatePerCategory } from "@/lib/c2-derive"
 import { formatScore, rankingComponentLabels } from "@/lib/labels"
 import { cn } from "@/lib/utils"
 
@@ -179,9 +179,12 @@ function CandidateDetail({
 function CandidateTable({ output, record }: { output: Component2Output; record: CaseRecord }) {
   const names = React.useMemo(() => conceptNames(output), [output])
   const [filter, setFilter] = React.useState<Filter>("all")
+  const [scope, setScope] = React.useState<"top" | "all">("top")
   const [expanded, setExpanded] = React.useState<string | null>(output.candidates[0]?.candidate_id ?? null)
 
-  const candidates = output.candidates.filter((candidate) =>
+  // Default: only the best-ranked herb, formulation, diet and lifestyle candidate.
+  const pool = scope === "top" ? topCandidatePerCategory(output) : output.candidates
+  const candidates = pool.filter((candidate) =>
     filter === "all"
       ? true
       : filter === "forwarded"
@@ -221,18 +224,33 @@ function CandidateTable({ output, record }: { output: Component2Output; record: 
       </Notice>
 
       <Panel
-        title={`${candidates.length} of ${output.candidates.length} candidates`}
+        title={
+          scope === "top"
+            ? `Top candidate per category (${candidates.length} of ${output.candidates.length})`
+            : `${candidates.length} of ${output.candidates.length} candidates`
+        }
         actions={
-          <FilterChips
-            label="Disposition"
-            value={filter}
-            onChange={setFilter}
-            options={[
-              { value: "all", label: "All" },
-              { value: "forwarded", label: "Forwarded" },
-              { value: "withheld", label: "Withheld" },
-            ]}
-          />
+          <div className="flex flex-wrap items-center gap-2">
+            <FilterChips
+              label="View"
+              value={scope}
+              onChange={setScope}
+              options={[
+                { value: "top", label: "Top per category" },
+                { value: "all", label: `All ${output.candidates.length}` },
+              ]}
+            />
+            <FilterChips
+              label="Disposition"
+              value={filter}
+              onChange={setFilter}
+              options={[
+                { value: "all", label: "All" },
+                { value: "forwarded", label: "Forwarded" },
+                { value: "withheld", label: "Withheld" },
+              ]}
+            />
+          </div>
         }
         bodyClassName="p-0"
       >
